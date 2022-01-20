@@ -1,0 +1,25 @@
+{
+    "name": "williarin/wordpress-interop",
+    "description": "Interoperability library to work with WordPress database in third party apps",
+    "keywords": ["wordpress", "database", "interop"],
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Williarin\\WordpressInterop\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "William Arin",
+            "email": "williamarin.dev@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "require": {
+        "php": ">=8.0",
+        "doctrine/dbal": "^3.3"
+    }
+}
