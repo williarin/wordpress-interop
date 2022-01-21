@@ -9,6 +9,11 @@
             "Williarin\\WordpressInterop\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Williarin\\WordpressInterop\\Tests\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "William Arin",
@@ -16,7 +21,9 @@
         }
     ],
     "require-dev": {
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^9.5",
+        "symfony/dotenv": "^6.0",
+        "symfony/var-dumper": "^6.0"
     },
     "require": {
         "php": ">=8.0",
