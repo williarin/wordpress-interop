@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+    mysql:
+        image: mysql:8
+        volumes:
+            - ./data/wp_test.sql:/docker-entrypoint-initdb.d/wp_test.sql:ro
+        command: --default-authentication-plugin=mysql_native_password
+        environment:
+            - MYSQL_USER=test
+            - MYSQL_PASSWORD=test
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=wp_test

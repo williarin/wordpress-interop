@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Williarin\WordpressInterop\Tests;
+namespace Williarin\WordpressInterop\Test;
 
 use Closure;
 use PHPUnit\Framework\TestCase;
-use Williarin\WordpressInterop\AbstractWordpressManagerRegistry;
-use Williarin\WordpressInterop\WordpressManagerInterface;
+use Williarin\WordpressInterop\AbstractManagerRegistry;
+use Williarin\WordpressInterop\EntityManagerInterface;
 
 class ManagerRegistryTest extends TestCase
 {
@@ -38,34 +38,24 @@ class ManagerRegistryTest extends TestCase
         ], $this->managerRegistry->getManagerNames());
     }
 
-    public function testGetDefaultManager(): void
-    {
-        self::assertInstanceOf(WordpressManagerInterface::class, $this->managerRegistry->getManager());
-    }
-
-    public function testGetManager(): void
-    {
-        self::assertInstanceOf(WordpressManagerInterface::class, $this->managerRegistry->getManager('default'));
-    }
-
     public function testGetManagers(): void
     {
         $managers = $this->managerRegistry->getManagers();
         self::assertEquals(['default', 'other'], array_keys($managers));
-        self::assertContainsOnlyInstancesOf(WordpressManagerInterface::class, $managers);
+        self::assertContainsOnlyInstancesOf(EntityManagerInterface::class, $managers);
     }
 
     private function getManagerFactory(): Closure
     {
         return function () {
-            return $this->createMock(WordpressManagerInterface::class);
+            return $this->createMock(EntityManagerInterface::class);
         };
     }
 }
 
-class TestManagerRegistry extends AbstractWordpressManagerRegistry
+class TestManagerRegistry extends AbstractManagerRegistry
 {
-    /** @var WordpressManagerInterface[] */
+    /** @var EntityManagerInterface[] */
     private array $services;
 
     /** @var callable */
@@ -77,7 +67,7 @@ class TestManagerRegistry extends AbstractWordpressManagerRegistry
         parent::__construct($managers, $defaultManager);
     }
 
-    protected function getService($name): WordpressManagerInterface
+    protected function getService($name): EntityManagerInterface
     {
         if (!isset($this->services[$name])) {
             $this->services[$name] = call_user_func($this->managerFactory);
