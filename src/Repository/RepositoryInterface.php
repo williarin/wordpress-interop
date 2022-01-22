@@ -6,4 +6,5 @@ namespace Williarin\WordpressInterop\Repository;
 
 interface RepositoryInterface
 {
+    public function getEntityClassName(): string;
 }

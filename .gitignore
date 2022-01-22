@@ -1,3 +1,4 @@
 /vendor/
 *.local
 .phpunit.result.cache
+docker-compose.override.yml

@@ -1,13 +1,43 @@
-version: "3.8"
+version: '3.8'
 
 services:
     mysql:
         image: mysql:8
+        ports:
+            - '33306:3306'
         volumes:
-            - ./data/wp_test.sql:/docker-entrypoint-initdb.d/wp_test.sql:ro
-        command: --default-authentication-plugin=mysql_native_password
+            - db:/var/lib/mysql
         environment:
             - MYSQL_USER=test
             - MYSQL_PASSWORD=test
             - MYSQL_ROOT_PASSWORD=root
             - MYSQL_DATABASE=wp_test
+        command: --default-authentication-plugin=mysql_native_password
+
+    wordpress:
+        image: wordpress
+        restart: 'no'
+        environment:
+            WORDPRESS_DB_HOST: mysql
+            WORDPRESS_DB_USER: test
+            WORDPRESS_DB_PASSWORD: test
+            WORDPRESS_DB_NAME: wp_test
+        volumes:
+            - wordpress:/var/www/html
+
+    wp-cli:
+        image: wordpress:cli
+        restart: 'no'
+        depends_on:
+            - wordpress
+        environment:
+            WORDPRESS_DB_HOST: mysql
+            WORDPRESS_DB_USER: test
+            WORDPRESS_DB_PASSWORD: test
+            WORDPRESS_DB_NAME: wp_test
+        volumes:
+            - wordpress:/var/www/html
+
+volumes:
+    wordpress:
+    db:

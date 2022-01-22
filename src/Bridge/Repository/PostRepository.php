@@ -2,15 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Williarin\WordpressInterop\Repository;
+namespace Williarin\WordpressInterop\Bridge\Repository;
 
-use Williarin\WordpressInterop\Entity\Post;
+use Symfony\Component\Serializer\SerializerInterface;
+use Williarin\WordpressInterop\Bridge\Entity\Post;
 use Williarin\WordpressInterop\EntityManagerInterface;
+use Williarin\WordpressInterop\Repository\EntityRepository;
 
+/**
+ * @method Post|null find($id)
+ * @method Post[]    findAll()
+ */
 final class PostRepository extends EntityRepository
 {
-    public function __construct(protected EntityManagerInterface $entityManager)
+    protected const POST_TYPE = 'post';
+
+    public function __construct(protected EntityManagerInterface $entityManager, SerializerInterface $serializer)
     {
-        parent::__construct($entityManager, Post::class);
+        parent::__construct($entityManager, $serializer, Post::class);
     }
 }

@@ -16,7 +16,10 @@
     ],
     "require": {
         "php": ">=8.0",
-        "doctrine/dbal": "^3.3"
+        "doctrine/dbal": "^3.3",
+        "symfony/serializer": "^6.0",
+        "symfony/property-access": "^6.0",
+        "symfony/serializer-pack": "^1.1"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.23",
