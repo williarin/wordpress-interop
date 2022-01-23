@@ -37,4 +37,9 @@ final class OptionRepository implements RepositoryInterface
 
         return $result === false ? null : unserialize_if_needed($result);
     }
+
+    public function getSiteUrl(): string
+    {
+        return $this->findValueByName('siteurl');
+    }
 }
