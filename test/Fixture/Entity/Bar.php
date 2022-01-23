@@ -6,5 +6,4 @@ namespace Williarin\WordpressInterop\Test\Fixture\Entity;
 
 final class Bar
 {
-
 }
