@@ -17,8 +17,10 @@ final class PostRepository extends EntityRepository
 {
     protected const POST_TYPE = 'post';
 
-    public function __construct(protected EntityManagerInterface $entityManager, SerializerInterface $serializer)
-    {
+    public function __construct(
+        protected EntityManagerInterface $entityManager,
+        SerializerInterface $serializer
+    ) {
         parent::__construct($entityManager, $serializer, Post::class);
     }
 }

@@ -9,7 +9,8 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS)]
 final class RepositoryClass
 {
-    public function __construct(public string $className)
-    {
+    public function __construct(
+        public string $className
+    ) {
     }
 }

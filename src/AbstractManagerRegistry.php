@@ -9,11 +9,11 @@ use Williarin\WordpressInterop\Repository\RepositoryInterface;
 
 abstract class AbstractManagerRegistry implements ManagerRegistryInterface
 {
-    public function __construct(private array $managers, private string $defaultManager)
-    {
+    public function __construct(
+        private array $managers,
+        private string $defaultManager
+    ) {
     }
-
-    abstract protected function getService(string $name): EntityManagerInterface;
 
     public function getDefaultManagerName(): string
     {
@@ -33,6 +33,9 @@ abstract class AbstractManagerRegistry implements ManagerRegistryInterface
         return $this->getService($this->managers[$name]);
     }
 
+    /**
+     * @return EntityManagerInterface[]
+     */
     public function getManagers(): array
     {
         $services = [];
@@ -44,6 +47,9 @@ abstract class AbstractManagerRegistry implements ManagerRegistryInterface
         return $services;
     }
 
+    /**
+     * @return string[]
+     */
     public function getManagerNames(): array
     {
         return $this->managers;
@@ -53,6 +59,9 @@ abstract class AbstractManagerRegistry implements ManagerRegistryInterface
     {
         return $this
             ->getManager($managerName)
-            ->getRepository($entityClassName);
+            ->getRepository($entityClassName)
+        ;
     }
+
+    abstract protected function getService(string $name): EntityManagerInterface;
 }

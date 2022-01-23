@@ -10,7 +10,7 @@ use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 
 class EntityRepository implements RepositoryInterface
 {
-    protected const POST_TYPE = 'post';
+    private const POST_TYPE = 'post';
 
     private array $entityProperties = [];
 
@@ -28,7 +28,8 @@ class EntityRepository implements RepositoryInterface
 
     public function find(int $id): mixed
     {
-        $result = $this->entityManager->getConnection()->createQueryBuilder()
+        $result = $this->entityManager->getConnection()
+            ->createQueryBuilder()
             ->select($this->getEntityBaseProperties())
             ->from($this->entityManager->getTablesPrefix() . 'posts')
             ->where('ID = :id')
@@ -50,7 +51,8 @@ class EntityRepository implements RepositoryInterface
 
     public function findAll(): mixed
     {
-        $result = $this->entityManager->getConnection()->createQueryBuilder()
+        $result = $this->entityManager->getConnection()
+            ->createQueryBuilder()
             ->select($this->getEntityBaseProperties())
             ->from($this->entityManager->getTablesPrefix() . 'posts')
             ->where('post_type = :post_type')
@@ -64,19 +66,24 @@ class EntityRepository implements RepositoryInterface
         return $this->serializer->denormalize($result, $this->entityClassName . '[]');
     }
 
-    protected function getEntityBaseProperties(): array
+    private function getEntityBaseProperties(): array
     {
         if (empty($this->entityProperties)) {
-            $this->entityProperties = array_keys($this->serializer->normalize(new $this->entityClassName, null, ['groups' => ['base']]));
+            $this->entityProperties = array_keys($this->serializer->normalize(new $this->entityClassName(), null, [
+                'groups' => ['base'],
+            ]));
         }
 
         return $this->entityProperties;
     }
 
+    /**
+     * @return string[]
+     */
     protected function getPrefixedEntityBaseProperties(string $prefix): array
     {
         return array_map(
-            static fn (string $property) => sprintf('%s.%s', $prefix, $property),
+            static fn (string $property): string => sprintf('%s.%s', $prefix, $property),
             $this->getEntityBaseProperties(),
         );
     }
