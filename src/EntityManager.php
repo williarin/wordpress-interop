@@ -56,12 +56,14 @@ class EntityManager implements EntityManagerInterface
 
     private function createRepositoryForClass(string $entityClassName): RepositoryInterface
     {
-        $reflection = new \ReflectionClass($entityClassName);
+        if (class_exists($entityClassName)) {
+            $reflection = new \ReflectionClass($entityClassName);
 
-        if ($attribute = current($reflection->getAttributes(RepositoryClass::class))) {
-            $repositoryClassName = $attribute->newInstance()->className;
+            if ($attribute = current($reflection->getAttributes(RepositoryClass::class))) {
+                $repositoryClassName = $attribute->newInstance()->className;
 
-            return new $repositoryClassName($this, $this->serializer, $entityClassName);
+                return new $repositoryClassName($this, $this->serializer, $entityClassName);
+            }
         }
 
         return new EntityRepository($this, $this->serializer, $entityClassName);

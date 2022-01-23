@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use Symfony\Component\Serializer\SerializerInterface;
+use Williarin\WordpressInterop\Bridge\Entity\Option;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Repository\RepositoryInterface;
 
@@ -18,7 +19,7 @@ final class OptionRepository implements RepositoryInterface
 
     public function getEntityClassName(): string
     {
-        return 'option';
+        return Option::class;
     }
 
     public function findValueByName(string $optionName): string|array|null
