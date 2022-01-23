@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
-use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
-use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
-use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
-use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 use Williarin\WordpressInterop\Bridge\Entity\Post;
 use Williarin\WordpressInterop\Bridge\Repository\PostRepository;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
@@ -22,9 +16,7 @@ class PostRepositoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $normalizer = new ObjectNormalizer(null, new CamelCaseToSnakeCaseNameConverter(), null, new ReflectionExtractor());
-        $serializer = new Serializer([new DateTimeNormalizer(), new ArrayDenormalizer(), $normalizer]);
-        $this->repository = new PostRepository($this->manager, $serializer);
+        $this->repository = new PostRepository($this->manager, $this->serializer);
     }
 
     public function testFindReturnsCorrectPost(): void

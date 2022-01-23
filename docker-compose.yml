@@ -15,7 +15,7 @@ services:
         command: --default-authentication-plugin=mysql_native_password
 
     wordpress:
-        image: wordpress
+        image: wordpress:fpm-alpine
         restart: 'no'
         environment:
             WORDPRESS_DB_HOST: mysql
@@ -37,6 +37,7 @@ services:
             WORDPRESS_DB_NAME: wp_test
         volumes:
             - wordpress:/var/www/html
+            - ./assets/:/assets/:ro
 
 volumes:
     wordpress:

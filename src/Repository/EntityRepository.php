@@ -16,7 +16,7 @@ class EntityRepository implements RepositoryInterface
 
     public function __construct(
         protected EntityManagerInterface $entityManager,
-        private SerializerInterface $serializer,
+        protected SerializerInterface $serializer,
         private string $entityClassName
     ) {
     }
@@ -29,7 +29,7 @@ class EntityRepository implements RepositoryInterface
     public function find(int $id): mixed
     {
         $result = $this->entityManager->getConnection()->createQueryBuilder()
-            ->select($this->getEntityProperties())
+            ->select($this->getEntityBaseProperties())
             ->from($this->entityManager->getTablesPrefix() . 'posts')
             ->where('ID = :id')
             ->andWhere('post_type = :post_type')
@@ -51,7 +51,7 @@ class EntityRepository implements RepositoryInterface
     public function findAll(): mixed
     {
         $result = $this->entityManager->getConnection()->createQueryBuilder()
-            ->select($this->getEntityProperties())
+            ->select($this->getEntityBaseProperties())
             ->from($this->entityManager->getTablesPrefix() . 'posts')
             ->where('post_type = :post_type')
             ->setParameters([
@@ -64,20 +64,20 @@ class EntityRepository implements RepositoryInterface
         return $this->serializer->denormalize($result, $this->entityClassName . '[]');
     }
 
-    private function getEntityProperties(): array
+    protected function getEntityBaseProperties(): array
     {
         if (empty($this->entityProperties)) {
-            $this->entityProperties = array_keys($this->serializer->normalize(new $this->entityClassName));
+            $this->entityProperties = array_keys($this->serializer->normalize(new $this->entityClassName, null, ['groups' => ['base']]));
         }
 
         return $this->entityProperties;
     }
 
-    private function getPrefixedEntityProperties(string $prefix): array
+    protected function getPrefixedEntityBaseProperties(string $prefix): array
     {
         return array_map(
             static fn (string $property) => sprintf('%s.%s', $prefix, $property),
-            $this->getEntityProperties(),
+            $this->getEntityBaseProperties(),
         );
     }
 }
