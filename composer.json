@@ -30,7 +30,10 @@
     "autoload": {
         "psr-4": {
             "Williarin\\WordpressInterop\\": "src/"
-        }
+        },
+        "files": [
+            "src/Util/String/StringUtil.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
