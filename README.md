@@ -63,7 +63,50 @@ $myPost = $postRepository->find(15);
 $allPosts = $postRepository->findAll();
 ```
 
-## Create your own repositories
+## Documentation
+
+### Basic post querying
+
+```php
+// Single post
+/** @var Post $post */
+$post = $manager->getRepository(Post::class)->find(1);
+echo $post->postTitle;
+
+// All posts
+/** @var Post[] $posts */
+$posts = $manager->getRepository(Post::class)->findAll();
+```
+
+### Field update
+There's a type validation before update.
+You can't assign a string to a date field, a string to an int field, etc.
+
+```php
+$repository = $manager->getRepository(Post::class);
+$repository->updatePostTitle(4, 'New title');
+$repository->updatePostContent(4, 'New content');
+$repository->updatePostDate(4, new \DateTime());
+// Alternative
+$repository->updateSingleField(4, 'post_status', 'publish');
+```
+
+### Get an option value
+
+To retrieve a WordPress option, you have several choices:
+```php
+// Query the option name yourself
+$blogName = $manager->getRepository(Option::class)->find('blogname');
+
+// Use a predefined getter
+$blogName = $manager->getRepository(Option::class)->findBlogName();
+
+// If there isn't a predefined getter, use a magic method.
+// Here we get the 'active_plugins' option, automatically unserialized.
+$plugins = $manager->getRepository(Option::class)->findActivePlugins();
+```
+
+### Create your own repositories
 
 Say you have a custom post type named `project`.
 
@@ -109,21 +152,6 @@ final class ProjectRepository extends AbstractEntityRepository
 Then use it like this:
 ```php
 $allProjects = $manager->getRepository(Project::class)->findAll();
-```
-
-## Get an option value
-
-To retrieve a WordPress option, you have several choices:
-```php
-// Query the option name yourself
-$blogName = $manager->getRepository(Option::class)->find('blogname');
-
-// Use a predefined getter
-$blogName = $manager->getRepository(Option::class)->findBlogName();
-
-// If there isn't a predefined getter, use a magic method.
-// Here we get the 'active_plugins' option, automatically unserialized.
-$plugins = $manager->getRepository(Option::class)->findActivePlugins();
 ```
 
 ## License
