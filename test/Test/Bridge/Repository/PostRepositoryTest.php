@@ -34,7 +34,7 @@ class PostRepositoryTest extends TestCase
         $this->repository->find(150);
     }
 
-    public function testFindAllReturns(): void
+    public function testFindAllReturnsCorrectNumberOfPosts(): void
     {
         $posts = $this->repository->findAll();
         self::assertContainsOnlyInstancesOf(Post::class, $posts);
