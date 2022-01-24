@@ -11,7 +11,7 @@ use Williarin\WordpressInterop\Attributes\RepositoryClass;
 use Williarin\WordpressInterop\Repository\EntityRepository;
 use Williarin\WordpressInterop\Repository\RepositoryInterface;
 
-final class EntityManager implements EntityManagerInterface
+class EntityManager implements EntityManagerInterface
 {
     private array $repositories = [];
 
@@ -26,7 +26,7 @@ final class EntityManager implements EntityManagerInterface
         Connection $connection,
         SerializerInterface $serializer,
         string $tablePrefix = 'wp_'
-    ): EntityManager {
+    ): EntityManagerInterface {
         return new EntityManager($connection, $serializer, $tablePrefix);
     }
 

@@ -54,6 +54,6 @@ final class AttachmentRepository extends EntityRepository
             ->fetchAssociative()
         ;
 
-        return $this->serializer->denormalize($result, Attachment::class);
+        return $this->denormalize($result, Attachment::class);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Repository;
 
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
@@ -46,7 +47,7 @@ class EntityRepository implements RepositoryInterface
             throw new EntityNotFoundException($this->entityClassName, $id);
         }
 
-        return $this->serializer->denormalize($result, $this->entityClassName);
+        return $this->denormalize($result, $this->entityClassName);
     }
 
     public function findAll(): mixed
@@ -63,7 +64,7 @@ class EntityRepository implements RepositoryInterface
             ->fetchAllAssociative()
         ;
 
-        return $this->serializer->denormalize($result, $this->entityClassName . '[]');
+        return $this->denormalize($result, $this->entityClassName . '[]');
     }
 
     /**
@@ -75,6 +76,17 @@ class EntityRepository implements RepositoryInterface
             static fn (string $property): string => sprintf('%s.%s', $prefix, $property),
             $this->getEntityBaseProperties(),
         );
+    }
+
+    protected function denormalize(mixed $data, string $type): mixed
+    {
+        $context = [];
+
+        if (PHP_VERSION_ID < 80100) {
+            $context[AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT] = true;
+        }
+
+        return $this->serializer->denormalize($data, $type, null, $context);
     }
 
     private function getEntityBaseProperties(): array
