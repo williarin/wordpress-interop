@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Repository\OptionRepository;
+use Williarin\WordpressInterop\Exception\OptionNotFoundException;
 use Williarin\WordpressInterop\Test\TestCase;
 
 class OptionRepositoryTest extends TestCase
@@ -17,20 +18,37 @@ class OptionRepositoryTest extends TestCase
         $this->repository = new OptionRepository($this->manager, $this->serializer);
     }
 
-    public function testFindByNameReturnsCorrectValue(): void
+    public function testFindReturnsCorrectValue(): void
     {
         self::assertEquals('My Awesome WordPress Site', $this->repository->find('blogname'));
     }
 
-    public function testFindByNameUnserializesValue(): void
+    public function testFindUnserializesValue(): void
     {
         $value = $this->repository->find('wp_user_roles');
         self::assertIsArray($value);
         self::assertArrayHasKey('administrator', $value);
     }
 
-    public function testFindByNameReturnsNullIfNotFound(): void
+    public function testFindThrowsExceptionIfNotFound(): void
     {
-        self::assertNull($this->repository->find('nonexistent_option'));
+        $this->expectException(OptionNotFoundException::class);
+        $this->repository->find('nonexistent_option');
+    }
+
+    public function testCallMagicGetterReturnsOptionValue(): void
+    {
+        self::assertEquals('My Awesome WordPress Site', $this->repository->getBlogName());
+    }
+
+    public function testCallMagicGetterReturnsArrayIfDataIsSerialized(): void
+    {
+        self::assertIsArray($this->repository->getActivePlugins());
+    }
+
+    public function testCallMagicGetterForNonExistentOptionThrowsException(): void
+    {
+        $this->expectException(OptionNotFoundException::class);
+        $this->repository->getSomeNonExistentOption();
     }
 }

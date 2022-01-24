@@ -113,6 +113,21 @@ Then use it like this:
 $allProjects = $manager->getRepository(Project::class)->findAll();
 ```
 
+## Get an option value
+
+To retrieve a WordPress option, you have several choices:
+```php
+// Query the option name yourself
+$blogName = $manager->getRepository(Option::class)->find('blogname');
+
+// Use a predefined getter
+$blogName = $manager->getRepository(Option::class)->findBlogName();
+
+// If there isn't a predefined getter, use a magic method.
+// Here we get the 'active_plugins' option, automatically unserialized.
+$plugins = $manager->getRepository(Option::class)->findActivePlugins();
+```
+
 ## License
 
 [MIT](LICENSE)

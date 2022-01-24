@@ -54,6 +54,7 @@ final class PostMetaRepository implements RepositoryInterface
     {
         try {
             $this->find($postId, $metaKey);
+
             throw new PostMetaKeyAlreadyExistsException($postId, $metaKey);
         } catch (PostMetaKeyNotFoundException) {
         }
@@ -73,7 +74,7 @@ final class PostMetaRepository implements RepositoryInterface
             ->setParameters([
                 'id' => $postId,
                 'key' => $metaKey,
-                'value' => (string)$metaValue,
+                'value' => (string) $metaValue,
             ])
             ->executeStatement()
         ;
@@ -96,7 +97,7 @@ final class PostMetaRepository implements RepositoryInterface
             ->setParameters([
                 'id' => $postId,
                 'key' => $metaKey,
-                'value' => (string)$metaValue,
+                'value' => (string) $metaValue,
             ])
             ->executeStatement()
         ;
