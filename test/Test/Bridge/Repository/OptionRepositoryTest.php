@@ -31,7 +31,6 @@ class OptionRepositoryTest extends TestCase
 
     public function testFindByNameReturnsNullIfNotFound(): void
     {
-        $value = $this->repository->findValueByName('nonexistent_option');
-        self::assertNull($value);
+        self::assertNull($this->repository->findValueByName('nonexistent_option'));
     }
 }
