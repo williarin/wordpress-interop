@@ -19,18 +19,18 @@ class OptionRepositoryTest extends TestCase
 
     public function testFindByNameReturnsCorrectValue(): void
     {
-        self::assertEquals('My Awesome WordPress Site', $this->repository->findValueByName('blogname'));
+        self::assertEquals('My Awesome WordPress Site', $this->repository->find('blogname'));
     }
 
     public function testFindByNameUnserializesValue(): void
     {
-        $value = $this->repository->findValueByName('wp_user_roles');
+        $value = $this->repository->find('wp_user_roles');
         self::assertIsArray($value);
         self::assertArrayHasKey('administrator', $value);
     }
 
     public function testFindByNameReturnsNullIfNotFound(): void
     {
-        self::assertNull($this->repository->findValueByName('nonexistent_option'));
+        self::assertNull($this->repository->find('nonexistent_option'));
     }
 }

@@ -23,7 +23,7 @@ final class OptionRepository implements RepositoryInterface
         return Option::class;
     }
 
-    public function findValueByName(string $optionName, bool $unserialize = true): string|array|null
+    public function find(string $optionName, bool $unserialize = true): string|array|null
     {
         /** @var string|false $result */
         $result = $this->entityManager->getConnection()
@@ -46,6 +46,6 @@ final class OptionRepository implements RepositoryInterface
 
     public function getSiteUrl(): string
     {
-        return $this->findValueByName('siteurl');
+        return $this->find('siteurl');
     }
 }
