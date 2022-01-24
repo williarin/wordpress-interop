@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Repository\OptionRepository;
+use Williarin\WordpressInterop\Exception\OptionAlreadyExistsException;
 use Williarin\WordpressInterop\Exception\OptionNotFoundException;
 use Williarin\WordpressInterop\Test\TestCase;
 
@@ -50,5 +51,70 @@ class OptionRepositoryTest extends TestCase
     {
         $this->expectException(OptionNotFoundException::class);
         $this->repository->getSomeNonExistentOption();
+    }
+
+
+    public function testCreateNewStringValue(): void
+    {
+        $this->repository->delete('new_option');
+        $result = $this->repository->create('new_option', 'hello');
+        self::assertTrue($result);
+        self::assertEquals('hello', $this->repository->find('new_option'));
+    }
+
+    public function testCreateNewArrayValue(): void
+    {
+        $this->repository->delete('new_serialized_option');
+        $result = $this->repository->create('new_serialized_option', ['hello' => 'world']);
+        self::assertTrue($result);
+        self::assertEquals('a:1:{s:5:"hello";s:5:"world";}', $this->repository->find('new_serialized_option', false));
+    }
+
+    public function testCantCreateDuplicates(): void
+    {
+        $this->repository->delete('about_to_be_duplicated');
+        $this->repository->create('about_to_be_duplicated', 'hello');
+
+        $this->expectException(OptionAlreadyExistsException::class);
+        $this->repository->create('about_to_be_duplicated', 'world');
+    }
+
+    public function testUpdateExistingValueWithStringValue(): void
+    {
+        $this->repository->delete('new_unique_option');
+        $this->repository->create('new_unique_option', 'hello');
+        $result = $this->repository->update('new_unique_option', 'world');
+        self::assertTrue($result);
+        self::assertEquals('world', $this->repository->find('new_unique_option'));
+    }
+
+    public function testUpdateExistingValueWithArrayValue(): void
+    {
+        $this->repository->delete('new_unique_serialized_option');
+        $this->repository->create('new_unique_serialized_option', 'hello');
+        $result = $this->repository->update('new_unique_serialized_option', ['this_is_an' => 'array']);
+        self::assertTrue($result);
+        self::assertEquals('a:1:{s:10:"this_is_an";s:5:"array";}', $this->repository->find('new_unique_serialized_option', false));
+    }
+
+    public function testUpdateNonExistentOptionReturnsFalse(): void
+    {
+        self::assertFalse($this->repository->update('nonexistent_option', 'world'));
+    }
+
+    public function testDeleteOptionWorks(): void
+    {
+        $this->repository->delete('an_option_to_delete');
+        $this->repository->create('an_option_to_delete', 'hello');
+        $result = $this->repository->delete('an_option_to_delete');
+        self::assertTrue($result);
+
+        $this->expectException(OptionNotFoundException::class);
+        $this->repository->find('an_option_to_delete');
+    }
+
+    public function testDeleteNonExistentOptionReturnsFalse(): void
+    {
+        self::assertFalse($this->repository->update('another_nonexistent_option', 'hello'));
     }
 }
