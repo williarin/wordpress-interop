@@ -66,17 +66,6 @@ class EntityRepository implements RepositoryInterface
         return $this->serializer->denormalize($result, $this->entityClassName . '[]');
     }
 
-    private function getEntityBaseProperties(): array
-    {
-        if (empty($this->entityProperties)) {
-            $this->entityProperties = array_keys($this->serializer->normalize(new $this->entityClassName(), null, [
-                'groups' => ['base'],
-            ]));
-        }
-
-        return $this->entityProperties;
-    }
-
     /**
      * @return string[]
      */
@@ -86,5 +75,16 @@ class EntityRepository implements RepositoryInterface
             static fn (string $property): string => sprintf('%s.%s', $prefix, $property),
             $this->getEntityBaseProperties(),
         );
+    }
+
+    private function getEntityBaseProperties(): array
+    {
+        if (empty($this->entityProperties)) {
+            $this->entityProperties = array_keys($this->serializer->normalize(new $this->entityClassName(), null, [
+                'groups' => ['base'],
+            ]));
+        }
+
+        return $this->entityProperties;
     }
 }

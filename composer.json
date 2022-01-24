@@ -45,5 +45,8 @@
             "Williarin\\WordpressInterop\\Test\\": "test/Test/",
             "Williarin\\WordpressInterop\\Test\\Fixture\\": "test/Fixture/"
         }
+    },
+    "scripts": {
+        "test": "vendor/bin/grumphp run --no-interaction"
     }
 }

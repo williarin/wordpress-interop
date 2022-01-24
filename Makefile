@@ -1,5 +1,8 @@
 CLI=docker compose run --rm wp-cli wp
 
+.PHONY: install reset reset-install reset-posts
+install: reset
+
 reset: reset-install reset-posts
 
 reset-install:
@@ -21,3 +24,8 @@ reset-posts:
 	@$(CLI) post create --post_title='Another post' --post-name='another-post' --post_content='Another small post.' --meta_input='{"key1":"value3","key3":"value4"}' --post_status='private'
 	@$(CLI) post create --post_title='Not sure if this should be published' --post-name='not-sure-if-this-should-be-published' --post_content='Should we publish this?' --post_status='draft'
 	@$(CLI) media import /assets/images/featuredimage.png --post_id=4 --title="A white banner" --featured_image
+
+.PHONY: test
+test:
+	@./vendor/bin/phpunit
+	@./vendor/bin/ecs check
