@@ -8,8 +8,18 @@ use Exception;
 
 final class EntityNotFoundException extends Exception
 {
-    public function __construct(string $entityClassName, int $id)
+    public function __construct(string $entityClassName, array $criteria)
     {
-        parent::__construct(sprintf('Could not find entity "%s" with ID "%d"', $entityClassName, $id));
+        $message = sprintf(
+            'Could not find entity "%s" with %s.',
+            $entityClassName,
+            implode(', ', array_map(
+                static fn ($value, $field) => sprintf('%s "%s"', $field, $value),
+                $criteria,
+                array_keys($criteria),
+            )),
+        );
+
+        parent::__construct($message);
     }
 }

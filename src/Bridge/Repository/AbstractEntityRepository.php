@@ -15,6 +15,7 @@ use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidArgumentException;
 use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
+use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
 use Williarin\WordpressInterop\Exception\InvalidTypeException;
 use Williarin\WordpressInterop\Exception\MethodNotFoundException;
 use function Symfony\Component\String\u;
@@ -70,22 +71,47 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
     public function find(int $id): BaseEntity
     {
-        $result = $this->entityManager->getConnection()
+        return $this->findOneBy([
+            'id' => $id,
+        ]);
+    }
+
+    public function findOneBy(array $criteria, array $orderBy = null): BaseEntity
+    {
+        $criteria = $this->normalizeCriteria($criteria);
+
+        $queryBuilder = $this->entityManager->getConnection()
             ->createQueryBuilder()
             ->select($this->getEntityBaseProperties())
             ->from($this->entityManager->getTablesPrefix() . 'posts')
-            ->where('ID = :id')
-            ->andWhere('post_type = :post_type')
-            ->setParameters([
-                'id' => $id,
-                'post_type' => static::POST_TYPE,
-            ])
-            ->executeQuery()
+            ->where('post_type = :post_type')
+            ->setParameter('post_type', static::POST_TYPE)
+        ;
+
+        foreach ($criteria as $field => $value) {
+            $queryBuilder->andWhere("{$field} = :{$field}")
+                ->setParameter($field, $value)
+            ;
+        }
+
+        if (!empty($orderBy)) {
+            foreach ($orderBy as $field => $orientation) {
+                $this->validateFieldName($field);
+
+                if (!in_array(strtolower($orientation), ['asc', 'desc'], true)) {
+                    throw new InvalidOrderByOrientationException($orientation);
+                }
+
+                $queryBuilder->addOrderBy($field, $orientation);
+            }
+        }
+
+        $result = $queryBuilder->executeQuery()
             ->fetchAssociative()
         ;
 
         if ($result === false) {
-            throw new EntityNotFoundException($this->entityClassName, $id);
+            throw new EntityNotFoundException($this->entityClassName, $criteria);
         }
 
         return $this->denormalize($result, $this->entityClassName);
@@ -110,29 +136,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
     public function updateSingleField(int $id, string $field, mixed $newValue): bool
     {
-        $propertyName = u($field)
-            ->lower()
-            ->camel()
-            ->toString()
-        ;
-        $newValueType = str_replace(['integer', 'boolean', 'double'], ['int', 'bool', 'float'], gettype($newValue));
-
-        try {
-            $expectedType = (new \ReflectionProperty(BaseEntity::class, $propertyName))->getType();
-        } catch (\ReflectionException) {
-            throw new InvalidFieldNameException($this->entityManager->getTablesPrefix() . 'posts', strtolower($field));
-        }
-
-        if (
-            (is_object($newValue) && !is_subclass_of($newValue, $expectedType->getName()))
-            || (!is_object($newValue) && $expectedType->getName() !== $newValueType)
-        ) {
-            throw new InvalidTypeException(strtolower($field), $expectedType->getName(), $newValueType);
-        }
-
-        if (is_array($newValue)) {
-            $newValue = serialize($newValue);
-        }
+        $value = $this->normalize($field, $newValue);
 
         $affectedRows = $this->entityManager->getConnection()
             ->createQueryBuilder()
@@ -142,7 +146,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
             ->setParameters([
                 'id' => $id,
                 'key' => strtolower($field),
-                'value' => (string) $this->serializer->normalize($newValue),
+                'value' => $value,
             ])
             ->executeStatement()
         ;
@@ -170,6 +174,13 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         }
 
         return $this->serializer->denormalize($data, $type, null, $context);
+    }
+
+    protected function normalize(string $field, mixed $value): string
+    {
+        $value = $this->validateFieldValue($field, $value);
+
+        return (string) $this->serializer->normalize($value);
     }
 
     private function getEntityBaseProperties(): array
@@ -213,5 +224,53 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         ;
 
         return $this->updateSingleField($arguments[0], $fieldName, $arguments[1]);
+    }
+
+    private function validateFieldName(string $field): string
+    {
+        $propertyName = u($field)
+            ->lower()
+            ->camel()
+            ->toString()
+        ;
+
+        try {
+            $expectedType = (new \ReflectionProperty(BaseEntity::class, $propertyName))->getType();
+        } catch (\ReflectionException) {
+            throw new InvalidFieldNameException($this->entityManager->getTablesPrefix() . 'posts', strtolower($field));
+        }
+
+        return $expectedType->getName();
+    }
+
+    private function validateFieldValue(string $field, mixed $value): mixed
+    {
+        $expectedType = $this->validateFieldName($field);
+        $newValueType = str_replace(['integer', 'boolean', 'double'], ['int', 'bool', 'float'], gettype($value));
+
+        if (
+            (is_object($value) && !is_subclass_of($value, $expectedType))
+            || (!is_object($value) && $expectedType !== $newValueType)
+        ) {
+            throw new InvalidTypeException(strtolower($field), $expectedType, $newValueType);
+        }
+
+        if (is_array($value)) {
+            $value = serialize($value);
+        }
+
+        return $value;
+    }
+
+    private function normalizeCriteria(array $criteria): array
+    {
+        $output = [];
+
+        foreach ($criteria as $field => $value) {
+            $value = $this->validateFieldValue($field, $value);
+            $output[$field] = (string) $this->serializer->normalize($value);
+        }
+
+        return $output;
     }
 }

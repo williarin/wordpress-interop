@@ -9,8 +9,9 @@ use Williarin\WordpressInterop\Bridge\Entity\Attachment;
 use Williarin\WordpressInterop\EntityManagerInterface;
 
 /**
- * @method Attachment|null find($id)
- * @method Attachment[]    findAll()
+ * @method Attachment   find($id)
+ * @method Attachment   findOneBy(array $criteria, array $orderBy = null)
+ * @method Attachment[] findAll()
  */
 final class AttachmentRepository extends AbstractEntityRepository
 {

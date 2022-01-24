@@ -9,8 +9,9 @@ use Williarin\WordpressInterop\Bridge\Entity\Page;
 use Williarin\WordpressInterop\EntityManagerInterface;
 
 /**
- * @method Page|null find($id)
- * @method Page[]    findAll()
+ * @method Page   find($id)
+ * @method Page   findOneBy(array $criteria, array $orderBy = null)
+ * @method Page[] findAll()
  */
 final class PageRepository extends AbstractEntityRepository
 {

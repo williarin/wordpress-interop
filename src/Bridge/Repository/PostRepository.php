@@ -9,8 +9,9 @@ use Williarin\WordpressInterop\Bridge\Entity\Post;
 use Williarin\WordpressInterop\EntityManagerInterface;
 
 /**
- * @method Post|null find($id)
- * @method Post[]    findAll()
+ * @method Post   find($id)
+ * @method Post   findOneBy(array $criteria, array $orderBy = null)
+ * @method Post[] findAll()
  */
 final class PostRepository extends AbstractEntityRepository
 {
