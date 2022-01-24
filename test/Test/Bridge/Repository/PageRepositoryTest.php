@@ -44,6 +44,6 @@ class PageRepositoryTest extends TestCase
     {
         $pages = $this->repository->findAll();
         self::assertContainsOnlyInstancesOf(Page::class, $pages);
-        self::assertCount(2, $pages);
+        self::assertCount(7, $pages);
     }
 }

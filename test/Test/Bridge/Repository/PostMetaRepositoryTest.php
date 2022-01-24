@@ -21,12 +21,12 @@ class PostMetaRepositoryTest extends TestCase
 
     public function testFindReturnsCorrectValue(): void
     {
-        self::assertEquals('value3', $this->repository->find(5, 'key1'));
+        self::assertEquals('value3', $this->repository->find(11, 'key1'));
     }
 
     public function testFindUnserializesValue(): void
     {
-        $value = $this->repository->find(7, '_wp_attachment_metadata');
+        $value = $this->repository->find(13, '_wp_attachment_metadata');
         self::assertIsArray($value);
         self::assertArrayHasKey('width', $value);
     }

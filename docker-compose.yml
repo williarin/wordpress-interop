@@ -38,6 +38,8 @@ services:
         volumes:
             - wordpress:/var/www/html
             - ./assets/:/assets/:ro
+        dns:
+            - 1.1.1.1
 
 volumes:
     wordpress:

@@ -23,13 +23,13 @@ class AbstractEntityRepositoryTest extends TestCase
 
     public function testUpdateSingleField(): void
     {
-        $this->repository->updateSingleField(4, 'post_content', 'Just a small post.');
-        self::assertSame('Just a small post.', $this->repository->find(4)->postContent);
+        $this->repository->updateSingleField(10, 'post_content', 'Just a small post.');
+        self::assertSame('Just a small post.', $this->repository->find(10)->postContent);
 
-        $this->repository->updateSingleField(4, 'post_content', 'A new content');
-        self::assertSame('A new content', $this->repository->find(4)->postContent);
+        $this->repository->updateSingleField(10, 'post_content', 'A new content');
+        self::assertSame('A new content', $this->repository->find(10)->postContent);
 
-        $this->repository->updateSingleField(4, 'post_content', 'Just a small post.');
+        $this->repository->updateSingleField(10, 'post_content', 'Just a small post.');
     }
 
     public function testUpdateNonExistentFieldThrowsException(): void
@@ -41,24 +41,24 @@ class AbstractEntityRepositoryTest extends TestCase
     public function testUpdateSingleFieldPostContentMatchesExpectedStringType(): void
     {
         $this->expectException(InvalidTypeException::class);
-        $this->repository->updateSingleField(4, 'post_content', 50);
+        $this->repository->updateSingleField(10, 'post_content', 50);
     }
 
     public function testUpdateSingleFieldPostAuthorMatchesExpectedIntType(): void
     {
         $this->expectException(InvalidTypeException::class);
-        $this->repository->updateSingleField(4, 'post_author', 'This should be an int');
+        $this->repository->updateSingleField(10, 'post_author', 'This should be an int');
     }
 
     public function testUpdatePostContentWithMagicCall(): void
     {
-        $this->repository->updatePostContent(4, 'Just a small post.');
-        self::assertSame('Just a small post.', $this->repository->find(4)->postContent);
+        $this->repository->updatePostContent(10, 'Just a small post.');
+        self::assertSame('Just a small post.', $this->repository->find(10)->postContent);
 
-        $this->repository->updatePostContent(4, 'A new content');
-        self::assertSame('A new content', $this->repository->find(4)->postContent);
+        $this->repository->updatePostContent(10, 'A new content');
+        self::assertSame('A new content', $this->repository->find(10)->postContent);
 
-        $this->repository->updatePostContent(4, 'Just a small post.');
+        $this->repository->updatePostContent(10, 'Just a small post.');
     }
 
     public function testUpdateFieldWithMagicCallWithoutArgumentThrowsException(): void
