@@ -8,8 +8,8 @@ use Doctrine\DBAL\Connection;
 use ReflectionClass;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Attributes\RepositoryClass;
-use Williarin\WordpressInterop\Repository\EntityRepository;
-use Williarin\WordpressInterop\Repository\RepositoryInterface;
+use Williarin\WordpressInterop\Bridge\Repository\AbstractEntityRepository;
+use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
 
 class EntityManager implements EntityManagerInterface
 {
@@ -77,6 +77,7 @@ class EntityManager implements EntityManagerInterface
             }
         }
 
-        return new EntityRepository($this, $this->serializer, $entityClassName);
+        return new class($this, $this->serializer, $entityClassName) extends AbstractEntityRepository {
+        };
     }
 }

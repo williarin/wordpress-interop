@@ -7,13 +7,12 @@ namespace Williarin\WordpressInterop\Bridge\Repository;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\Post;
 use Williarin\WordpressInterop\EntityManagerInterface;
-use Williarin\WordpressInterop\Repository\EntityRepository;
 
 /**
  * @method Post|null find($id)
  * @method Post[]    findAll()
  */
-final class PostRepository extends EntityRepository
+final class PostRepository extends AbstractEntityRepository
 {
     protected const POST_TYPE = 'post';
 

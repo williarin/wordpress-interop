@@ -10,7 +10,6 @@ use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\MethodNotFoundException;
 use Williarin\WordpressInterop\Exception\OptionAlreadyExistsException;
 use Williarin\WordpressInterop\Exception\OptionNotFoundException;
-use Williarin\WordpressInterop\Repository\RepositoryInterface;
 use function Symfony\Component\String\u;
 use function Williarin\WordpressInterop\Util\String\unserialize_if_needed;
 

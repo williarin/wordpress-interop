@@ -83,20 +83,18 @@ final class Project extends BaseEntity
 }
 ```
 Then a repository:
+
 ```php
 // App/Wordpress/Repository/ProjectRepository.php
 namespace App\Wordpress\Repository;
 
-use App\Wordpress\Entity\Project;
-use Symfony\Component\Serializer\SerializerInterface;
-use Williarin\WordpressInterop\EntityManagerInterface;
-use Williarin\WordpressInterop\Repository\EntityRepository;
+use App\Wordpress\Entity\Project;use Symfony\Component\Serializer\SerializerInterface;use Williarin\WordpressInterop\Bridge\Repository\AbstractEntityRepository;use Williarin\WordpressInterop\EntityManagerInterface;
 
 /**
  * @method Project|null find($id)
  * @method Project[]    findAll()
  */
-final class ProjectRepository extends EntityRepository
+final class ProjectRepository extends AbstractEntityRepository
 {
     protected const POST_TYPE = 'project';
 

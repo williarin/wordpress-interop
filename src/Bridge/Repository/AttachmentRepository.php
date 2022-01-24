@@ -7,13 +7,12 @@ namespace Williarin\WordpressInterop\Bridge\Repository;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\Attachment;
 use Williarin\WordpressInterop\EntityManagerInterface;
-use Williarin\WordpressInterop\Repository\EntityRepository;
 
 /**
  * @method Attachment|null find($id)
  * @method Attachment[]    findAll()
  */
-final class AttachmentRepository extends EntityRepository
+final class AttachmentRepository extends AbstractEntityRepository
 {
     protected const POST_TYPE = 'attachment';
 

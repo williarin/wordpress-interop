@@ -9,7 +9,6 @@ use Williarin\WordpressInterop\Bridge\Entity\PostMeta;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\PostMetaKeyAlreadyExistsException;
 use Williarin\WordpressInterop\Exception\PostMetaKeyNotFoundException;
-use Williarin\WordpressInterop\Repository\RepositoryInterface;
 use function Williarin\WordpressInterop\Util\String\unserialize_if_needed;
 
 final class PostMetaRepository implements RepositoryInterface

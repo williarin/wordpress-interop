@@ -2,16 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Williarin\WordpressInterop\Repository;
+namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
+use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
+use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
 
-class EntityRepository implements RepositoryInterface
+abstract class AbstractEntityRepository implements RepositoryInterface
 {
-    private const POST_TYPE = 'post';
+    protected const POST_TYPE = 'post';
 
     private array $entityProperties = [];
 
@@ -27,7 +29,7 @@ class EntityRepository implements RepositoryInterface
         return $this->entityClassName;
     }
 
-    public function find(int $id): mixed
+    public function find(int $id): BaseEntity
     {
         $result = $this->entityManager->getConnection()
             ->createQueryBuilder()
@@ -65,6 +67,32 @@ class EntityRepository implements RepositoryInterface
         ;
 
         return $this->denormalize($result, $this->entityClassName . '[]');
+    }
+
+    public function updateSingleField(int $id, string $field, mixed $newValue): bool
+    {
+        if (is_array($newValue)) {
+            $newValue = serialize($newValue);
+        }
+
+        if (!in_array(strtolower($field), $this->getEntityBaseProperties(), true)) {
+            throw new InvalidFieldNameException($this->entityManager->getTablesPrefix() . 'posts', strtolower($field));
+        }
+
+        $affectedRows = $this->entityManager->getConnection()
+            ->createQueryBuilder()
+            ->update($this->entityManager->getTablesPrefix() . 'posts')
+            ->set($field, ':value')
+            ->where('ID = :id')
+            ->setParameters([
+                'id' => $id,
+                'key' => strtolower($field),
+                'value' => (string) $newValue,
+            ])
+            ->executeStatement()
+        ;
+
+        return $affectedRows > 0;
     }
 
     /**

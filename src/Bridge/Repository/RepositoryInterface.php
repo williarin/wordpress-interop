@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Williarin\WordpressInterop\Repository;
+namespace Williarin\WordpressInterop\Bridge\Repository;
 
 interface RepositoryInterface
 {

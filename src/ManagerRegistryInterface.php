@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop;
 
-use Williarin\WordpressInterop\Repository\RepositoryInterface;
+use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
 
 interface ManagerRegistryInterface
 {

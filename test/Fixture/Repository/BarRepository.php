@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Test\Fixture\Repository;
 
 use Symfony\Component\Serializer\SerializerInterface;
+use Williarin\WordpressInterop\Bridge\Repository\AbstractEntityRepository;
 use Williarin\WordpressInterop\EntityManagerInterface;
-use Williarin\WordpressInterop\Repository\EntityRepository;
 use Williarin\WordpressInterop\Test\Fixture\Entity\Bar;
 
-final class BarRepository extends EntityRepository
+final class BarRepository extends AbstractEntityRepository
 {
     public function __construct(protected EntityManagerInterface $entityManager, SerializerInterface $serializer)
     {
