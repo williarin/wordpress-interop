@@ -91,6 +91,14 @@ $repository->updatePostDate(4, new \DateTime());
 $repository->updateSingleField(4, 'post_status', 'publish');
 ```
 
+### Available entities and repositories
+
+* `Post` and `PostRepository`
+* `Page` and `PageRepository`
+* `Attachment` and `AttachmentRepository`
+* `Option` and `OptionRepository`
+* `PostMeta` and `PostMetaRepository`
+
 ### Get an option value
 
 To retrieve a WordPress option, you have several choices:
