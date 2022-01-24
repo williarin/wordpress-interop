@@ -29,3 +29,7 @@ reset-posts:
 test:
 	@./vendor/bin/phpunit
 	@./vendor/bin/ecs check
+
+.PHONY: fix
+fix:
+	@./vendor/bin/ecs check --fix
