@@ -75,4 +75,37 @@ class PostRepositoryTest extends TestCase
         $this->expectException(InvalidOrderByOrientationException::class);
         $this->repository->findOneBy(['post_status' => 'publish'], ['id' => 'wrong']);
     }
+
+    public function testFindOneByPostTitleUsingMagicCall(): void
+    {
+        $post = $this->repository->findOneByPostTitle('Another post');
+        self::assertInstanceOf(Post::class, $post);
+        self::assertEquals(11, $post->id);
+        self::assertEquals('Another post', $post->postTitle);
+        self::assertEquals('Another small post.', $post->postContent);
+    }
+
+    public function testFindOneByPostStatusOrderByAscUsingMagicCall(): void
+    {
+        $post = $this->repository->findOneByPostStatus('publish', ['id' => 'ASC']);
+        self::assertEquals(1, $post->id);
+    }
+
+    public function testFindOneByPostStatusOrderByDescUsingMagicCall(): void
+    {
+        $post = $this->repository->findOneByPostStatus('publish', ['id' => 'DESC']);
+        self::assertEquals(10, $post->id);
+    }
+
+    public function testOrderByFieldValidationWithFindOneByUsingMagicCall(): void
+    {
+        $this->expectException(InvalidFieldNameException::class);
+        $this->repository->findOneByPostStatus('publish', ['wrong' => 'DESC']);
+    }
+
+    public function testFindLatestPublishedPostWithTheMostComments(): void
+    {
+        $post = $this->repository->findOneByPostStatus('publish', ['comment_count' => 'DESC', 'post_date' => 'DESC']);
+        self::assertEquals(1, $post->id);
+    }
 }

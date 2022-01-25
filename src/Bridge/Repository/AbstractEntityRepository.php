@@ -21,26 +21,46 @@ use Williarin\WordpressInterop\Exception\MethodNotFoundException;
 use function Symfony\Component\String\u;
 
 /**
- * @method bool updatePostAuthor(int $id, int $newValue)
- * @method bool updatePostDate(int $id, DateTimeInterface $newValue)
- * @method bool updatePostDateGmt(int $id, DateTimeInterface $newValue)
- * @method bool updatePostContent(int $id, string $newValue)
- * @method bool updatePostTitle(int $id, string $newValue)
- * @method bool updatePostExcerpt(int $id, string $newValue)
- * @method bool updatePostStatus(int $id, string $newValue)
- * @method bool updateCommentStatus(int $id, string $newValue)
- * @method bool updatePingStatus(int $id, string $newValue)
- * @method bool updatePostPassword(int $id, string $newValue)
- * @method bool updatePostName(int $id, string $newValue)
- * @method bool updateToPing(int $id, string $newValue)
- * @method bool updatePinged(int $id, string $newValue)
- * @method bool updatePostModifiedGmt(int $id, DateTimeInterface $newValue)
- * @method bool updatePostParent(int $id, int $newValue)
- * @method bool updateGuid(int $id, string $newValue)
- * @method bool updateMenuOrder(int $id, int $newValue)
- * @method bool updatePostType(int $id, string $newValue)
- * @method bool updatePostMimeType(int $id, string $newValue)
- * @method bool updateCommentCount(int $id, int $newValue)
+ * @method BaseEntity findOneByPostAuthor(int $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostDate(DateTimeInterface $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostDateGmt(DateTimeInterface $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostContent(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostTitle(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostExcerpt(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostStatus(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByCommentStatus(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPingStatus(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostPassword(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostName(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByToPing(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPinged(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostModifiedGmt(DateTimeInterface $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostParent(int $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByGuid(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByMenuOrder(int $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostType(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByPostMimeType(string $newValue, array $orderBy = null)
+ * @method BaseEntity findOneByCommentCount(int $newValue, array $orderBy = null)
+ * @method bool       updatePostAuthor(int $id, int $newValue)
+ * @method bool       updatePostDate(int $id, DateTimeInterface $newValue)
+ * @method bool       updatePostDateGmt(int $id, DateTimeInterface $newValue)
+ * @method bool       updatePostContent(int $id, string $newValue)
+ * @method bool       updatePostTitle(int $id, string $newValue)
+ * @method bool       updatePostExcerpt(int $id, string $newValue)
+ * @method bool       updatePostStatus(int $id, string $newValue)
+ * @method bool       updateCommentStatus(int $id, string $newValue)
+ * @method bool       updatePingStatus(int $id, string $newValue)
+ * @method bool       updatePostPassword(int $id, string $newValue)
+ * @method bool       updatePostName(int $id, string $newValue)
+ * @method bool       updateToPing(int $id, string $newValue)
+ * @method bool       updatePinged(int $id, string $newValue)
+ * @method bool       updatePostModifiedGmt(int $id, DateTimeInterface $newValue)
+ * @method bool       updatePostParent(int $id, int $newValue)
+ * @method bool       updateGuid(int $id, string $newValue)
+ * @method bool       updateMenuOrder(int $id, int $newValue)
+ * @method bool       updatePostType(int $id, string $newValue)
+ * @method bool       updatePostMimeType(int $id, string $newValue)
+ * @method bool       updateCommentCount(int $id, int $newValue)
  */
 abstract class AbstractEntityRepository implements RepositoryInterface
 {
@@ -55,8 +75,12 @@ abstract class AbstractEntityRepository implements RepositoryInterface
     ) {
     }
 
-    public function __call(string $name, array $arguments): string|array|bool|null
+    public function __call(string $name, array $arguments): BaseEntity|bool
     {
+        if (str_starts_with($name, 'findOneBy')) {
+            return $this->doFindOneBy($name, $arguments);
+        }
+
         if (str_starts_with($name, 'update')) {
             return $this->doUpdate($name, $arguments);
         }
@@ -194,6 +218,28 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         return $this->entityProperties;
     }
 
+    private function doFindOneBy(string $name, array $arguments): BaseEntity
+    {
+        $resolver = (new OptionsResolver())
+            ->setRequired(['0'])
+            ->setDefault('1', [])
+            ->setAllowedTypes('1', 'array')
+        ;
+
+        $fieldName = u(substr($name, 9))
+            ->snake()
+            ->lower()
+            ->toString()
+        ;
+
+        $arguments = $this->validateArguments($resolver, $arguments);
+        $this->validateFieldValue($fieldName, $arguments[0]);
+
+        return $this->findOneBy([
+            $fieldName => $arguments[0],
+        ], $arguments[1]);
+    }
+
     private function doUpdate(string $name, array $arguments): bool
     {
         $resolver = (new OptionsResolver())
@@ -203,19 +249,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
             ->setInfo('1', 'The new value.')
         ;
 
-        try {
-            $arguments = $resolver->resolve($arguments);
-        } catch (MissingOptionsException) {
-            throw new InvalidArgumentException(
-                'This method requires two arguments: updatePostContent(int $id, mixed $newValue).'
-            );
-        } catch (InvalidOptionsException) {
-            throw new InvalidArgumentException(sprintf(
-                'The option "$id" with value "%s" is expected to be of type "int", but is of type "%s".',
-                $arguments[0],
-                gettype($arguments[0]),
-            ));
-        }
+        $arguments = $this->validateArguments($resolver, $arguments);
 
         $fieldName = u(substr($name, 6))
             ->snake()
@@ -224,6 +258,19 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         ;
 
         return $this->updateSingleField($arguments[0], $fieldName, $arguments[1]);
+    }
+
+    private function validateArguments(OptionsResolver $resolver, array $arguments): array
+    {
+        try {
+            $arguments = $resolver->resolve($arguments);
+        } catch (MissingOptionsException) {
+            throw new InvalidArgumentException('Some arguments are missing.');
+        } catch (InvalidOptionsException) {
+            throw new InvalidArgumentException('Arguments provided are of the wrong type.');
+        }
+
+        return $arguments;
     }
 
     private function validateFieldName(string $field): string

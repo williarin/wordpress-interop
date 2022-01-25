@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
+use DateTimeInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\Attachment;
 use Williarin\WordpressInterop\EntityManagerInterface;
@@ -11,6 +12,26 @@ use Williarin\WordpressInterop\EntityManagerInterface;
 /**
  * @method Attachment   find($id)
  * @method Attachment   findOneBy(array $criteria, array $orderBy = null)
+ * @method Attachment   findOneByPostAuthor(int $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostDate(DateTimeInterface $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostDateGmt(DateTimeInterface $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostContent(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostTitle(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostExcerpt(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostStatus(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByCommentStatus(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPingStatus(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostPassword(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostName(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByToPing(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPinged(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostModifiedGmt(DateTimeInterface $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostParent(int $newValue, array $orderBy = null)
+ * @method Attachment   findOneByGuid(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByMenuOrder(int $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostType(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByPostMimeType(string $newValue, array $orderBy = null)
+ * @method Attachment   findOneByCommentCount(int $newValue, array $orderBy = null)
  * @method Attachment[] findAll()
  */
 final class AttachmentRepository extends AbstractEntityRepository

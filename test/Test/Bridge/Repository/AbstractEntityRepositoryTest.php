@@ -64,21 +64,21 @@ class AbstractEntityRepositoryTest extends TestCase
     public function testUpdateFieldWithMagicCallWithoutArgumentThrowsException(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('This method requires two arguments: updatePostContent(int $id, mixed $newValue).');
+        $this->expectExceptionMessage('Some arguments are missing.');
         $this->repository->updatePostContent();
     }
 
     public function testUpdateFieldWithMagicCallWithOneArgumentThrowsException(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('This method requires two arguments: updatePostContent(int $id, mixed $newValue).');
+        $this->expectExceptionMessage('Some arguments are missing.');
         $this->repository->updatePostContent(120);
     }
 
     public function testUpdateFieldWithMagicCallWithWrongArgumentTypeThrowsException(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('The option "$id" with value "wrong" is expected to be of type "int", but is of type "string".');
+        $this->expectExceptionMessage('Arguments provided are of the wrong type.');
         $this->repository->updatePostContent("wrong", "new value");
     }
 }

@@ -67,11 +67,30 @@ $allPosts = $postRepository->findAll();
 
 ### Basic post querying
 
+This works with any entity inherited from `BaseEntity`.
+Built-in entities are `Post`, `Page` and `Attachment` but you can [create your own](#create-your-own-repositories).
+
 ```php
-// Single post
-/** @var Post $post */
+// Fetch a post by ID
 $post = $manager->getRepository(Post::class)->find(1);
-echo $post->postTitle;
+
+// Fetch the latest published post
+$post = $manager->getRepository(Post::class)
+    ->findOneByPostStatus('publish', ['post_date' => 'DESC']);
+
+// Fetch the latest published post which has 1 comment
+$post = $manager->getRepository(Post::class)
+    ->findOneBy(
+        ['post_status' => 'publish', 'comment_count' => 1],
+        ['post_date' => 'DESC'],
+    );
+
+// Fetch the latest published post which has the most comments
+$post = $manager->getRepository(Post::class)
+    ->findOneByPostStatus(
+        'publish',
+        ['comment_count' => 'DESC', 'post_date' => 'DESC'],
+    );
 
 // All posts
 /** @var Post[] $posts */
