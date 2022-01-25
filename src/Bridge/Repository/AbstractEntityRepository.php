@@ -8,7 +8,6 @@ use DateTimeInterface;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
@@ -213,7 +212,6 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
     /**
      * @return string[]
-     * @throws ExceptionInterface
      */
     protected function getEntityBaseFields(): array
     {
@@ -228,7 +226,6 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
     /**
      * @return string[]
-     * @throws ExceptionInterface
      */
     protected function getPrefixedEntityBaseFields(string $prefix): array
     {
@@ -240,7 +237,6 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
     /**
      * @return string[]
-     * @throws ExceptionInterface
      */
     protected function getEntityExtraFields(): array
     {

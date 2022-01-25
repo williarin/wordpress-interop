@@ -28,7 +28,9 @@ final class SerializedArrayDenormalizer implements ContextAwareDenormalizerInter
 
         if ($data !== $unserialized) {
             if ($type === GenericData::class) {
-                $unserialized = ['data' => $unserialized];
+                $unserialized = [
+                    'data' => $unserialized,
+                ];
             }
 
             return $this->denormalizer->denormalize($unserialized, $type);

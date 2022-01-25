@@ -24,10 +24,7 @@ final class GenericData
             return $this->data[$fieldName];
         }
 
-        throw new InvalidArgumentException(sprintf(
-            'Property "%s" does not exist.',
-            $name,
-        ));
+        throw new InvalidArgumentException(sprintf('Property "%s" does not exist.', $name,));
     }
 
     public function __call(string $name, array $arguments)
@@ -52,9 +49,6 @@ final class GenericData
             return $this->data[$fieldName];
         }
 
-        throw new InvalidArgumentException(sprintf(
-            'Property "%s" does not exist.',
-            $name,
-        ));
+        throw new InvalidArgumentException(sprintf('Property "%s" does not exist.', $name,));
     }
 }
