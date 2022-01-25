@@ -38,6 +38,11 @@ final class AttachmentRepository extends AbstractEntityRepository
 {
     protected const POST_TYPE = 'attachment';
 
+    protected const MAPPED_FIELDS = [
+        '_wp_attached_file' => 'attached_file',
+        '_wp_attachment_metadata' => 'attachment_metadata',
+    ];
+
     public function __construct(
         protected EntityManagerInterface $entityManager,
         protected SerializerInterface $serializer
@@ -49,7 +54,7 @@ final class AttachmentRepository extends AbstractEntityRepository
     {
         $result = $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->select($this->getPrefixedEntityBaseProperties('p'))
+            ->select($this->getPrefixedEntityBaseFields('p'))
             ->addSelect(
                 "MAX(Case WHEN pm_self.meta_key = '_wp_attached_file' THEN pm_self.meta_value END) attached_file"
             )

@@ -8,6 +8,7 @@ use DateTimeInterface;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
@@ -18,7 +19,8 @@ use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
 use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
 use Williarin\WordpressInterop\Exception\InvalidTypeException;
 use Williarin\WordpressInterop\Exception\MethodNotFoundException;
-use function Symfony\Component\String\u;
+use function Williarin\WordpressInterop\Util\String\field_to_property;
+use function Williarin\WordpressInterop\Util\String\property_to_field;
 
 /**
  * @method BaseEntity findOneByPostAuthor(int $newValue, array $orderBy = null)
@@ -65,8 +67,10 @@ use function Symfony\Component\String\u;
 abstract class AbstractEntityRepository implements RepositoryInterface
 {
     protected const POST_TYPE = 'post';
+    protected const MAPPED_FIELDS = [];
 
-    private array $entityProperties = [];
+    private array $entityBaseFields = [];
+    private array $entityExtraFields = [];
 
     public function __construct(
         protected EntityManagerInterface $entityManager,
@@ -106,16 +110,45 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
         $queryBuilder = $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->select($this->getEntityBaseProperties())
-            ->from($this->entityManager->getTablesPrefix() . 'posts')
+            ->select($this->getPrefixedEntityBaseFields('p'))
+            ->from($this->entityManager->getTablesPrefix() . 'posts', 'p')
             ->where('post_type = :post_type')
             ->setParameter('post_type', static::POST_TYPE)
         ;
 
+        $extraFields = $this->getEntityExtraFields();
+
+        if (!empty($extraFields)) {
+            $queryBuilder->join(
+                'p',
+                $this->entityManager->getTablesPrefix() . 'postmeta',
+                'pm_self',
+                'p.ID = pm_self.post_id',
+            );
+
+            foreach ($extraFields as $extraField) {
+                $fieldName = property_to_field($extraField);
+                $mappedMetaKey = $this->getMappedMetaKey($fieldName);
+                $queryBuilder->addSelect(
+                    sprintf(
+                        "MAX(Case WHEN pm_self.meta_key = '%s' THEN pm_self.meta_value END) `%s`",
+                        $mappedMetaKey,
+                        $fieldName,
+                    )
+                );
+            }
+
+            $queryBuilder->groupBy('p.ID');
+        }
+
         foreach ($criteria as $field => $value) {
-            $queryBuilder->andWhere("{$field} = :{$field}")
-                ->setParameter($field, $value)
-            ;
+            if (in_array($field, $extraFields, true)) {
+                $queryBuilder->andHaving("`{$field}` = :{$field}");
+            } else {
+                $queryBuilder->andWhere("`{$field}` = :{$field}");
+            }
+
+            $queryBuilder->setParameter($field, $value);
         }
 
         if (!empty($orderBy)) {
@@ -145,7 +178,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
     {
         $result = $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->select($this->getEntityBaseProperties())
+            ->select($this->getEntityBaseFields())
             ->from($this->entityManager->getTablesPrefix() . 'posts')
             ->where('post_type = :post_type')
             ->setParameters([
@@ -180,13 +213,45 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
     /**
      * @return string[]
+     * @throws ExceptionInterface
      */
-    protected function getPrefixedEntityBaseProperties(string $prefix): array
+    protected function getEntityBaseFields(): array
+    {
+        if (empty($this->entityBaseFields)) {
+            $this->entityBaseFields = array_keys($this->serializer->normalize(new $this->entityClassName(), null, [
+                'groups' => ['base'],
+            ]));
+        }
+
+        return $this->entityBaseFields;
+    }
+
+    /**
+     * @return string[]
+     * @throws ExceptionInterface
+     */
+    protected function getPrefixedEntityBaseFields(string $prefix): array
     {
         return array_map(
             static fn (string $property): string => sprintf('%s.%s', $prefix, $property),
-            $this->getEntityBaseProperties(),
+            $this->getEntityBaseFields(),
         );
+    }
+
+    /**
+     * @return string[]
+     * @throws ExceptionInterface
+     */
+    protected function getEntityExtraFields(): array
+    {
+        $baseFields = $this->getEntityBaseFields();
+
+        if (empty($this->entityExtraFields)) {
+            $allFields = array_keys($this->serializer->normalize(new $this->entityClassName()));
+            $this->entityExtraFields = array_diff($allFields, $baseFields);
+        }
+
+        return $this->entityExtraFields;
     }
 
     protected function denormalize(mixed $data, string $type): mixed
@@ -207,17 +272,6 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         return (string) $this->serializer->normalize($value);
     }
 
-    private function getEntityBaseProperties(): array
-    {
-        if (empty($this->entityProperties)) {
-            $this->entityProperties = array_keys($this->serializer->normalize(new $this->entityClassName(), null, [
-                'groups' => ['base'],
-            ]));
-        }
-
-        return $this->entityProperties;
-    }
-
     private function doFindOneBy(string $name, array $arguments): BaseEntity
     {
         $resolver = (new OptionsResolver())
@@ -226,11 +280,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
             ->setAllowedTypes('1', 'array')
         ;
 
-        $fieldName = u(substr($name, 9))
-            ->snake()
-            ->lower()
-            ->toString()
-        ;
+        $fieldName = property_to_field(substr($name, 9));
 
         $arguments = $this->validateArguments($resolver, $arguments);
         $this->validateFieldValue($fieldName, $arguments[0]);
@@ -251,13 +301,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
         $arguments = $this->validateArguments($resolver, $arguments);
 
-        $fieldName = u(substr($name, 6))
-            ->snake()
-            ->lower()
-            ->toString()
-        ;
-
-        return $this->updateSingleField($arguments[0], $fieldName, $arguments[1]);
+        return $this->updateSingleField($arguments[0], property_to_field(substr($name, 6)), $arguments[1]);
     }
 
     private function validateArguments(OptionsResolver $resolver, array $arguments): array
@@ -273,18 +317,21 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         return $arguments;
     }
 
-    private function validateFieldName(string $field): string
+    private function validateFieldName(string $fieldName): string
     {
-        $propertyName = u($field)
-            ->lower()
-            ->camel()
-            ->toString()
-        ;
+        $propertyName = field_to_property($fieldName);
 
         try {
             $expectedType = (new \ReflectionProperty(BaseEntity::class, $propertyName))->getType();
         } catch (\ReflectionException) {
-            throw new InvalidFieldNameException($this->entityManager->getTablesPrefix() . 'posts', strtolower($field));
+            try {
+                $expectedType = (new \ReflectionProperty($this->entityClassName, $propertyName))->getType();
+            } catch (\ReflectionException) {
+                throw new InvalidFieldNameException(
+                    $this->entityManager->getTablesPrefix() . 'posts',
+                    strtolower($fieldName)
+                );
+            }
         }
 
         return $expectedType->getName();
@@ -319,5 +366,24 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         }
 
         return $output;
+    }
+
+    private function getMappedMetaKey(mixed $fieldName): string
+    {
+        if (
+            !is_array(static::MAPPED_FIELDS)
+            || empty(static::MAPPED_FIELDS)
+            || !in_array($fieldName, static::MAPPED_FIELDS, true)
+        ) {
+            return $fieldName;
+        }
+
+        $key = array_search($fieldName, static::MAPPED_FIELDS, true);
+
+        if (is_numeric($key)) {
+            return sprintf('_%s', $fieldName);
+        }
+
+        return $key;
     }
 }

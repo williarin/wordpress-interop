@@ -17,6 +17,12 @@ class AttachmentRepositoryTest extends TestCase
         $this->repository = new AttachmentRepository($this->manager, $this->serializer);
     }
 
+    public function testFindAttachmentPopulatesAttributes(): void
+    {
+        $attachment = $this->repository->find(13);
+        self::assertEquals(sprintf('%s/featuredimage.png', date('Y/m')), $attachment->attachedFile);
+    }
+
     public function testGetFeaturedImageReturnsAttachment(): void
     {
         $attachment = $this->repository->getFeaturedImage(4);
