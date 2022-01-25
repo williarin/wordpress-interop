@@ -7,6 +7,7 @@ namespace Williarin\WordpressInterop\Serializer;
 use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Williarin\WordpressInterop\Bridge\Type\AttachmentMetadata;
+use Williarin\WordpressInterop\Bridge\Type\GenericData;
 use function Williarin\WordpressInterop\Util\String\unserialize_if_needed;
 
 final class SerializedArrayDenormalizer implements ContextAwareDenormalizerInterface
@@ -18,7 +19,7 @@ final class SerializedArrayDenormalizer implements ContextAwareDenormalizerInter
 
     public function supportsDenormalization(mixed $data, string $type, string $format = null, array $context = []): bool
     {
-        return $type === AttachmentMetadata::class;
+        return in_array($type, [AttachmentMetadata::class, GenericData::class]);
     }
 
     public function denormalize(mixed $data, string $type, string $format = null, array $context = [])
@@ -26,7 +27,11 @@ final class SerializedArrayDenormalizer implements ContextAwareDenormalizerInter
         $unserialized = unserialize_if_needed($data);
 
         if ($data !== $unserialized) {
-            return $this->denormalizer->denormalize($unserialized, AttachmentMetadata::class);
+            if ($type === GenericData::class) {
+                $unserialized = ['data' => $unserialized];
+            }
+
+            return $this->denormalizer->denormalize($unserialized, $type);
         }
 
         return $data;
