@@ -27,6 +27,9 @@ jobs:
 
             -   uses: FranzDiebold/github-env-vars-action@v2
 
+            -   name: Spin up Docker containers
+                run: make reset-containers
+
             -   name: Setup PHP
                 id: setup-php
                 uses: shivammathur/setup-php@v2
@@ -52,7 +55,7 @@ jobs:
             -   name: Install composer dependencies
                 run: composer install
 
-            -   name: Run Docker containers and install WordPress
+            -   name: Install WordPress
                 run: make install
 
             -   name: Launch test suite
