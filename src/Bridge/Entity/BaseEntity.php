@@ -77,4 +77,21 @@ abstract class BaseEntity
 
     #[Groups('base')]
     public ?int $commentCount = null;
+
+    public function __set(string $property, mixed $value): void
+    {
+        if ($value === '' && !is_string($this->{$property})) {
+            return;
+        }
+
+        $expectedType = (new \ReflectionProperty(static::class, $property))->getType()->getName();
+        settype($value, $expectedType);
+
+        $this->{$property} = $value;
+    }
+
+    public function __get(string $property): mixed
+    {
+        return $this->{$property};
+    }
 }

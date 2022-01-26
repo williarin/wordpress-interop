@@ -12,8 +12,18 @@ use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer;
+use Symfony\Component\Serializer\Normalizer\ConstraintViolationListNormalizer;
+use Symfony\Component\Serializer\Normalizer\DataUriNormalizer;
+use Symfony\Component\Serializer\Normalizer\DateIntervalNormalizer;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
+use Symfony\Component\Serializer\Normalizer\DateTimeZoneNormalizer;
+use Symfony\Component\Serializer\Normalizer\FormErrorNormalizer;
+use Symfony\Component\Serializer\Normalizer\JsonSerializableNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Normalizer\ProblemNormalizer;
+use Symfony\Component\Serializer\Normalizer\UidNormalizer;
+use Symfony\Component\Serializer\Normalizer\UnwrappingDenormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\EntityManager;
@@ -35,11 +45,22 @@ abstract class TestCase extends BaseTestCase
         );
 
         $this->serializer = new Serializer([
+            new BackedEnumNormalizer(),
+            new ConstraintViolationListNormalizer(),
+            new DataUriNormalizer(),
+            new DateIntervalNormalizer(),
+            new DateTimeZoneNormalizer(),
+            new FormErrorNormalizer(),
+            new JsonSerializableNormalizer(),
+            new ProblemNormalizer(),
+            new UidNormalizer(),
             new DateTimeNormalizer(),
             new ArrayDenormalizer(),
+            new UnwrappingDenormalizer(),
             new SerializedArrayDenormalizer($objectNormalizer),
             $objectNormalizer,
         ]);
+
         $this->manager = new EntityManager($connection, $this->serializer);
     }
 }

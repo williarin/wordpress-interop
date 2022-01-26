@@ -8,7 +8,9 @@ use DateTimeInterface;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
+use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
 use Williarin\WordpressInterop\EntityManagerInterface;
@@ -70,12 +72,14 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
     private array $entityBaseFields = [];
     private array $entityExtraFields = [];
+    private PropertyNormalizer $propertyNormalizer;
 
     public function __construct(
         protected EntityManagerInterface $entityManager,
         protected SerializerInterface $serializer,
         private string $entityClassName
     ) {
+        $this->propertyNormalizer = new PropertyNormalizer(null, new CamelCaseToSnakeCaseNameConverter());
     }
 
     public function __call(string $name, array $arguments): BaseEntity|bool
@@ -243,7 +247,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         $baseFields = $this->getEntityBaseFields();
 
         if (empty($this->entityExtraFields)) {
-            $allFields = array_keys($this->serializer->normalize(new $this->entityClassName()));
+            $allFields = array_keys($this->propertyNormalizer->normalize(new $this->entityClassName()));
             $this->entityExtraFields = array_diff($allFields, $baseFields);
         }
 

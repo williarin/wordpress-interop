@@ -61,4 +61,20 @@ class ProductRepositoryTest extends TestCase
             'is_taxonomy' => 1,
         ], $product->productAttributes->getPaColor());
     }
+
+    public function testProductWeightIsConvertedToFloat(): void
+    {
+        $product = $this->repository->find(14);
+        self::assertSame(0.5, $product->weight);
+    }
+
+    public function testLatestPublishedProductInStock(): void
+    {
+        $product = $this->repository->findOneBy(
+            ['stock_status' => 'instock', 'post_status' => 'publish'],
+            ['post_date' => 'DESC'],
+        );
+
+        self::assertSame(37, $product->id);
+    }
 }
