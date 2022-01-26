@@ -24,7 +24,7 @@ Or with Symfony:
 composer require williarin/wordpress-interop-bundle
 ```
 
-Find the documentation for the Symfony bundle on [the dedicated repository](https://github.com/williarin/wordpress-standalone-bundle) page.
+Find the documentation for the Symfony bundle on [the dedicated repository](https://github.com/williarin/wordpress-interop-bundle) page.
 
 ## Usage
 
