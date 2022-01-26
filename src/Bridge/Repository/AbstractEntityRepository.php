@@ -256,11 +256,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
     protected function denormalize(mixed $data, string $type): mixed
     {
-        $context = [];
-
-        if (PHP_VERSION_ID < 80100) {
-            $context[AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT] = true;
-        }
+        $context[AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT] = true;
 
         return $this->serializer->denormalize($data, $type, null, $context);
     }
