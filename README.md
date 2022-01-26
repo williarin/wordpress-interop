@@ -137,6 +137,7 @@ $repository->updateSingleField(4, 'post_status', 'publish');
 * `Post` and `PostRepository`
 * `Page` and `PageRepository`
 * `Attachment` and `AttachmentRepository`
+* `Product` and `ProductRepository` (WooCommerce)
 * `Option` and `OptionRepository`
 * `PostMeta` and `PostMetaRepository`
 
