@@ -9,6 +9,9 @@ It can perform simple tasks out of the box such as querying posts, retrieving at
 
 You can extend it by adding your own repositories and querying methods.
 
+**Warning!** Although it looks like an ORM, it's not an ORM library. It doesn't have two-way data manipulation features.
+See this as a simple WordPress database manipulation helper library.
+
 ## Installation
 
 This library can be used as standalone:
@@ -95,6 +98,25 @@ $post = $manager->getRepository(Post::class)
 // All posts
 /** @var Post[] $posts */
 $posts = $manager->getRepository(Post::class)->findAll();
+```
+
+### EAV querying
+
+The query system supports directly querying EAV attributes.
+However, it only works with properties that have been declared in the corresponding entity.
+
+In the example below, `sku` and `stock_status` are attributes from `wp_postmeta` table.
+
+```php
+// Fetch a product by its SKU
+$product = $manager->getRepository(Product::class)->findOneBySku('woo-vneck-tee');
+
+// Fetch the latest published product which is in stock
+$product = $manager->getRepository(Product::class)
+    ->findOneBy(
+        ['stock_status' => 'instock', 'post_status' => 'publish'],
+        ['post_date' => 'DESC'],
+    );
 ```
 
 ### Field update
