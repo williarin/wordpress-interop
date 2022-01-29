@@ -71,7 +71,7 @@ $allPosts = $postRepository->findAll();
 ### Basic post querying
 
 This works with any entity inherited from `BaseEntity`.
-Built-in entities are `Post`, `Page` and `Attachment` but you can [create your own](#create-your-own-repositories).
+Built-in entities are `Post`, `Page`, `Attachment` and `Product` but you can [create your own](#create-your-own-repositories).
 
 ```php
 // Fetch a post by ID
@@ -96,8 +96,10 @@ $post = $manager->getRepository(Post::class)
     );
 
 // All posts
-/** @var Post[] $posts */
 $posts = $manager->getRepository(Post::class)->findAll();
+
+// All private posts
+$posts = $manager->getRepository(Post::class)->findByPostStatus('private');
 ```
 
 ### EAV querying
@@ -114,6 +116,13 @@ $product = $manager->getRepository(Product::class)->findOneBySku('woo-vneck-tee'
 // Fetch the latest published product which is in stock
 $product = $manager->getRepository(Product::class)
     ->findOneBy(
+        ['stock_status' => 'instock', 'post_status' => 'publish'],
+        ['post_date' => 'DESC'],
+    );
+    
+// Fetch all published products which are in stock
+$products = $manager->getRepository(Product::class)
+    ->findBy(
         ['stock_status' => 'instock', 'post_status' => 'publish'],
         ['post_date' => 'DESC'],
     );
