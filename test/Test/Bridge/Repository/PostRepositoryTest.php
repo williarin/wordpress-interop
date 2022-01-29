@@ -108,4 +108,40 @@ class PostRepositoryTest extends TestCase
         $post = $this->repository->findOneByPostStatus('publish', ['comment_count' => 'DESC', 'post_date' => 'DESC']);
         self::assertEquals(1, $post->id);
     }
+
+    public function testFindAllPostsAuthoredByAdminUser(): void
+    {
+        $posts = $this->repository->findBy(['post_author' => 1], ['id' => 'DESC']);
+        self::assertIsArray($posts);
+        self::assertCount(4, $posts);
+        self::assertContainsOnlyInstancesOf(Post::class, $posts);
+        self::assertEquals([12, 11, 10, 1], array_column($posts, 'id'));
+    }
+
+    public function testFindTheTwoLatestPosts(): void
+    {
+        $posts = $this->repository->findBy(['post_author' => 1], ['post_date' => 'DESC'], 2);
+        self::assertIsArray($posts);
+        self::assertCount(2, $posts);
+        self::assertContainsOnlyInstancesOf(Post::class, $posts);
+        self::assertEquals([12, 11], array_column($posts, 'id'));
+    }
+
+    public function testFindTheTwoLatestPostsStartingFromTheThird(): void
+    {
+        $posts = $this->repository->findBy(['post_author' => 1], ['post_date' => 'DESC'], 2, 2);
+        self::assertIsArray($posts);
+        self::assertCount(2, $posts);
+        self::assertContainsOnlyInstancesOf(Post::class, $posts);
+        self::assertEquals([10, 1], array_column($posts, 'id'));
+    }
+
+    public function testFindLatestPostsUsingMagicMethod(): void
+    {
+        $posts = $this->repository->findByPostAuthor(1, ['post_date' => 'DESC']);
+        self::assertIsArray($posts);
+        self::assertCount(4, $posts);
+        self::assertContainsOnlyInstancesOf(Post::class, $posts);
+        self::assertEquals([12, 11, 10, 1], array_column($posts, 'id'));
+    }
 }

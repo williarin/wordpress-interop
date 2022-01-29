@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use DateTimeInterface;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -24,46 +25,66 @@ use function Williarin\WordpressInterop\Util\String\field_to_property;
 use function Williarin\WordpressInterop\Util\String\property_to_field;
 
 /**
- * @method BaseEntity findOneByPostAuthor(int $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostDate(DateTimeInterface $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostDateGmt(DateTimeInterface $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostContent(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostTitle(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostExcerpt(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostStatus(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByCommentStatus(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPingStatus(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostPassword(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostName(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByToPing(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPinged(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostModifiedGmt(DateTimeInterface $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostParent(int $newValue, array $orderBy = null)
- * @method BaseEntity findOneByGuid(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByMenuOrder(int $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostType(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByPostMimeType(string $newValue, array $orderBy = null)
- * @method BaseEntity findOneByCommentCount(int $newValue, array $orderBy = null)
- * @method bool       updatePostAuthor(int $id, int $newValue)
- * @method bool       updatePostDate(int $id, DateTimeInterface $newValue)
- * @method bool       updatePostDateGmt(int $id, DateTimeInterface $newValue)
- * @method bool       updatePostContent(int $id, string $newValue)
- * @method bool       updatePostTitle(int $id, string $newValue)
- * @method bool       updatePostExcerpt(int $id, string $newValue)
- * @method bool       updatePostStatus(int $id, string $newValue)
- * @method bool       updateCommentStatus(int $id, string $newValue)
- * @method bool       updatePingStatus(int $id, string $newValue)
- * @method bool       updatePostPassword(int $id, string $newValue)
- * @method bool       updatePostName(int $id, string $newValue)
- * @method bool       updateToPing(int $id, string $newValue)
- * @method bool       updatePinged(int $id, string $newValue)
- * @method bool       updatePostModifiedGmt(int $id, DateTimeInterface $newValue)
- * @method bool       updatePostParent(int $id, int $newValue)
- * @method bool       updateGuid(int $id, string $newValue)
- * @method bool       updateMenuOrder(int $id, int $newValue)
- * @method bool       updatePostType(int $id, string $newValue)
- * @method bool       updatePostMimeType(int $id, string $newValue)
- * @method bool       updateCommentCount(int $id, int $newValue)
+ * @method BaseEntity   findOneByPostAuthor(int $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostDate(DateTimeInterface $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostDateGmt(DateTimeInterface $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostContent(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostTitle(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostExcerpt(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostStatus(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByCommentStatus(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPingStatus(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostPassword(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostName(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByToPing(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPinged(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostModifiedGmt(DateTimeInterface $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostParent(int $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByGuid(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByMenuOrder(int $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostType(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostMimeType(string $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByCommentCount(int $newValue, array $orderBy = null)
+ * @method BaseEntity[] findByPostAuthor(int $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostDate(DateTimeInterface $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostDateGmt(DateTimeInterface $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostContent(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostTitle(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostExcerpt(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostStatus(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByCommentStatus(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPingStatus(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostPassword(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostName(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByToPing(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPinged(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostModifiedGmt(DateTimeInterface $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostParent(int $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByGuid(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByMenuOrder(int $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostType(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostMimeType(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByCommentCount(int $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method bool         updatePostAuthor(int $id, int $newValue)
+ * @method bool         updatePostDate(int $id, DateTimeInterface $newValue)
+ * @method bool         updatePostDateGmt(int $id, DateTimeInterface $newValue)
+ * @method bool         updatePostContent(int $id, string $newValue)
+ * @method bool         updatePostTitle(int $id, string $newValue)
+ * @method bool         updatePostExcerpt(int $id, string $newValue)
+ * @method bool         updatePostStatus(int $id, string $newValue)
+ * @method bool         updateCommentStatus(int $id, string $newValue)
+ * @method bool         updatePingStatus(int $id, string $newValue)
+ * @method bool         updatePostPassword(int $id, string $newValue)
+ * @method bool         updatePostName(int $id, string $newValue)
+ * @method bool         updateToPing(int $id, string $newValue)
+ * @method bool         updatePinged(int $id, string $newValue)
+ * @method bool         updatePostModifiedGmt(int $id, DateTimeInterface $newValue)
+ * @method bool         updatePostParent(int $id, int $newValue)
+ * @method bool         updateGuid(int $id, string $newValue)
+ * @method bool         updateMenuOrder(int $id, int $newValue)
+ * @method bool         updatePostType(int $id, string $newValue)
+ * @method bool         updatePostMimeType(int $id, string $newValue)
+ * @method bool         updateCommentCount(int $id, int $newValue)
  */
 abstract class AbstractEntityRepository implements RepositoryInterface
 {
@@ -82,10 +103,14 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         $this->propertyNormalizer = new PropertyNormalizer(null, new CamelCaseToSnakeCaseNameConverter());
     }
 
-    public function __call(string $name, array $arguments): BaseEntity|bool
+    public function __call(string $name, array $arguments): BaseEntity|array|bool
     {
         if (str_starts_with($name, 'findOneBy')) {
             return $this->doFindOneBy($name, $arguments);
+        }
+
+        if (str_starts_with($name, 'findBy')) {
+            return $this->doFindBy($name, $arguments);
         }
 
         if (str_starts_with($name, 'update')) {
@@ -109,64 +134,8 @@ abstract class AbstractEntityRepository implements RepositoryInterface
 
     public function findOneBy(array $criteria, array $orderBy = null): BaseEntity
     {
-        $criteria = $this->normalizeCriteria($criteria);
-
-        $queryBuilder = $this->entityManager->getConnection()
-            ->createQueryBuilder()
-            ->select($this->getPrefixedEntityBaseFields('p'))
-            ->from($this->entityManager->getTablesPrefix() . 'posts', 'p')
-            ->where('post_type = :post_type')
-            ->setParameter('post_type', static::POST_TYPE)
-        ;
-
-        $extraFields = $this->getEntityExtraFields();
-
-        if (!empty($extraFields)) {
-            $queryBuilder->join(
-                'p',
-                $this->entityManager->getTablesPrefix() . 'postmeta',
-                'pm_self',
-                'p.ID = pm_self.post_id',
-            );
-
-            foreach ($extraFields as $extraField) {
-                $fieldName = property_to_field($extraField);
-                $mappedMetaKey = $this->getMappedMetaKey($fieldName);
-                $queryBuilder->addSelect(
-                    sprintf(
-                        "MAX(Case WHEN pm_self.meta_key = '%s' THEN pm_self.meta_value END) `%s`",
-                        $mappedMetaKey,
-                        $fieldName,
-                    )
-                );
-            }
-
-            $queryBuilder->groupBy('p.ID');
-        }
-
-        foreach ($criteria as $field => $value) {
-            if (in_array($field, $extraFields, true)) {
-                $queryBuilder->andHaving("`{$field}` = :{$field}");
-            } else {
-                $queryBuilder->andWhere("`{$field}` = :{$field}");
-            }
-
-            $queryBuilder->setParameter($field, $value);
-        }
-
-        if (!empty($orderBy)) {
-            foreach ($orderBy as $field => $orientation) {
-                $this->validateFieldName($field);
-
-                if (!in_array(strtolower($orientation), ['asc', 'desc'], true)) {
-                    throw new InvalidOrderByOrientationException($orientation);
-                }
-
-                $queryBuilder->addOrderBy($field, $orientation);
-            }
-        }
-
-        $result = $queryBuilder->executeQuery()
+        $result = $this->createFindByQueryBuilder($criteria, $orderBy)
+            ->executeQuery()
             ->fetchAssociative()
         ;
 
@@ -177,7 +146,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         return $this->denormalize($result, $this->entityClassName);
     }
 
-    public function findAll(): mixed
+    public function findAll(): array
     {
         $result = $this->entityManager->getConnection()
             ->createQueryBuilder()
@@ -187,6 +156,18 @@ abstract class AbstractEntityRepository implements RepositoryInterface
             ->setParameters([
                 'post_type' => static::POST_TYPE,
             ])
+            ->executeQuery()
+            ->fetchAllAssociative()
+        ;
+
+        return $this->denormalize($result, $this->entityClassName . '[]');
+    }
+
+    public function findBy(array $criteria, array $orderBy = null, ?int $limit = null, int $offset = null): array
+    {
+        $result = $this->createFindByQueryBuilder($criteria, $orderBy)
+            ->setMaxResults($limit)
+            ->setFirstResult($offset ?? 0)
             ->executeQuery()
             ->fetchAllAssociative()
         ;
@@ -286,6 +267,28 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         ], $arguments[1]);
     }
 
+    private function doFindBy(string $name, array $arguments): array
+    {
+        $resolver = (new OptionsResolver())
+            ->setRequired(['0'])
+            ->setDefault('1', [])
+            ->setDefault('2', null)
+            ->setDefault('3', 0)
+            ->setAllowedTypes('1', 'array')
+            ->setAllowedTypes('2', ['int', 'null'])
+            ->setAllowedTypes('3', 'int')
+        ;
+
+        $fieldName = property_to_field(substr($name, 6));
+
+        $arguments = $this->validateArguments($resolver, $arguments);
+        $this->validateFieldValue($fieldName, $arguments[0]);
+
+        return $this->findBy([
+            $fieldName => $arguments[0],
+        ], ...array_slice($arguments, 1));
+    }
+
     private function doUpdate(string $name, array $arguments): bool
     {
         $resolver = (new OptionsResolver())
@@ -309,6 +312,8 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         } catch (InvalidOptionsException) {
             throw new InvalidArgumentException('Arguments provided are of the wrong type.');
         }
+
+        ksort($arguments);
 
         return $arguments;
     }
@@ -381,5 +386,67 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         }
 
         return $key;
+    }
+
+    private function createFindByQueryBuilder(array $criteria, ?array $orderBy): QueryBuilder
+    {
+        $criteria = $this->normalizeCriteria($criteria);
+
+        $queryBuilder = $this->entityManager->getConnection()
+            ->createQueryBuilder()
+            ->select($this->getPrefixedEntityBaseFields('p'))
+            ->from($this->entityManager->getTablesPrefix() . 'posts', 'p')
+            ->where('post_type = :post_type')
+            ->setParameter('post_type', static::POST_TYPE)
+        ;
+
+        $extraFields = $this->getEntityExtraFields();
+
+        if (!empty($extraFields)) {
+            $queryBuilder->join(
+                'p',
+                $this->entityManager->getTablesPrefix() . 'postmeta',
+                'pm_self',
+                'p.ID = pm_self.post_id',
+            );
+
+            foreach ($extraFields as $extraField) {
+                $fieldName = property_to_field($extraField);
+                $mappedMetaKey = $this->getMappedMetaKey($fieldName);
+                $queryBuilder->addSelect(
+                    sprintf(
+                        "MAX(Case WHEN pm_self.meta_key = '%s' THEN pm_self.meta_value END) `%s`",
+                        $mappedMetaKey,
+                        $fieldName,
+                    )
+                );
+            }
+
+            $queryBuilder->groupBy('p.ID');
+        }
+
+        foreach ($criteria as $field => $value) {
+            if (in_array($field, $extraFields, true)) {
+                $queryBuilder->andHaving("`{$field}` = :{$field}");
+            } else {
+                $queryBuilder->andWhere("`{$field}` = :{$field}");
+            }
+
+            $queryBuilder->setParameter($field, $value);
+        }
+
+        if (!empty($orderBy)) {
+            foreach ($orderBy as $field => $orientation) {
+                $this->validateFieldName($field);
+
+                if (!in_array(strtolower($orientation), ['asc', 'desc'], true)) {
+                    throw new InvalidOrderByOrientationException($orientation);
+                }
+
+                $queryBuilder->addOrderBy($field, $orientation);
+            }
+        }
+
+        return $queryBuilder;
     }
 }

@@ -77,4 +77,20 @@ class ProductRepositoryTest extends TestCase
 
         self::assertSame(37, $product->id);
     }
+    public function testFindAllPublishedProducts(): void
+    {
+        $products = $this->repository->findByPostStatus('publish');
+        self::assertIsArray($products);
+        self::assertCount(18, $products);
+        self::assertContainsOnlyInstancesOf(Product::class, $products);
+    }
+
+    public function testFindProductsWithAHeightOf2(): void
+    {
+        $products = $this->repository->findByHeight(2.0);
+        self::assertIsArray($products);
+        self::assertCount(3, $products);
+        self::assertContainsOnlyInstancesOf(Product::class, $products);
+        self::assertEquals([14, 22, 23], array_column($products, 'id'));
+    }
 }
