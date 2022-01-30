@@ -59,8 +59,6 @@ use Williarin\WordpressInterop\EntityManagerInterface;
  */
 final class AttachmentRepository extends AbstractEntityRepository
 {
-    protected const POST_TYPE = 'attachment';
-
     protected const MAPPED_FIELDS = [
         '_wp_attached_file' => 'attached_file',
         '_wp_attachment_metadata' => 'attachment_metadata',
@@ -104,5 +102,10 @@ final class AttachmentRepository extends AbstractEntityRepository
         ;
 
         return $this->denormalize($result, Attachment::class);
+    }
+
+    protected function getPostType(): string
+    {
+        return 'attachment';
     }
 }

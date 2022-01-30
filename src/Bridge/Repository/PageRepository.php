@@ -57,12 +57,15 @@ use Williarin\WordpressInterop\EntityManagerInterface;
  */
 final class PageRepository extends AbstractEntityRepository
 {
-    protected const POST_TYPE = 'page';
-
     public function __construct(
         protected EntityManagerInterface $entityManager,
         SerializerInterface $serializer
     ) {
         parent::__construct($entityManager, $serializer, Page::class);
+    }
+
+    protected function getPostType(): string
+    {
+        return 'page';
     }
 }

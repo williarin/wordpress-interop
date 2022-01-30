@@ -88,7 +88,6 @@ use function Williarin\WordpressInterop\Util\String\property_to_field;
  */
 abstract class AbstractEntityRepository implements RepositoryInterface
 {
-    protected const POST_TYPE = 'post';
     protected const MAPPED_FIELDS = [];
 
     private array $entityBaseFields = [];
@@ -154,7 +153,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
             ->from($this->entityManager->getTablesPrefix() . 'posts')
             ->where('post_type = :post_type')
             ->setParameters([
-                'post_type' => static::POST_TYPE,
+                'post_type' => $this->getPostType(),
             ])
             ->executeQuery()
             ->fetchAllAssociative()
@@ -247,6 +246,11 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         $value = $this->validateFieldValue($field, $value);
 
         return (string) $this->serializer->normalize($value);
+    }
+
+    protected function getPostType(): string
+    {
+        return 'post';
     }
 
     private function doFindOneBy(string $name, array $arguments): BaseEntity
@@ -397,7 +401,7 @@ abstract class AbstractEntityRepository implements RepositoryInterface
             ->select($this->getPrefixedEntityBaseFields('p'))
             ->from($this->entityManager->getTablesPrefix() . 'posts', 'p')
             ->where('post_type = :post_type')
-            ->setParameter('post_type', static::POST_TYPE)
+            ->setParameter('post_type', $this->getPostType())
         ;
 
         $extraFields = $this->getEntityExtraFields();

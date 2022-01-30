@@ -110,8 +110,6 @@ use Williarin\WordpressInterop\EntityManagerInterface;
  */
 final class ProductRepository extends AbstractEntityRepository
 {
-    protected const POST_TYPE = 'product';
-
     protected const MAPPED_FIELDS = [
         'sku',
         'sale_price_dates_from',
@@ -154,5 +152,10 @@ final class ProductRepository extends AbstractEntityRepository
         SerializerInterface $serializer
     ) {
         parent::__construct($entityManager, $serializer, Product::class);
+    }
+
+    protected function getPostType(): string
+    {
+        return 'product';
     }
 }
