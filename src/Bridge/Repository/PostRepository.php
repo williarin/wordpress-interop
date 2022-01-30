@@ -57,8 +57,6 @@ use Williarin\WordpressInterop\EntityManagerInterface;
  */
 final class PostRepository extends AbstractEntityRepository
 {
-    protected const POST_TYPE = 'post';
-
     public function __construct(
         protected EntityManagerInterface $entityManager,
         SerializerInterface $serializer
