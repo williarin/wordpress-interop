@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use DateTimeInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\Attachment;
-use Williarin\WordpressInterop\EntityManagerInterface;
 
 /**
  * @method Attachment   find($id)
@@ -64,11 +62,9 @@ final class AttachmentRepository extends AbstractEntityRepository
         '_wp_attachment_metadata' => 'attachment_metadata',
     ];
 
-    public function __construct(
-        protected EntityManagerInterface $entityManager,
-        protected SerializerInterface $serializer
-    ) {
-        parent::__construct($entityManager, $serializer, Attachment::class);
+    public function __construct()
+    {
+        parent::__construct(Attachment::class);
     }
 
     public function getFeaturedImage(int $postId): Attachment

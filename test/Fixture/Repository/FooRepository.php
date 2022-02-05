@@ -11,9 +11,9 @@ use Williarin\WordpressInterop\Test\Fixture\Entity\Foo;
 
 final class FooRepository extends AbstractEntityRepository
 {
-    public function __construct(protected EntityManagerInterface $entityManager, SerializerInterface $serializer)
+    public function __construct()
     {
-        parent::__construct($entityManager, $serializer, Foo::class);
+        parent::__construct(Foo::class);
     }
 
     public function getFooTerms(): array

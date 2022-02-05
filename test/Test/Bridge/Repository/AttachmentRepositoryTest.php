@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
-use Williarin\WordpressInterop\Bridge\Repository\AttachmentRepository;
+use Williarin\WordpressInterop\Bridge\Entity\Attachment;
+use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Test\TestCase;
 
 class AttachmentRepositoryTest extends TestCase
 {
-    private AttachmentRepository $repository;
+    private EntityRepositoryInterface $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new AttachmentRepository($this->manager, $this->serializer);
+        $this->repository = $this->manager->getRepository(Attachment::class);
     }
 
     public function testFindAttachmentPopulatesAttributes(): void

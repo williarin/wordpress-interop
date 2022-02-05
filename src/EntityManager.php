@@ -4,80 +4,22 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop;
 
-use Doctrine\DBAL\Connection;
-use ReflectionClass;
-use Symfony\Component\Serializer\SerializerInterface;
-use Williarin\WordpressInterop\Attributes\RepositoryClass;
 use Williarin\WordpressInterop\Bridge\Repository\AbstractEntityRepository;
 use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
 
-class EntityManager implements EntityManagerInterface
+class EntityManager extends AbstractEntityManager
 {
-    private array $repositories = [];
-
-    public function __construct(
-        private Connection $connection,
-        private SerializerInterface $serializer,
-        private string $tablePrefix = 'wp_'
-    ) {
-    }
-
-    public static function create(
-        Connection $connection,
-        SerializerInterface $serializer,
-        string $tablePrefix = 'wp_'
-    ): EntityManagerInterface {
-        return new EntityManager($connection, $serializer, $tablePrefix);
-    }
-
-    public function addRepository(RepositoryInterface $repository): EntityManagerInterface
+    protected function getRepositoryServiceForClass(?string $entityClassName): RepositoryInterface
     {
-        $this->repositories[$repository->getEntityClassName()] = $repository;
+        $repositoryServiceName = $this->getRepositoryNameForClass($entityClassName);
 
-        return $this;
-    }
+        $repository = $repositoryServiceName
+            ? new $repositoryServiceName()
+            : new class($entityClassName) extends AbstractEntityRepository {
+            };
 
-    /**
-     * @return RepositoryInterface[]
-     */
-    public function getRepositories(): array
-    {
-        return $this->repositories;
-    }
+        $repository->setSerializer($this->serializer);
 
-    public function getRepository(string $entityClassName): RepositoryInterface
-    {
-        if (empty($this->repositories[$entityClassName])) {
-            $this->repositories[$entityClassName] = $this->createRepositoryForClass($entityClassName);
-        }
-
-        return $this->repositories[$entityClassName];
-    }
-
-    public function getConnection(): Connection
-    {
-        return $this->connection;
-    }
-
-    public function getTablesPrefix(): string
-    {
-        return $this->tablePrefix;
-    }
-
-    private function createRepositoryForClass(string $entityClassName): RepositoryInterface
-    {
-        if (class_exists($entityClassName)) {
-            $reflectionClass = new ReflectionClass($entityClassName);
-
-            if ($attribute = current($reflectionClass->getAttributes(RepositoryClass::class))) {
-                $repositoryClassName = $attribute->newInstance()
-                    ->className;
-
-                return new $repositoryClassName($this, $this->serializer, $entityClassName);
-            }
-        }
-
-        return new class($this, $this->serializer, $entityClassName) extends AbstractEntityRepository {
-        };
+        return $repository;
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Test;
 
 use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
@@ -33,10 +34,11 @@ abstract class TestCase extends BaseTestCase
 {
     protected EntityManager $manager;
     protected SerializerInterface $serializer;
+    private Connection $connection;
 
     protected function setUp(): void
     {
-        $connection = DriverManager::getConnection(['url' => getenv('WORDPRESS_DATABASE_URL')]);
+        $this->connection = DriverManager::getConnection(['url' => getenv('WORDPRESS_DATABASE_URL')]);
         $objectNormalizer = new ObjectNormalizer(
             new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader())),
             new CamelCaseToSnakeCaseNameConverter(),
@@ -61,6 +63,13 @@ abstract class TestCase extends BaseTestCase
             $objectNormalizer,
         ]);
 
-        $this->manager = new EntityManager($connection, $this->serializer);
+        $this->manager = new EntityManager($this->connection, $this->serializer);
+
+        $this->connection->beginTransaction();
+    }
+
+    protected function tearDown(): void
+    {
+        $this->connection->rollBack();
     }
 }

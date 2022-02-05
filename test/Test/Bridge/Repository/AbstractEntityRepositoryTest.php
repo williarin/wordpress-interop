@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Entity\Post;
-use Williarin\WordpressInterop\Bridge\Repository\AbstractEntityRepository;
+use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Exception\InvalidArgumentException;
 use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
 use Williarin\WordpressInterop\Exception\InvalidTypeException;
@@ -13,12 +13,12 @@ use Williarin\WordpressInterop\Test\TestCase;
 
 class AbstractEntityRepositoryTest extends TestCase
 {
-    private AbstractEntityRepository $repository;
+    private EntityRepositoryInterface $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new class ($this->manager, $this->serializer, Post::class) extends AbstractEntityRepository {};
+        $this->repository = $this->manager->getRepository(Post::class);
     }
 
     public function testUpdateSingleField(): void

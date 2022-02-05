@@ -13,11 +13,8 @@ use function Williarin\WordpressInterop\Util\String\unserialize_if_needed;
 
 final class PostMetaRepository implements RepositoryInterface
 {
-    public function __construct(
-        private EntityManagerInterface $entityManager,
-        SerializerInterface $serializer
-    ) {
-    }
+    private EntityManagerInterface $entityManager;
+    private SerializerInterface $serializer;
 
     public function getEntityClassName(): string
     {
@@ -119,5 +116,15 @@ final class PostMetaRepository implements RepositoryInterface
         ;
 
         return $affectedRows > 0;
+    }
+
+    public function setEntityManager(EntityManagerInterface $entityManager): void
+    {
+        $this->entityManager = $entityManager;
+    }
+
+    public function setSerializer(SerializerInterface $serializer): void
+    {
+        $this->serializer = $serializer;
     }
 }
