@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use DateTimeInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\Page;
-use Williarin\WordpressInterop\EntityManagerInterface;
 
 /**
  * @method Page   find($id)
@@ -57,11 +55,9 @@ use Williarin\WordpressInterop\EntityManagerInterface;
  */
 final class PageRepository extends AbstractEntityRepository
 {
-    public function __construct(
-        protected EntityManagerInterface $entityManager,
-        SerializerInterface $serializer
-    ) {
-        parent::__construct($entityManager, $serializer, Page::class);
+    public function __construct()
+    {
+        parent::__construct(Page::class);
     }
 
     protected function getPostType(): string

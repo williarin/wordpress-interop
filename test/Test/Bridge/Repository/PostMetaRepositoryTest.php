@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
-use Williarin\WordpressInterop\Bridge\Repository\PostMetaRepository;
+use Williarin\WordpressInterop\Bridge\Entity\PostMeta;
+use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
 use Williarin\WordpressInterop\Exception\PostMetaKeyAlreadyExistsException;
 use Williarin\WordpressInterop\Exception\PostMetaKeyNotFoundException;
 use Williarin\WordpressInterop\Test\TestCase;
 
 class PostMetaRepositoryTest extends TestCase
 {
-    private PostMetaRepository $repository;
+    private RepositoryInterface $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new PostMetaRepository($this->manager, $this->serializer);
+        $this->repository = $this->manager->getRepository(PostMeta::class);
     }
 
     public function testFindReturnsCorrectValue(): void

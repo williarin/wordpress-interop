@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Entity\Product;
-use Williarin\WordpressInterop\Bridge\Repository\ProductRepository;
+use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Test\TestCase;
 
 class ProductRepositoryTest extends TestCase
 {
-    private ProductRepository $repository;
+    private EntityRepositoryInterface $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new ProductRepository($this->manager, $this->serializer);
+        $this->repository = $this->manager->getRepository(Product::class);
     }
 
     public function testFindReturnsCorrectProduct(): void

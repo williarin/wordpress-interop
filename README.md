@@ -184,6 +184,7 @@ final class Project extends BaseEntity
 {
 }
 ```
+
 Then a repository:
 
 ```php
@@ -198,11 +199,14 @@ use App\Wordpress\Entity\Project;use Symfony\Component\Serializer\SerializerInte
  */
 final class ProjectRepository extends AbstractEntityRepository
 {
-    protected const POST_TYPE = 'project';
-
-    public function __construct(protected EntityManagerInterface $entityManager, SerializerInterface $serializer)
+    public function __construct(/* inject additional services if you need them */)
     {
-        parent::__construct($entityManager, $serializer, Project::class);
+        parent::__construct(Project::class);
+    }
+    
+    protected function getPostType(): string
+    {
+        return 'project';
     }
     
     // Add your own methods here

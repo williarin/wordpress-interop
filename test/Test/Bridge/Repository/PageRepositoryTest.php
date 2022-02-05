@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Entity\Page;
-use Williarin\WordpressInterop\Bridge\Repository\PageRepository;
+use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Test\TestCase;
 
 class PageRepositoryTest extends TestCase
 {
-    private PageRepository $repository;
+    private EntityRepositoryInterface $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new PageRepository($this->manager, $this->serializer);
+        $this->repository = $this->manager->getRepository(Page::class);
     }
 
     public function testFindThrowsExceptionIfPostTypeDiffers(): void

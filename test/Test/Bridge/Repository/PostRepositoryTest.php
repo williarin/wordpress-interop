@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Entity\Post;
-use Williarin\WordpressInterop\Bridge\Repository\PostRepository;
+use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
 use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
@@ -13,12 +13,12 @@ use Williarin\WordpressInterop\Test\TestCase;
 
 class PostRepositoryTest extends TestCase
 {
-    private PostRepository $repository;
+    private EntityRepositoryInterface $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new PostRepository($this->manager, $this->serializer);
+        $this->repository = $this->manager->getRepository(Post::class);
     }
 
     public function testFindReturnsCorrectPost(): void

@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
-use Williarin\WordpressInterop\Bridge\Repository\OptionRepository;
+use Williarin\WordpressInterop\Bridge\Entity\Option;
+use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
 use Williarin\WordpressInterop\Exception\OptionAlreadyExistsException;
 use Williarin\WordpressInterop\Exception\OptionNotFoundException;
 use Williarin\WordpressInterop\Test\TestCase;
 
 class OptionRepositoryTest extends TestCase
 {
-    private OptionRepository $repository;
+    private RepositoryInterface $repository;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new OptionRepository($this->manager, $this->serializer);
+        $this->repository = $this->manager->getRepository(Option::class);
     }
 
     public function testFindReturnsCorrectValue(): void

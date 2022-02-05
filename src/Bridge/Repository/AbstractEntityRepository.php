@@ -86,18 +86,18 @@ use function Williarin\WordpressInterop\Util\String\property_to_field;
  * @method bool         updatePostMimeType(int $id, string $newValue)
  * @method bool         updateCommentCount(int $id, int $newValue)
  */
-abstract class AbstractEntityRepository implements RepositoryInterface
+abstract class AbstractEntityRepository implements EntityRepositoryInterface
 {
     protected const MAPPED_FIELDS = [];
+    protected EntityManagerInterface $entityManager;
+    protected SerializerInterface $serializer;
 
     private array $entityBaseFields = [];
     private array $entityExtraFields = [];
     private PropertyNormalizer $propertyNormalizer;
 
     public function __construct(
-        protected EntityManagerInterface $entityManager,
-        protected SerializerInterface $serializer,
-        private string $entityClassName
+        private string $entityClassName,
     ) {
         $this->propertyNormalizer = new PropertyNormalizer(null, new CamelCaseToSnakeCaseNameConverter());
     }
@@ -192,6 +192,16 @@ abstract class AbstractEntityRepository implements RepositoryInterface
         ;
 
         return $affectedRows > 0;
+    }
+
+    public function setEntityManager(EntityManagerInterface $entityManager): void
+    {
+        $this->entityManager = $entityManager;
+    }
+
+    public function setSerializer(SerializerInterface $serializer): void
+    {
+        $this->serializer = $serializer;
     }
 
     /**

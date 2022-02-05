@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use DateTimeInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\Product;
-use Williarin\WordpressInterop\EntityManagerInterface;
 
 /**
  * @method Product   find($id)
@@ -147,11 +145,9 @@ final class ProductRepository extends AbstractEntityRepository
         'sale_price',
     ];
 
-    public function __construct(
-        protected EntityManagerInterface $entityManager,
-        SerializerInterface $serializer
-    ) {
-        parent::__construct($entityManager, $serializer, Product::class);
+    public function __construct()
+    {
+        parent::__construct(Product::class);
     }
 
     protected function getPostType(): string

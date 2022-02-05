@@ -25,12 +25,8 @@ final class OptionRepository implements RepositoryInterface
     public const OPTION_SITE_URL = 'siteurl';
     public const OPTION_BLOG_NAME = 'blogname';
     public const OPTION_BLOG_DESCRIPTION = 'blogdescription';
-
-    public function __construct(
-        private EntityManagerInterface $entityManager,
-        SerializerInterface $serializer
-    ) {
-    }
+    private EntityManagerInterface $entityManager;
+    private SerializerInterface $serializer;
 
     public function __call(string $name, array $arguments): string|array|null
     {
@@ -148,5 +144,15 @@ final class OptionRepository implements RepositoryInterface
         ;
 
         return $affectedRows > 0;
+    }
+
+    public function setEntityManager(EntityManagerInterface $entityManager): void
+    {
+        $this->entityManager = $entityManager;
+    }
+
+    public function setSerializer(SerializerInterface $serializer): void
+    {
+        $this->serializer = $serializer;
     }
 }
