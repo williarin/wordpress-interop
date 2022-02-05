@@ -68,7 +68,7 @@ $allPosts = $postRepository->findAll();
 
 ## Documentation
 
-### Basic post querying
+### Basic querying
 
 This works with any entity inherited from `BaseEntity`.
 Built-in entities are `Post`, `Page`, `Attachment` and `Product` but you can [create your own](#create-your-own-repositories).
@@ -104,6 +104,24 @@ $posts = $manager->getRepository(Post::class)->findByPostStatus('private');
 // Fetch all products whose titles match regexp
 $products = $manager->getRepository(Product::class)
     ->findByPostTitle(new Operand('Hoodie.*Pocket|Zipper', Operand::OPERATOR_REGEXP));
+```
+
+### Complex querying
+
+For more complex querying needs, you can add nested conditions.
+
+_Note: it only works with columns and not EAV attributes._
+
+```php
+// Fetch Hoodies as well as products with at least 30 comments, all of which are in stock
+$products = $manager->getRepository(Product::class)
+    ->findBy([
+        new NestedCondition(NestedCondition::OPERATOR_OR, [
+            'post_title' => new Operand('Hoodie%', Operand::OPERATOR_LIKE),
+            'comment_count' => new Operand(30, Operand::OPERATOR_GREATER_THAN_OR_EQUAL),
+        ]),
+        'stock_status' => 'instock',
+    ]);
 ```
 
 ### EAV querying

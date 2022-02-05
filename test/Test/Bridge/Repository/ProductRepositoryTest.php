@@ -6,8 +6,10 @@ namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
-use Williarin\WordpressInterop\Bridge\Type\Operand;
+use Williarin\WordpressInterop\Criteria\NestedCondition;
+use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
+use Williarin\WordpressInterop\Exception\InvalidTypeException;
 use Williarin\WordpressInterop\Test\TestCase;
 
 class ProductRepositoryTest extends TestCase
@@ -138,5 +140,35 @@ class ProductRepositoryTest extends TestCase
         );
 
         self::assertEquals([16, 23], array_column($products, 'id'));
+    }
+
+    public function testFindByCriteriaOr(): void
+    {
+        $products = $this->repository->findBy([
+            new NestedCondition(NestedCondition::OPERATOR_OR, [
+                'post_title' => new Operand('Hoodie%', Operand::OPERATOR_LIKE),
+                'ID' => new Operand('[126]{2}', Operand::OPERATOR_REGEXP),
+            ]),
+            'stock_status' => 'instock',
+        ]);
+
+        self::assertEquals([15, 16, 21, 22, 23, 26], array_column($products, 'id'));
+    }
+
+    public function testFindOneByWithLooseOperatorDoesNotThrowException(): void
+    {
+        $product = $this->repository->findOneByPostAuthor(
+            new Operand('2', Operand::OPERATOR_LIKE),
+        );
+
+        self::assertEquals(14, $product->id);
+    }
+
+    public function testFindOneByWithStrictOperatorThrowsException(): void
+    {
+        $this->expectException(InvalidTypeException::class);
+        $this->repository->findOneByPostAuthor(
+            new Operand('2', Operand::OPERATOR_EQUAL),
+        );
     }
 }

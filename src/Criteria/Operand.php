@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Williarin\WordpressInterop\Bridge\Type;
+namespace Williarin\WordpressInterop\Criteria;
 
 final class Operand
 {
@@ -30,5 +30,10 @@ final class Operand
     public function getOperator(): string
     {
         return $this->operator;
+    }
+
+    public function isLooseOperator(): bool
+    {
+        return in_array($this->operator, [self::OPERATOR_LIKE, self::OPERATOR_RLIKE, self::OPERATOR_REGEXP], true);
     }
 }

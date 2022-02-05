@@ -6,7 +6,7 @@ namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use DateTimeInterface;
 use Williarin\WordpressInterop\Bridge\Entity\Attachment;
-use Williarin\WordpressInterop\Bridge\Type\Operand;
+use Williarin\WordpressInterop\Criteria\Operand;
 
 /**
  * @method Attachment   find($id)

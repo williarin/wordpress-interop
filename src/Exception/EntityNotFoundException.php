@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Exception;
 
 use Exception;
-use Williarin\WordpressInterop\Bridge\Type\Operand;
+use Williarin\WordpressInterop\Criteria\Operand;
 
 final class EntityNotFoundException extends Exception
 {

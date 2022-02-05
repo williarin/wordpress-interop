@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use DateTimeInterface;
+use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
@@ -14,7 +15,8 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
-use Williarin\WordpressInterop\Bridge\Type\Operand;
+use Williarin\WordpressInterop\Criteria\NestedCondition;
+use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidArgumentException;
@@ -360,6 +362,10 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $expectedType = $this->validateFieldName($field);
         $resolvedValue = $value instanceof Operand ? $value->getOperand() : $value;
 
+        if ($value instanceof Operand && $value->isLooseOperator()) {
+            return $resolvedValue;
+        }
+
         $newValueType = str_replace(
             ['integer', 'boolean', 'double'],
             ['int', 'bool', 'float'],
@@ -385,8 +391,12 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $output = [];
 
         foreach ($criteria as $field => $value) {
-            $value = $this->validateFieldValue($field, $value);
-            $output[$field] = (string) $this->serializer->normalize($value);
+            if ($value instanceof NestedCondition) {
+                $output[] = new NestedCondition($value->getOperator(), $this->normalizeCriteria($value->getCriteria()));
+            } else {
+                $value = $this->validateFieldValue($field, $value);
+                $output[$field] = (string) $this->serializer->normalize($value);
+            }
         }
 
         return $output;
@@ -449,6 +459,14 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         foreach ($normalizedCriteria as $field => $value) {
+            if ($value instanceof NestedCondition) {
+                $expr = $this->createNestedCriteria($queryBuilder, $criteria[$field]->getCriteria(), $value,);
+
+                $queryBuilder->andWhere($expr);
+
+                continue;
+            }
+
             $expr = sprintf(
                 '`%s` %s :%s',
                 $field,
@@ -481,5 +499,31 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         return $queryBuilder;
+    }
+
+    private function createNestedCriteria(
+        QueryBuilder $queryBuilder,
+        array $criteria,
+        NestedCondition $condition
+    ): CompositeExpression {
+        $normalizedCriteria = $condition->getCriteria();
+        $expressions = [];
+
+        foreach ($normalizedCriteria as $field => $value) {
+            $expressions[] = sprintf(
+                '`%s` %s :%s',
+                $field,
+                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperator() : '=',
+                $field,
+            );
+
+            $queryBuilder->setParameter(
+                $field,
+                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperand() : $value
+            );
+        }
+
+        return $queryBuilder->expr()
+            ->{$condition->getOperator()}(...$expressions);
     }
 }
