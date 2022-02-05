@@ -14,6 +14,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
+use Williarin\WordpressInterop\Bridge\Type\Operand;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidArgumentException;
@@ -25,66 +26,66 @@ use function Williarin\WordpressInterop\Util\String\field_to_property;
 use function Williarin\WordpressInterop\Util\String\property_to_field;
 
 /**
- * @method BaseEntity   findOneByPostAuthor(int $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostDate(DateTimeInterface $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostDateGmt(DateTimeInterface $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostContent(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostTitle(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostExcerpt(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostStatus(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByCommentStatus(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPingStatus(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostPassword(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostName(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByToPing(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPinged(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostModifiedGmt(DateTimeInterface $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostParent(int $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByGuid(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByMenuOrder(int $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostType(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostMimeType(string $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByCommentCount(int $newValue, array $orderBy = null)
- * @method BaseEntity[] findByPostAuthor(int $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostDate(DateTimeInterface $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostDateGmt(DateTimeInterface $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostContent(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostTitle(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostExcerpt(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostStatus(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByCommentStatus(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPingStatus(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostPassword(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostName(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByToPing(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPinged(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostModifiedGmt(DateTimeInterface $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostParent(int $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByGuid(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByMenuOrder(int $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostType(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostMimeType(string $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByCommentCount(int $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method bool         updatePostAuthor(int $id, int $newValue)
- * @method bool         updatePostDate(int $id, DateTimeInterface $newValue)
- * @method bool         updatePostDateGmt(int $id, DateTimeInterface $newValue)
- * @method bool         updatePostContent(int $id, string $newValue)
- * @method bool         updatePostTitle(int $id, string $newValue)
- * @method bool         updatePostExcerpt(int $id, string $newValue)
- * @method bool         updatePostStatus(int $id, string $newValue)
- * @method bool         updateCommentStatus(int $id, string $newValue)
- * @method bool         updatePingStatus(int $id, string $newValue)
- * @method bool         updatePostPassword(int $id, string $newValue)
- * @method bool         updatePostName(int $id, string $newValue)
- * @method bool         updateToPing(int $id, string $newValue)
- * @method bool         updatePinged(int $id, string $newValue)
- * @method bool         updatePostModifiedGmt(int $id, DateTimeInterface $newValue)
- * @method bool         updatePostParent(int $id, int $newValue)
- * @method bool         updateGuid(int $id, string $newValue)
- * @method bool         updateMenuOrder(int $id, int $newValue)
- * @method bool         updatePostType(int $id, string $newValue)
- * @method bool         updatePostMimeType(int $id, string $newValue)
- * @method bool         updateCommentCount(int $id, int $newValue)
+ * @method BaseEntity   findOneByPostAuthor(int|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostDate(DateTimeInterface|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostDateGmt(DateTimeInterface|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostContent(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostTitle(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostExcerpt(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostStatus(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByCommentStatus(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPingStatus(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostPassword(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostName(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByToPing(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPinged(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostModifiedGmt(DateTimeInterface|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostParent(int|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByGuid(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByMenuOrder(int|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostType(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByPostMimeType(string|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity   findOneByCommentCount(int|Operand $newValue, array $orderBy = null)
+ * @method BaseEntity[] findByPostAuthor(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostDate(DateTimeInterface|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostDateGmt(DateTimeInterface|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostContent(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostTitle(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostExcerpt(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostStatus(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByCommentStatus(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPingStatus(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostPassword(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostName(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByToPing(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPinged(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostModifiedGmt(DateTimeInterface|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostParent(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByGuid(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByMenuOrder(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostType(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByPostMimeType(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method BaseEntity[] findByCommentCount(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
+ * @method bool         updatePostAuthor(int $id, int|Operand $newValue)
+ * @method bool         updatePostDate(int $id, DateTimeInterface|Operand $newValue)
+ * @method bool         updatePostDateGmt(int $id, DateTimeInterface|Operand $newValue)
+ * @method bool         updatePostContent(int $id, string|Operand $newValue)
+ * @method bool         updatePostTitle(int $id, string|Operand $newValue)
+ * @method bool         updatePostExcerpt(int $id, string|Operand $newValue)
+ * @method bool         updatePostStatus(int $id, string|Operand $newValue)
+ * @method bool         updateCommentStatus(int $id, string|Operand $newValue)
+ * @method bool         updatePingStatus(int $id, string|Operand $newValue)
+ * @method bool         updatePostPassword(int $id, string|Operand $newValue)
+ * @method bool         updatePostName(int $id, string|Operand $newValue)
+ * @method bool         updateToPing(int $id, string|Operand $newValue)
+ * @method bool         updatePinged(int $id, string|Operand $newValue)
+ * @method bool         updatePostModifiedGmt(int $id, DateTimeInterface|Operand $newValue)
+ * @method bool         updatePostParent(int $id, int|Operand $newValue)
+ * @method bool         updateGuid(int $id, string|Operand $newValue)
+ * @method bool         updateMenuOrder(int $id, int|Operand $newValue)
+ * @method bool         updatePostType(int $id, string|Operand $newValue)
+ * @method bool         updatePostMimeType(int $id, string|Operand $newValue)
+ * @method bool         updateCommentCount(int $id, int|Operand $newValue)
  */
 abstract class AbstractEntityRepository implements EntityRepositoryInterface
 {
@@ -134,6 +135,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     public function findOneBy(array $criteria, array $orderBy = null): BaseEntity
     {
         $result = $this->createFindByQueryBuilder($criteria, $orderBy)
+            ->setMaxResults(1)
+            ->setFirstResult(0)
             ->executeQuery()
             ->fetchAssociative()
         ;
@@ -355,20 +358,26 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     private function validateFieldValue(string $field, mixed $value): mixed
     {
         $expectedType = $this->validateFieldName($field);
-        $newValueType = str_replace(['integer', 'boolean', 'double'], ['int', 'bool', 'float'], gettype($value));
+        $resolvedValue = $value instanceof Operand ? $value->getOperand() : $value;
+
+        $newValueType = str_replace(
+            ['integer', 'boolean', 'double'],
+            ['int', 'bool', 'float'],
+            gettype($resolvedValue),
+        );
 
         if (
-            (is_object($value) && !is_subclass_of($value, $expectedType))
-            || (!is_object($value) && $expectedType !== $newValueType)
+            (is_object($resolvedValue) && !is_subclass_of($resolvedValue, $expectedType))
+            || (!is_object($resolvedValue) && $expectedType !== $newValueType)
         ) {
             throw new InvalidTypeException(strtolower($field), $expectedType, $newValueType);
         }
 
-        if (is_array($value)) {
-            $value = serialize($value);
+        if (is_array($resolvedValue)) {
+            $resolvedValue = serialize($resolvedValue);
         }
 
-        return $value;
+        return $resolvedValue;
     }
 
     private function normalizeCriteria(array $criteria): array
@@ -404,7 +413,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
     private function createFindByQueryBuilder(array $criteria, ?array $orderBy): QueryBuilder
     {
-        $criteria = $this->normalizeCriteria($criteria);
+        $normalizedCriteria = $this->normalizeCriteria($criteria);
 
         $queryBuilder = $this->entityManager->getConnection()
             ->createQueryBuilder()
@@ -439,14 +448,24 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             $queryBuilder->groupBy('p.ID');
         }
 
-        foreach ($criteria as $field => $value) {
+        foreach ($normalizedCriteria as $field => $value) {
+            $expr = sprintf(
+                '`%s` %s :%s',
+                $field,
+                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperator() : '=',
+                $field,
+            );
+
             if (in_array($field, $extraFields, true)) {
-                $queryBuilder->andHaving("`{$field}` = :{$field}");
+                $queryBuilder->andHaving($expr);
             } else {
-                $queryBuilder->andWhere("`{$field}` = :{$field}");
+                $queryBuilder->andWhere($expr);
             }
 
-            $queryBuilder->setParameter($field, $value);
+            $queryBuilder->setParameter(
+                $field,
+                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperand() : $value
+            );
         }
 
         if (!empty($orderBy)) {
