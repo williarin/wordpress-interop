@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Exception;
 
 use Exception;
+use Williarin\WordpressInterop\Bridge\Type\Operand;
 
 final class EntityNotFoundException extends Exception
 {
@@ -14,7 +15,11 @@ final class EntityNotFoundException extends Exception
             'Could not find entity "%s" with %s.',
             $entityClassName,
             implode(', ', array_map(
-                static fn ($value, $field) => sprintf('%s "%s"', $field, $value),
+                static fn (mixed $value, string $field): string => sprintf(
+                    '%s "%s"',
+                    $field,
+                    $value instanceof Operand ? $value->getOperand() : $value,
+                ),
                 $criteria,
                 array_keys($criteria),
             )),

@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
+use Williarin\WordpressInterop\Bridge\Type\Operand;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Test\TestCase;
 
@@ -92,5 +93,50 @@ class ProductRepositoryTest extends TestCase
         self::assertCount(3, $products);
         self::assertContainsOnlyInstancesOf(Product::class, $products);
         self::assertEquals([14, 22, 23], array_column($products, 'id'));
+    }
+
+    public function testFindByRegexp(): void
+    {
+        $products = $this->repository->findBy([
+            'post_title' => new Operand('Hoodie.*Pocket|Zipper', Operand::OPERATOR_REGEXP)
+        ]);
+
+        self::assertEquals([22, 23], array_column($products, 'id'));
+    }
+
+    public function testFindByRegexpWithMagicMethod(): void
+    {
+        $products = $this->repository->findByPostTitle(
+            new Operand('Hoodie.*Pocket|Zipper', Operand::OPERATOR_REGEXP),
+        );
+
+        self::assertEquals([22, 23], array_column($products, 'id'));
+    }
+
+    public function testFindOneByRegexpWithMagicMethod(): void
+    {
+        $product = $this->repository->findOneByPostTitle(
+            new Operand('Hoodie.*Pocket', Operand::OPERATOR_REGEXP),
+        );
+
+        self::assertEquals(22, $product->id);
+    }
+
+    public function testFindOneByEAVRegexp(): void
+    {
+        $product = $this->repository->findOneBySku(
+            new Operand('hoodie.*logo', Operand::OPERATOR_REGEXP),
+        );
+
+        self::assertEquals(16, $product->id);
+    }
+
+    public function testFindByEAVRegexp(): void
+    {
+        $products = $this->repository->findBySku(
+            new Operand('hoodie.*logo|zipper', Operand::OPERATOR_REGEXP),
+        );
+
+        self::assertEquals([16, 23], array_column($products, 'id'));
     }
 }

@@ -17,10 +17,10 @@
     "require": {
         "php": ">=8.0",
         "doctrine/dbal": "^3.3",
+        "symfony/options-resolver": "^6.0",
         "symfony/property-access": "^6.0",
         "symfony/serializer": "^6.0",
-        "symfony/serializer-pack": "^1.1",
-        "symfony/options-resolver": "^6.0"
+        "symfony/serializer-pack": "^1.1"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.23",
@@ -45,6 +45,11 @@
         "psr-4": {
             "Williarin\\WordpressInterop\\Test\\": "test/Test/",
             "Williarin\\WordpressInterop\\Test\\Fixture\\": "test/Fixture/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.x-dev"
         }
     }
 }

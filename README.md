@@ -95,11 +95,15 @@ $post = $manager->getRepository(Post::class)
         ['comment_count' => 'DESC', 'post_date' => 'DESC'],
     );
 
-// All posts
+// Fetch all posts
 $posts = $manager->getRepository(Post::class)->findAll();
 
-// All private posts
+// Fetch all private posts
 $posts = $manager->getRepository(Post::class)->findByPostStatus('private');
+
+// Fetch all products whose titles match regexp
+$products = $manager->getRepository(Product::class)
+    ->findByPostTitle(new Operand('Hoodie.*Pocket|Zipper', Operand::OPERATOR_REGEXP));
 ```
 
 ### EAV querying
@@ -126,6 +130,10 @@ $products = $manager->getRepository(Product::class)
         ['stock_status' => 'instock', 'post_status' => 'publish'],
         ['post_date' => 'DESC'],
     );
+
+// Fetch all products whose sku match regexp
+$products = $manager->getRepository(Product::class)
+    ->findBySku(new Operand('hoodie.*logo|zipper', Operand::OPERATOR_REGEXP));
 ```
 
 ### Field update
