@@ -56,6 +56,8 @@ use Williarin\WordpressInterop\Criteria\Operand;
  */
 final class PostRepository extends AbstractEntityRepository
 {
+    protected const MAPPED_FIELDS = ['thumbnail_id'];
+
     public function __construct()
     {
         parent::__construct(Post::class);
