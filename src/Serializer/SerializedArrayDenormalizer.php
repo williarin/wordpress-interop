@@ -22,8 +22,12 @@ final class SerializedArrayDenormalizer implements ContextAwareDenormalizerInter
         return in_array($type, [AttachmentMetadata::class, GenericData::class]);
     }
 
-    public function denormalize(mixed $data, string $type, string $format = null, array $context = [])
-    {
+    public function denormalize(
+        mixed $data,
+        string $type,
+        string $format = null,
+        array $context = []
+    ): array|string|int|float|bool|\ArrayObject|AttachmentMetadata|GenericData|null {
         $unserialized = unserialize_if_needed($data);
 
         if ($data !== $unserialized) {
