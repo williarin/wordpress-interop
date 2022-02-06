@@ -17,6 +17,7 @@ use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Criteria\RelationshipCondition;
+use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidArgumentException;
@@ -230,6 +231,12 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         foreach ($normalizedCriteria as $field => $value) {
+            if ($value instanceof SelectColumns) {
+                $this->selectColumns($queryBuilder, $extraFields, $value);
+
+                continue;
+            }
+
             if ($value instanceof NestedCondition) {
                 $this->createNestedCriteria($queryBuilder, $criteria[$field]->getCriteria(), $value);
 
@@ -460,7 +467,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         foreach ($criteria as $field => $value) {
             if ($value instanceof NestedCondition) {
                 $output[] = new NestedCondition($value->getOperator(), $this->normalizeCriteria($value->getCriteria()));
-            } elseif ($value instanceof RelationshipCondition) {
+            } elseif ($value instanceof RelationshipCondition || $value instanceof SelectColumns) {
                 $output[] = $value;
             } else {
                 $value = $this->validateFieldValue($field, $value);
@@ -533,5 +540,21 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             ->setParameter(sprintf('%s_id', $alias), $condition->getRelationshipId())
             ->setParameter(sprintf('%s_field', $alias), $condition->getRelationshipFieldName())
         ;
+    }
+
+    private function selectColumns(QueryBuilder $queryBuilder, array $extraFields, SelectColumns $value): void
+    {
+        $selects = [];
+
+        foreach ($value->getColumns() as $column) {
+            if (in_array($column, $extraFields, true)) {
+                $mappedMetaKey = $this->getMappedMetaKey($column);
+                $selects[] = select_from_eav($column, $mappedMetaKey);
+            } else {
+                $selects[] = $column;
+            }
+        }
+
+        $queryBuilder->select(...$selects);
     }
 }

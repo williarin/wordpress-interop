@@ -170,6 +170,24 @@ $attachment = $manager->getRepository(Attachment::class)
     ]);
 ```
 
+### Restrict selected columns
+
+Querying all columns at once is slow, especially if you have a lot of entities to retrieve.
+You can restrict the queried columns as the example below.
+
+It works with base columns as well as EAV attributes.
+
+```php
+// Fetch only products title and SKU
+$products = $manager->getRepository(Product::class)
+    ->findBy([
+        new SelectColumns(['post_title', 'sku']),
+        'sku' => new Operand('hoodie.*logo|zipper', Operand::OPERATOR_REGEXP),
+    ]);
+
+// Product entities are filled with null values except $postTitle and $sku
+```
+
 ### Extending the generated query
 
 For advanced needs, it's also possible to retrieve the query builder and modify it to your needs.
@@ -177,7 +195,7 @@ For advanced needs, it's also possible to retrieve the query builder and modify 
 _Note: use `select_from_eav()` function to query EAV attributes._
 ```php
 // Fetch all products but override SELECT clause with only tree columns
-$repository = $this->managerRegistry->getRepository(Product::class, $siteId);
+$repository = $manager->getRepository(Product::class, $siteId);
 $result = $repository->createFindByQueryBuilder([], ['sku' => 'ASC'])
     ->select('id', 'post_title', select_from_eav('sku'))
     ->executeQuery()
