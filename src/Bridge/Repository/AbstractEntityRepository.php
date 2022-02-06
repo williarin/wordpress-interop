@@ -26,6 +26,7 @@ use Williarin\WordpressInterop\Exception\InvalidTypeException;
 use Williarin\WordpressInterop\Exception\MethodNotFoundException;
 use function Williarin\WordpressInterop\Util\String\field_to_property;
 use function Williarin\WordpressInterop\Util\String\property_to_field;
+use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
 /**
  * @method BaseEntity   findOneByPostAuthor(int|Operand $newValue, array $orderBy = null)
@@ -197,66 +198,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $this->serializer = $serializer;
     }
 
-    /**
-     * @return string[]
-     */
-    protected function getEntityBaseFields(): array
-    {
-        if (empty($this->entityBaseFields)) {
-            $this->entityBaseFields = array_keys($this->serializer->normalize(new $this->entityClassName(), null, [
-                'groups' => ['base'],
-            ]));
-        }
-
-        return $this->entityBaseFields;
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function getPrefixedEntityBaseFields(string $prefix): array
-    {
-        return array_map(
-            static fn (string $property): string => sprintf('%s.%s', $prefix, $property),
-            $this->getEntityBaseFields(),
-        );
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function getEntityExtraFields(): array
-    {
-        $baseFields = $this->getEntityBaseFields();
-
-        if (empty($this->entityExtraFields)) {
-            $allFields = array_keys($this->propertyNormalizer->normalize(new $this->entityClassName()));
-            $this->entityExtraFields = array_diff($allFields, $baseFields);
-        }
-
-        return $this->entityExtraFields;
-    }
-
-    protected function denormalize(mixed $data, string $type): mixed
-    {
-        $context[AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT] = true;
-
-        return $this->serializer->denormalize($data, $type, null, $context);
-    }
-
-    protected function normalize(string $field, mixed $value): string
-    {
-        $value = $this->validateFieldValue($field, $value);
-
-        return (string) $this->serializer->normalize($value);
-    }
-
-    protected function getPostType(): string
-    {
-        return 'post';
-    }
-
-    protected function createFindByQueryBuilder(array $criteria, ?array $orderBy): QueryBuilder
+    public function createFindByQueryBuilder(array $criteria, ?array $orderBy): QueryBuilder
     {
         $normalizedCriteria = $this->normalizeCriteria($criteria);
 
@@ -281,13 +223,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             foreach ($extraFields as $extraField) {
                 $fieldName = property_to_field($extraField);
                 $mappedMetaKey = $this->getMappedMetaKey($fieldName);
-                $queryBuilder->addSelect(
-                    sprintf(
-                        "MAX(CASE WHEN pm_self.meta_key = '%s' THEN pm_self.meta_value END) `%s`",
-                        $mappedMetaKey,
-                        $fieldName,
-                    )
-                );
+                $queryBuilder->addSelect(select_from_eav($fieldName, $mappedMetaKey));
             }
 
             $queryBuilder->groupBy('p.ID');
@@ -338,6 +274,65 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         return $queryBuilder;
+    }
+
+    public function denormalize(mixed $data, string $type): mixed
+    {
+        $context[AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT] = true;
+
+        return $this->serializer->denormalize($data, $type, null, $context);
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function getEntityBaseFields(): array
+    {
+        if (empty($this->entityBaseFields)) {
+            $this->entityBaseFields = array_keys($this->serializer->normalize(new $this->entityClassName(), null, [
+                'groups' => ['base'],
+            ]));
+        }
+
+        return $this->entityBaseFields;
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function getPrefixedEntityBaseFields(string $prefix): array
+    {
+        return array_map(
+            static fn (string $property): string => sprintf('%s.%s', $prefix, $property),
+            $this->getEntityBaseFields(),
+        );
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function getEntityExtraFields(): array
+    {
+        $baseFields = $this->getEntityBaseFields();
+
+        if (empty($this->entityExtraFields)) {
+            $allFields = array_keys($this->propertyNormalizer->normalize(new $this->entityClassName()));
+            $this->entityExtraFields = array_diff($allFields, $baseFields);
+        }
+
+        return $this->entityExtraFields;
+    }
+
+    protected function normalize(string $field, mixed $value): string
+    {
+        $value = $this->validateFieldValue($field, $value);
+
+        return (string) $this->serializer->normalize($value);
+    }
+
+    protected function getPostType(): string
+    {
+        return 'post';
     }
 
     private function doFindOneBy(string $name, array $arguments): BaseEntity

@@ -170,6 +170,21 @@ $attachment = $manager->getRepository(Attachment::class)
     ]);
 ```
 
+### Extending the generated query
+
+For advanced needs, it's also possible to retrieve the query builder and modify it to your needs.
+
+_Note: use `select_from_eav()` function to query EAV attributes._
+```php
+// Fetch all products but override SELECT clause with only tree columns
+$repository = $this->managerRegistry->getRepository(Product::class, $siteId);
+$result = $repository->createFindByQueryBuilder([], ['sku' => 'ASC'])
+    ->select('id', 'post_title', select_from_eav('sku'))
+    ->executeQuery()
+    ->fetchAllAssociative();
+$products = $repository->denormalize($result, Product::class . '[]');
+```
+
 ### Field update
 There's a type validation before update.
 You can't assign a string to a date field, a string to an int field, etc.
