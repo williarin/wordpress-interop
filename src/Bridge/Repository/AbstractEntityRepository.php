@@ -150,21 +150,9 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return $this->denormalize($result, $this->entityClassName);
     }
 
-    public function findAll(): array
+    public function findAll(array $orderBy = null): array
     {
-        $result = $this->entityManager->getConnection()
-            ->createQueryBuilder()
-            ->select($this->getEntityBaseFields())
-            ->from($this->entityManager->getTablesPrefix() . 'posts')
-            ->where('post_type = :post_type')
-            ->setParameters([
-                'post_type' => $this->getPostType(),
-            ])
-            ->executeQuery()
-            ->fetchAllAssociative()
-        ;
-
-        return $this->denormalize($result, $this->entityClassName . '[]');
+        return $this->findBy([], $orderBy);
     }
 
     public function findBy(array $criteria, array $orderBy = null, ?int $limit = null, int $offset = null): array

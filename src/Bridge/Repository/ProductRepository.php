@@ -105,7 +105,7 @@ use Williarin\WordpressInterop\Criteria\Operand;
  * @method Product[] findByLength(float|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
  * @method Product[] findByWidth(float|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
  * @method Product[] findByHeight(float|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method Product[] findAll()
+ * @method Product[] findAll(array $orderBy = null)
  */
 final class ProductRepository extends AbstractEntityRepository
 {
