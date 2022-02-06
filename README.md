@@ -106,30 +106,14 @@ $products = $manager->getRepository(Product::class)
     ->findByPostTitle(new Operand('Hoodie.*Pocket|Zipper', Operand::OPERATOR_REGEXP));
 ```
 
-### Complex querying
-
-For more complex querying needs, you can add nested conditions.
-
-_Note: it only works with columns and not EAV attributes._
-
-```php
-// Fetch Hoodies as well as products with at least 30 comments, all of which are in stock
-$products = $manager->getRepository(Product::class)
-    ->findBy([
-        new NestedCondition(NestedCondition::OPERATOR_OR, [
-            'post_title' => new Operand('Hoodie%', Operand::OPERATOR_LIKE),
-            'comment_count' => new Operand(30, Operand::OPERATOR_GREATER_THAN_OR_EQUAL),
-        ]),
-        'stock_status' => 'instock',
-    ]);
-```
-
 ### EAV querying
 
 The query system supports directly querying EAV attributes.
 However, it only works with properties that have been declared in the corresponding entity.
 
 In the example below, `sku` and `stock_status` are attributes from `wp_postmeta` table.
+
+_Note: Field names are mapped to match their property name. As an example, `_sku` becomes `sku`, or `_wc_average_rating` becomes `average_rating`._
 
 ```php
 // Fetch a product by its SKU
@@ -152,6 +136,38 @@ $products = $manager->getRepository(Product::class)
 // Fetch all products whose sku match regexp
 $products = $manager->getRepository(Product::class)
     ->findBySku(new Operand('hoodie.*logo|zipper', Operand::OPERATOR_REGEXP));
+```
+
+### Nested conditions
+
+For more complex querying needs, you can add nested conditions.
+
+_Note: it only works with columns and not EAV attributes._
+
+```php
+// Fetch Hoodies as well as products with at least 30 comments, all of which are in stock
+$products = $manager->getRepository(Product::class)
+    ->findBy([
+        new NestedCondition(NestedCondition::OPERATOR_OR, [
+            'post_title' => new Operand('Hoodie%', Operand::OPERATOR_LIKE),
+            'comment_count' => new Operand(30, Operand::OPERATOR_GREATER_THAN_OR_EQUAL),
+        ]),
+        'stock_status' => 'instock',
+    ]);
+```
+
+### Relationship conditions
+
+Query entities based on their EAV relationships.
+
+_Note: the EAV fields must have their original names, unlike mapped fields for direct EAV querying._
+
+```php
+// Fetch the featured image of the post with ID "4"
+$attachment = $manager->getRepository(Attachment::class)
+    ->findOneBy([
+        new RelationshipCondition(4, '_thumbnail_id'),
+    ]);
 ```
 
 ### Field update

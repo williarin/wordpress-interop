@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop\Exception;
 
 use Exception;
 use Williarin\WordpressInterop\Criteria\Operand;
+use Williarin\WordpressInterop\Criteria\RelationshipCondition;
 
 final class EntityNotFoundException extends Exception
 {
@@ -15,11 +16,21 @@ final class EntityNotFoundException extends Exception
             'Could not find entity "%s" with %s.',
             $entityClassName,
             implode(', ', array_map(
-                static fn (mixed $value, string $field): string => sprintf(
-                    '%s "%s"',
-                    $field,
-                    $value instanceof Operand ? $value->getOperand() : $value,
-                ),
+                static function (mixed $value, int|string $field): string {
+                    $field = $value instanceof RelationshipCondition
+                        ? sprintf('relationship ID "%s"', $value->getRelationshipId())
+                        : $field;
+
+                    if ($value instanceof Operand) {
+                        $value = sprintf('"%s"', $value->getOperand());
+                    } elseif ($value instanceof RelationshipCondition) {
+                        $value = sprintf('having a field "%s"', $value->getRelationshipFieldName());
+                    } else {
+                        $value = sprintf('"%s"', $value);
+                    }
+
+                    return sprintf('%s %s', $field, $value);
+                },
                 $criteria,
                 array_keys($criteria),
             )),

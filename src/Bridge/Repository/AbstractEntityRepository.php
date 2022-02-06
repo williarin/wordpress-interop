@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use DateTimeInterface;
-use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
@@ -17,6 +16,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
+use Williarin\WordpressInterop\Criteria\RelationshipCondition;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidArgumentException;
@@ -271,7 +271,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $extraFields = $this->getEntityExtraFields();
 
         if (!empty($extraFields)) {
-            $queryBuilder->join(
+            $queryBuilder->leftJoin(
                 'p',
                 $this->entityManager->getTablesPrefix() . 'postmeta',
                 'pm_self',
@@ -283,7 +283,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 $mappedMetaKey = $this->getMappedMetaKey($fieldName);
                 $queryBuilder->addSelect(
                     sprintf(
-                        "MAX(Case WHEN pm_self.meta_key = '%s' THEN pm_self.meta_value END) `%s`",
+                        "MAX(CASE WHEN pm_self.meta_key = '%s' THEN pm_self.meta_value END) `%s`",
                         $mappedMetaKey,
                         $fieldName,
                     )
@@ -295,9 +295,13 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         foreach ($normalizedCriteria as $field => $value) {
             if ($value instanceof NestedCondition) {
-                $expr = $this->createNestedCriteria($queryBuilder, $criteria[$field]->getCriteria(), $value,);
+                $this->createNestedCriteria($queryBuilder, $criteria[$field]->getCriteria(), $value);
 
-                $queryBuilder->andWhere($expr);
+                continue;
+            }
+
+            if ($value instanceof RelationshipCondition) {
+                $this->createRelationshipCriteria($queryBuilder, $value);
 
                 continue;
             }
@@ -461,6 +465,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         foreach ($criteria as $field => $value) {
             if ($value instanceof NestedCondition) {
                 $output[] = new NestedCondition($value->getOperator(), $this->normalizeCriteria($value->getCriteria()));
+            } elseif ($value instanceof RelationshipCondition) {
+                $output[] = $value;
             } else {
                 $value = $this->validateFieldValue($field, $value);
                 $output[$field] = (string) $this->serializer->normalize($value);
@@ -493,7 +499,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         QueryBuilder $queryBuilder,
         array $criteria,
         NestedCondition $condition
-    ): CompositeExpression {
+    ): void {
         $normalizedCriteria = $condition->getCriteria();
         $expressions = [];
 
@@ -511,7 +517,26 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             );
         }
 
-        return $queryBuilder->expr()
-            ->{$condition->getOperator()}(...$expressions);
+        $queryBuilder->andWhere($queryBuilder->expr()->{$condition->getOperator()}(...$expressions));
+    }
+
+    private function createRelationshipCriteria(
+        QueryBuilder $queryBuilder,
+        RelationshipCondition $condition
+    ): void {
+        static $aliasNumber = 0;
+        $alias = sprintf('pm_relation_%d', $aliasNumber++);
+
+        $queryBuilder->leftJoin(
+            'p',
+            $this->entityManager->getTablesPrefix() . 'postmeta',
+            $alias,
+            sprintf('p.ID = %s.meta_value', $alias),
+        )
+            ->andWhere(sprintf('%s.post_id = :%s_id', $alias, $alias))
+            ->andWhere(sprintf('%s.meta_key = :%s_field', $alias, $alias))
+            ->setParameter(sprintf('%s_id', $alias), $condition->getRelationshipId())
+            ->setParameter(sprintf('%s_field', $alias), $condition->getRelationshipFieldName())
+        ;
     }
 }
