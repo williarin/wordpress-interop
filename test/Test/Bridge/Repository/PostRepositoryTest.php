@@ -40,7 +40,14 @@ class PostRepositoryTest extends TestCase
     {
         $posts = $this->repository->findAll();
         self::assertContainsOnlyInstancesOf(Post::class, $posts);
-        self::assertCount(4, $posts);
+        self::assertSame([12, 11, 1, 10], array_column($posts, 'id'));
+    }
+
+    public function testFindAllOrderBy(): void
+    {
+        $posts = $this->repository->findAll(['post_date' => 'DESC']);
+        self::assertContainsOnlyInstancesOf(Post::class, $posts);
+        self::assertSame([12, 11, 10, 1], array_column($posts, 'id'));
     }
 
     public function testFindOneByPostTitle(): void

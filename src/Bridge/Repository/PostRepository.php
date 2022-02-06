@@ -52,7 +52,7 @@ use Williarin\WordpressInterop\Criteria\Operand;
  * @method Post[] findByPostType(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
  * @method Post[] findByPostMimeType(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
  * @method Post[] findByCommentCount(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method Post[] findAll()
+ * @method Post[] findAll(array $orderBy = null)
  */
 final class PostRepository extends AbstractEntityRepository
 {

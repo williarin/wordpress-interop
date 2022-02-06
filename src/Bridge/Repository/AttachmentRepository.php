@@ -54,7 +54,7 @@ use Williarin\WordpressInterop\Criteria\Operand;
  * @method Attachment[] findByPostMimeType(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
  * @method Attachment[] findByCommentCount(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
  * @method Attachment[] findByAttachedFile(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method Attachment[] findAll()
+ * @method Attachment[] findAll(array $orderBy = null)
  */
 final class AttachmentRepository extends AbstractEntityRepository
 {
