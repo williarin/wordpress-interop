@@ -12,6 +12,8 @@ use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidTypeException;
 use Williarin\WordpressInterop\Test\TestCase;
 
+use function Williarin\WordpressInterop\Util\String\select_from_eav;
+
 class ProductRepositoryTest extends TestCase
 {
     private EntityRepositoryInterface $repository;
@@ -170,5 +172,27 @@ class ProductRepositoryTest extends TestCase
         $this->repository->findOneByPostAuthor(
             new Operand('2', Operand::OPERATOR_EQUAL),
         );
+    }
+
+    public function testOverrideSelectClause(): void
+    {
+        $result = $this->repository->createFindByQueryBuilder(
+            ['sku' => new Operand('hoodie.*logo|zipper', Operand::OPERATOR_REGEXP)],
+            ['sku' => 'ASC']
+        )
+            ->select('post_title', select_from_eav('sku'))
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        self::assertEquals([
+            [
+                'post_title' => 'Hoodie with Logo',
+                'sku' => 'woo-hoodie-with-logo',
+            ],
+            [
+                'post_title' => 'Hoodie with Zipper',
+                'sku' => 'woo-hoodie-with-zipper',
+            ]
+        ], $result);
     }
 }

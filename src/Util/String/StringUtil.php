@@ -36,3 +36,14 @@ function field_to_property(string $fieldName): string
         ->toString()
     ;
 }
+
+function select_from_eav(string $propertyName, ?string $metaKey = null, string $joinTableName = 'pm_self'): string
+{
+    return sprintf(
+        "MAX(CASE WHEN %s.meta_key = '%s' THEN %s.meta_value END) `%s`",
+        $joinTableName,
+        $metaKey ?? sprintf('_%s', ltrim($propertyName, '_')),
+        $joinTableName,
+        $propertyName,
+    );
+}
