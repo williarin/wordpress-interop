@@ -9,6 +9,7 @@ use Williarin\WordpressInterop\Bridge\Repository\ProductRepository;
 use Williarin\WordpressInterop\Bridge\Type\GenericData;
 
 /**
+ * @property ?int   $downloadExpiry
  * @property ?int   $downloadLimit
  * @property ?int   $salePriceDatesFrom
  * @property ?int   $salePriceDatesTo
@@ -35,7 +36,6 @@ final class Product extends BaseEntity
     public ?string $virtual = null;
     public ?string $downloadable = null;
     public ?string $productImageGallery = null;
-    public ?int $downloadExpiry = null;
     public ?string $stock = null;
     public ?string $stockStatus = null;
     public ?int $averageRating = null;
@@ -48,6 +48,7 @@ final class Product extends BaseEntity
     public ?string $price = null;
     public ?string $regularPrice = null;
     public ?string $salePrice = null;
+    protected ?int $downloadExpiry = null;
     protected ?int $downloadLimit = null;
     protected ?int $salePriceDatesFrom = null;
     protected ?int $salePriceDatesTo = null;
