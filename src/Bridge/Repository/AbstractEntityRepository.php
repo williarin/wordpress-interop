@@ -268,6 +268,86 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return 'post';
     }
 
+    protected function createFindByQueryBuilder(array $criteria, ?array $orderBy): QueryBuilder
+    {
+        $normalizedCriteria = $this->normalizeCriteria($criteria);
+
+        $queryBuilder = $this->entityManager->getConnection()
+            ->createQueryBuilder()
+            ->select($this->getPrefixedEntityBaseFields('p'))
+            ->from($this->entityManager->getTablesPrefix() . 'posts', 'p')
+            ->where('post_type = :post_type')
+            ->setParameter('post_type', $this->getPostType())
+        ;
+
+        $extraFields = $this->getEntityExtraFields();
+
+        if (!empty($extraFields)) {
+            $queryBuilder->join(
+                'p',
+                $this->entityManager->getTablesPrefix() . 'postmeta',
+                'pm_self',
+                'p.ID = pm_self.post_id',
+            );
+
+            foreach ($extraFields as $extraField) {
+                $fieldName = property_to_field($extraField);
+                $mappedMetaKey = $this->getMappedMetaKey($fieldName);
+                $queryBuilder->addSelect(
+                    sprintf(
+                        "MAX(Case WHEN pm_self.meta_key = '%s' THEN pm_self.meta_value END) `%s`",
+                        $mappedMetaKey,
+                        $fieldName,
+                    )
+                );
+            }
+
+            $queryBuilder->groupBy('p.ID');
+        }
+
+        foreach ($normalizedCriteria as $field => $value) {
+            if ($value instanceof NestedCondition) {
+                $expr = $this->createNestedCriteria($queryBuilder, $criteria[$field]->getCriteria(), $value,);
+
+                $queryBuilder->andWhere($expr);
+
+                continue;
+            }
+
+            $expr = sprintf(
+                '`%s` %s :%s',
+                $field,
+                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperator() : '=',
+                $field,
+            );
+
+            if (in_array($field, $extraFields, true)) {
+                $queryBuilder->andHaving($expr);
+            } else {
+                $queryBuilder->andWhere($expr);
+            }
+
+            $queryBuilder->setParameter(
+                $field,
+                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperand() : $value
+            );
+        }
+
+        if (!empty($orderBy)) {
+            foreach ($orderBy as $field => $orientation) {
+                $this->validateFieldName($field);
+
+                if (!in_array(strtolower($orientation), ['asc', 'desc'], true)) {
+                    throw new InvalidOrderByOrientationException($orientation);
+                }
+
+                $queryBuilder->addOrderBy($field, $orientation);
+            }
+        }
+
+        return $queryBuilder;
+    }
+
     private function doFindOneBy(string $name, array $arguments): BaseEntity
     {
         $resolver = (new OptionsResolver())
@@ -419,86 +499,6 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         return $key;
-    }
-
-    private function createFindByQueryBuilder(array $criteria, ?array $orderBy): QueryBuilder
-    {
-        $normalizedCriteria = $this->normalizeCriteria($criteria);
-
-        $queryBuilder = $this->entityManager->getConnection()
-            ->createQueryBuilder()
-            ->select($this->getPrefixedEntityBaseFields('p'))
-            ->from($this->entityManager->getTablesPrefix() . 'posts', 'p')
-            ->where('post_type = :post_type')
-            ->setParameter('post_type', $this->getPostType())
-        ;
-
-        $extraFields = $this->getEntityExtraFields();
-
-        if (!empty($extraFields)) {
-            $queryBuilder->join(
-                'p',
-                $this->entityManager->getTablesPrefix() . 'postmeta',
-                'pm_self',
-                'p.ID = pm_self.post_id',
-            );
-
-            foreach ($extraFields as $extraField) {
-                $fieldName = property_to_field($extraField);
-                $mappedMetaKey = $this->getMappedMetaKey($fieldName);
-                $queryBuilder->addSelect(
-                    sprintf(
-                        "MAX(Case WHEN pm_self.meta_key = '%s' THEN pm_self.meta_value END) `%s`",
-                        $mappedMetaKey,
-                        $fieldName,
-                    )
-                );
-            }
-
-            $queryBuilder->groupBy('p.ID');
-        }
-
-        foreach ($normalizedCriteria as $field => $value) {
-            if ($value instanceof NestedCondition) {
-                $expr = $this->createNestedCriteria($queryBuilder, $criteria[$field]->getCriteria(), $value,);
-
-                $queryBuilder->andWhere($expr);
-
-                continue;
-            }
-
-            $expr = sprintf(
-                '`%s` %s :%s',
-                $field,
-                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperator() : '=',
-                $field,
-            );
-
-            if (in_array($field, $extraFields, true)) {
-                $queryBuilder->andHaving($expr);
-            } else {
-                $queryBuilder->andWhere($expr);
-            }
-
-            $queryBuilder->setParameter(
-                $field,
-                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperand() : $value
-            );
-        }
-
-        if (!empty($orderBy)) {
-            foreach ($orderBy as $field => $orientation) {
-                $this->validateFieldName($field);
-
-                if (!in_array(strtolower($orientation), ['asc', 'desc'], true)) {
-                    throw new InvalidOrderByOrientationException($orientation);
-                }
-
-                $queryBuilder->addOrderBy($field, $orientation);
-            }
-        }
-
-        return $queryBuilder;
     }
 
     private function createNestedCriteria(
