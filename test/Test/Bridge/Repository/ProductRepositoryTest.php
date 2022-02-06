@@ -8,6 +8,7 @@ use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
+use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidTypeException;
 use Williarin\WordpressInterop\Test\TestCase;
@@ -194,5 +195,23 @@ class ProductRepositoryTest extends TestCase
                 'sku' => 'woo-hoodie-with-zipper',
             ]
         ], $result);
+    }
+
+    public function testOverrideSelectClauseWithinCriteria(): void
+    {
+        $products = $this->repository->findBy([
+            new SelectColumns(['post_title', 'sku']),
+            'sku' => new Operand('hoodie.*logo|zipper', Operand::OPERATOR_REGEXP),
+        ]);
+
+        $product1 = new Product();
+        $product1->postTitle = 'Hoodie with Logo';
+        $product1->sku = 'woo-hoodie-with-logo';
+
+        $product2 = new Product();
+        $product2->sku = 'woo-hoodie-with-zipper';
+        $product2->postTitle = 'Hoodie with Zipper';
+
+        self::assertEquals([$product1, $product2], $products);
     }
 }
