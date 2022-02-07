@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
-use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
-
 interface EntityRepositoryInterface extends RepositoryInterface
 {
-    public function find(int $id): BaseEntity;
+    public function find(int $id): mixed;
 
-    public function findOneBy(array $criteria, array $orderBy = null): BaseEntity;
+    public function findOneBy(array $criteria, array $orderBy = null): mixed;
 
     public function findAll(array $orderBy = null): array;
 

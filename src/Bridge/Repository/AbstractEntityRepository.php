@@ -6,11 +6,8 @@ namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use DateTimeInterface;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
-use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
-use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
@@ -19,13 +16,8 @@ use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Criteria\RelationshipCondition;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\EntityManagerInterface;
-use Williarin\WordpressInterop\Exception\EntityNotFoundException;
-use Williarin\WordpressInterop\Exception\InvalidArgumentException;
-use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
 use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
-use Williarin\WordpressInterop\Exception\InvalidTypeException;
 use Williarin\WordpressInterop\Exception\MethodNotFoundException;
-use function Williarin\WordpressInterop\Util\String\field_to_property;
 use function Williarin\WordpressInterop\Util\String\property_to_field;
 use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
@@ -93,7 +85,12 @@ use function Williarin\WordpressInterop\Util\String\select_from_eav;
  */
 abstract class AbstractEntityRepository implements EntityRepositoryInterface
 {
+    use NestedCriteriaTrait;
+    use FindByTrait;
+
     protected const MAPPED_FIELDS = [];
+    protected const TABLE_NAME = 'posts';
+
     protected EntityManagerInterface $entityManager;
     protected SerializerInterface $serializer;
 
@@ -129,53 +126,13 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return $this->entityClassName;
     }
 
-    public function find(int $id): BaseEntity
-    {
-        return $this->findOneBy([
-            'id' => $id,
-        ]);
-    }
-
-    public function findOneBy(array $criteria, array $orderBy = null): BaseEntity
-    {
-        $result = $this->createFindByQueryBuilder($criteria, $orderBy)
-            ->setMaxResults(1)
-            ->setFirstResult(0)
-            ->executeQuery()
-            ->fetchAssociative()
-        ;
-
-        if ($result === false) {
-            throw new EntityNotFoundException($this->entityClassName, $criteria);
-        }
-
-        return $this->denormalize($result, $this->entityClassName);
-    }
-
-    public function findAll(array $orderBy = null): array
-    {
-        return $this->findBy([], $orderBy);
-    }
-
-    public function findBy(array $criteria, array $orderBy = null, ?int $limit = null, int $offset = null): array
-    {
-        $result = $this->createFindByQueryBuilder($criteria, $orderBy)
-            ->setMaxResults($limit)
-            ->setFirstResult($offset ?? 0)
-            ->executeQuery()
-            ->fetchAllAssociative()
-        ;
-
-        return $this->denormalize($result, $this->entityClassName . '[]');
-    }
-
     public function updateSingleField(int $id, string $field, mixed $newValue): bool
     {
         $value = $this->normalize($field, $newValue);
 
         $affectedRows = $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->update($this->entityManager->getTablesPrefix() . 'posts')
+            ->update($this->entityManager->getTablesPrefix() . self::TABLE_NAME)
             ->set($field, ':value')
             ->where('ID = :id')
             ->setParameters([
@@ -206,7 +163,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $queryBuilder = $this->entityManager->getConnection()
             ->createQueryBuilder()
             ->select($this->getPrefixedEntityBaseFields('p'))
-            ->from($this->entityManager->getTablesPrefix() . 'posts', 'p')
+            ->from($this->entityManager->getTablesPrefix() . self::TABLE_NAME, 'p')
             ->where('post_type = :post_type')
             ->setParameter('post_type', $this->getPostType())
         ;
@@ -270,7 +227,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         if (!empty($orderBy)) {
             foreach ($orderBy as $field => $orientation) {
-                $this->validateFieldName($field);
+                $this->validateFieldName($field, BaseEntity::class, self::TABLE_NAME);
 
                 if (!in_array(strtolower($orientation), ['asc', 'desc'], true)) {
                     throw new InvalidOrderByOrientationException($orientation);
@@ -283,20 +240,14 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return $queryBuilder;
     }
 
-    public function denormalize(mixed $data, string $type): mixed
-    {
-        $context[AbstractObjectNormalizer::DISABLE_TYPE_ENFORCEMENT] = true;
-
-        return $this->serializer->denormalize($data, $type, null, $context);
-    }
-
     /**
      * @return string[]
      */
     protected function getEntityBaseFields(): array
     {
         if (empty($this->entityBaseFields)) {
-            $this->entityBaseFields = array_keys($this->serializer->normalize(new $this->entityClassName(), null, [
+            $entityClassName = $this->getEntityClassName();
+            $this->entityBaseFields = array_keys($this->serializer->normalize(new $entityClassName(), null, [
                 'groups' => ['base'],
             ]));
         }
@@ -323,7 +274,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $baseFields = $this->getEntityBaseFields();
 
         if (empty($this->entityExtraFields)) {
-            $allFields = array_keys($this->propertyNormalizer->normalize(new $this->entityClassName()));
+            $entityClassName = $this->getEntityClassName();
+            $allFields = array_keys($this->propertyNormalizer->normalize(new $entityClassName()));
             $this->entityExtraFields = array_diff($allFields, $baseFields);
         }
 
@@ -342,46 +294,6 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return 'post';
     }
 
-    private function doFindOneBy(string $name, array $arguments): BaseEntity
-    {
-        $resolver = (new OptionsResolver())
-            ->setRequired(['0'])
-            ->setDefault('1', [])
-            ->setAllowedTypes('1', 'array')
-        ;
-
-        $fieldName = property_to_field(substr($name, 9));
-
-        $arguments = $this->validateArguments($resolver, $arguments);
-        $this->validateFieldValue($fieldName, $arguments[0]);
-
-        return $this->findOneBy([
-            $fieldName => $arguments[0],
-        ], $arguments[1]);
-    }
-
-    private function doFindBy(string $name, array $arguments): array
-    {
-        $resolver = (new OptionsResolver())
-            ->setRequired(['0'])
-            ->setDefault('1', [])
-            ->setDefault('2', null)
-            ->setDefault('3', 0)
-            ->setAllowedTypes('1', 'array')
-            ->setAllowedTypes('2', ['int', 'null'])
-            ->setAllowedTypes('3', 'int')
-        ;
-
-        $fieldName = property_to_field(substr($name, 6));
-
-        $arguments = $this->validateArguments($resolver, $arguments);
-        $this->validateFieldValue($fieldName, $arguments[0]);
-
-        return $this->findBy([
-            $fieldName => $arguments[0],
-        ], ...array_slice($arguments, 1));
-    }
-
     private function doUpdate(string $name, array $arguments): bool
     {
         $resolver = (new OptionsResolver())
@@ -394,88 +306,6 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $arguments = $this->validateArguments($resolver, $arguments);
 
         return $this->updateSingleField($arguments[0], property_to_field(substr($name, 6)), $arguments[1]);
-    }
-
-    private function validateArguments(OptionsResolver $resolver, array $arguments): array
-    {
-        try {
-            $arguments = $resolver->resolve($arguments);
-        } catch (MissingOptionsException) {
-            throw new InvalidArgumentException('Some arguments are missing.');
-        } catch (InvalidOptionsException) {
-            throw new InvalidArgumentException('Arguments provided are of the wrong type.');
-        }
-
-        ksort($arguments);
-
-        return $arguments;
-    }
-
-    private function validateFieldName(string $fieldName): string
-    {
-        $propertyName = field_to_property($fieldName);
-
-        try {
-            $expectedType = (new \ReflectionProperty(BaseEntity::class, $propertyName))->getType();
-        } catch (\ReflectionException) {
-            try {
-                $expectedType = (new \ReflectionProperty($this->entityClassName, $propertyName))->getType();
-            } catch (\ReflectionException) {
-                throw new InvalidFieldNameException(
-                    $this->entityManager->getTablesPrefix() . 'posts',
-                    strtolower($fieldName)
-                );
-            }
-        }
-
-        return $expectedType->getName();
-    }
-
-    private function validateFieldValue(string $field, mixed $value): mixed
-    {
-        $expectedType = $this->validateFieldName($field);
-        $resolvedValue = $value instanceof Operand ? $value->getOperand() : $value;
-
-        if ($value instanceof Operand && $value->isLooseOperator()) {
-            return $resolvedValue;
-        }
-
-        $newValueType = str_replace(
-            ['integer', 'boolean', 'double'],
-            ['int', 'bool', 'float'],
-            gettype($resolvedValue),
-        );
-
-        if (
-            (is_object($resolvedValue) && !is_subclass_of($resolvedValue, $expectedType))
-            || (!is_object($resolvedValue) && $expectedType !== $newValueType)
-        ) {
-            throw new InvalidTypeException(strtolower($field), $expectedType, $newValueType);
-        }
-
-        if (is_array($resolvedValue)) {
-            $resolvedValue = serialize($resolvedValue);
-        }
-
-        return $resolvedValue;
-    }
-
-    private function normalizeCriteria(array $criteria): array
-    {
-        $output = [];
-
-        foreach ($criteria as $field => $value) {
-            if ($value instanceof NestedCondition) {
-                $output[] = new NestedCondition($value->getOperator(), $this->normalizeCriteria($value->getCriteria()));
-            } elseif ($value instanceof RelationshipCondition || $value instanceof SelectColumns) {
-                $output[] = $value;
-            } else {
-                $value = $this->validateFieldValue($field, $value);
-                $output[$field] = (string) $this->serializer->normalize($value);
-            }
-        }
-
-        return $output;
     }
 
     private function getMappedMetaKey(mixed $fieldName): string
@@ -495,31 +325,6 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         return $key;
-    }
-
-    private function createNestedCriteria(
-        QueryBuilder $queryBuilder,
-        array $criteria,
-        NestedCondition $condition
-    ): void {
-        $normalizedCriteria = $condition->getCriteria();
-        $expressions = [];
-
-        foreach ($normalizedCriteria as $field => $value) {
-            $expressions[] = sprintf(
-                '`%s` %s :%s',
-                $field,
-                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperator() : '=',
-                $field,
-            );
-
-            $queryBuilder->setParameter(
-                $field,
-                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperand() : $value
-            );
-        }
-
-        $queryBuilder->andWhere($queryBuilder->expr()->{$condition->getOperator()}(...$expressions));
     }
 
     private function createRelationshipCriteria(

@@ -224,6 +224,7 @@ $repository->updateSingleField(4, 'post_status', 'publish');
 * `Product` and `ProductRepository` (WooCommerce)
 * `Option` and `OptionRepository`
 * `PostMeta` and `PostMetaRepository`
+* `Term` and `TermRepository`
 
 ### Get an option value
 
