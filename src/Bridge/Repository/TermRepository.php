@@ -40,14 +40,14 @@ final class TermRepository implements RepositoryInterface
 
         $queryBuilder = $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->select('t.term_id', 't.name', 't.slug', 'tt.taxonomy', 'tt.count')
+            ->select($this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'count']))
             ->from($this->entityManager->getTablesPrefix() . 'terms', 't')
             ->innerJoin('t', $this->entityManager->getTablesPrefix() . 'term_taxonomy', 'tt', 't.term_id = tt.term_id')
         ;
 
         foreach ($normalizedCriteria as $field => $value) {
             if ($value instanceof SelectColumns) {
-                $queryBuilder->select(...$value->getColumns());
+                $queryBuilder->select(...$this->getPrefixedFields($value->getColumns()));
 
                 continue;
             }
@@ -60,7 +60,7 @@ final class TermRepository implements RepositoryInterface
 
             $expr = sprintf(
                 '%s %s :%s',
-                $field === 'term_id' ? 't.term_id' : $field,
+                current($this->getPrefixedFields([$field])),
                 $criteria[$field] instanceof Operand ? $criteria[$field]->getOperator() : '=',
                 $field,
             );
@@ -101,5 +101,19 @@ final class TermRepository implements RepositoryInterface
     public function getEntityClassName(): string
     {
         return Term::class;
+    }
+
+    private function getPrefixedFields(array $fields): array
+    {
+        $output = [];
+
+        foreach ($fields as $field) {
+            $output[] = match ($field) {
+                'term_id', 'name', 'slug' => sprintf('t.%s', $field),
+                'taxonomy', 'count' => sprintf('tt.%s', $field),
+            };
+        }
+
+        return $output;
     }
 }

@@ -7,6 +7,7 @@ namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 use Williarin\WordpressInterop\Bridge\Entity\Term;
 use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
 use Williarin\WordpressInterop\Bridge\Repository\TermRepository;
+use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\Test\TestCase;
 
 class TermRepositoryTest extends TestCase
@@ -56,5 +57,19 @@ class TermRepositoryTest extends TestCase
 
         self::assertContainsOnlyInstancesOf(Term::class, $terms);
         self::assertSame(range(15, 21), array_column($terms, 'termId'));
+    }
+
+    public function testFindOneBySelectColumn(): void
+    {
+        $term = $this->repository->findOneBy([
+            new SelectColumns(['term_id', 'name']),
+            'term_id' => 16,
+        ]);
+
+        $expected = new Term();
+        $expected->termId = 16;
+        $expected->name = 'Tshirts';
+
+        self::assertEquals($expected, $term);
     }
 }
