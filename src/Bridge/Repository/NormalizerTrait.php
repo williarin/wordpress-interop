@@ -24,7 +24,7 @@ trait NormalizerTrait
         ]);
     }
 
-    private function normalizeCriteria(array $criteria): array
+    protected function normalizeCriteria(array $criteria): array
     {
         $output = [];
 

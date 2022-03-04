@@ -221,10 +221,12 @@ $repository->updateSingleField(4, 'post_status', 'publish');
 * `Post` and `PostRepository`
 * `Page` and `PageRepository`
 * `Attachment` and `AttachmentRepository`
-* `Product` and `ProductRepository` (WooCommerce)
 * `Option` and `OptionRepository`
 * `PostMeta` and `PostMetaRepository`
 * `Term` and `TermRepository`
+* `Product` and `ProductRepository` (WooCommerce)
+* `ShopOrder` and `ShopOrderRepository` (WooCommerce)
+* `ShopOrderItem` and `ShopOrderItemRepository` (WooCommerce)
 
 ### Get an option value
 
@@ -267,7 +269,10 @@ Then a repository:
 // App/Wordpress/Repository/ProjectRepository.php
 namespace App\Wordpress\Repository;
 
-use App\Wordpress\Entity\Project;use Symfony\Component\Serializer\SerializerInterface;use Williarin\WordpressInterop\Bridge\Repository\AbstractEntityRepository;use Williarin\WordpressInterop\EntityManagerInterface;
+use App\Wordpress\Entity\Project;
+use Symfony\Component\Serializer\SerializerInterface;
+use Williarin\WordpressInterop\Bridge\Repository\AbstractEntityRepository;
+use Williarin\WordpressInterop\EntityManagerInterface;
 
 /**
  * @method Project|null find($id)
@@ -291,6 +296,26 @@ final class ProjectRepository extends AbstractEntityRepository
 Then use it like this:
 ```php
 $allProjects = $manager->getRepository(Project::class)->findAll();
+```
+
+It also works if your entity is in a separate table, with some additional configuration.
+Take as an example [ShopOrderItemRepository](src/Bridge/Repository/ShopOrderItemRepository.php).
+
+You'll have to override some constants:
+```php
+final class ShopOrderItemRepository extends AbstractEntityRepository
+{
+    protected const TABLE_NAME = 'woocommerce_order_items';
+    protected const TABLE_META_NAME = 'woocommerce_order_itemmeta';
+    protected const TABLE_IDENTIFIER = 'order_item_id';
+    protected const TABLE_META_IDENTIFIER = 'order_item_id';
+    protected const FALLBACK_ENTITY = ShopOrderItem::class;
+
+    public function __construct()
+    {
+        parent::__construct(ShopOrderItem::class);
+    }
+}
 ```
 
 ## License

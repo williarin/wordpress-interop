@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
-use DateTimeInterface;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
@@ -21,68 +20,6 @@ use Williarin\WordpressInterop\Exception\MethodNotFoundException;
 use function Williarin\WordpressInterop\Util\String\property_to_field;
 use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
-/**
- * @method BaseEntity   findOneByPostAuthor(int|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostDate(DateTimeInterface|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostDateGmt(DateTimeInterface|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostContent(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostTitle(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostExcerpt(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostStatus(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByCommentStatus(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPingStatus(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostPassword(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostName(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByToPing(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPinged(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostModifiedGmt(DateTimeInterface|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostParent(int|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByGuid(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByMenuOrder(int|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostType(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByPostMimeType(string|Operand $newValue, array $orderBy = null)
- * @method BaseEntity   findOneByCommentCount(int|Operand $newValue, array $orderBy = null)
- * @method BaseEntity[] findByPostAuthor(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostDate(DateTimeInterface|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostDateGmt(DateTimeInterface|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostContent(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostTitle(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostExcerpt(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostStatus(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByCommentStatus(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPingStatus(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostPassword(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostName(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByToPing(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPinged(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostModifiedGmt(DateTimeInterface|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostParent(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByGuid(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByMenuOrder(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostType(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByPostMimeType(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method BaseEntity[] findByCommentCount(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
- * @method bool         updatePostAuthor(int $id, int|Operand $newValue)
- * @method bool         updatePostDate(int $id, DateTimeInterface|Operand $newValue)
- * @method bool         updatePostDateGmt(int $id, DateTimeInterface|Operand $newValue)
- * @method bool         updatePostContent(int $id, string|Operand $newValue)
- * @method bool         updatePostTitle(int $id, string|Operand $newValue)
- * @method bool         updatePostExcerpt(int $id, string|Operand $newValue)
- * @method bool         updatePostStatus(int $id, string|Operand $newValue)
- * @method bool         updateCommentStatus(int $id, string|Operand $newValue)
- * @method bool         updatePingStatus(int $id, string|Operand $newValue)
- * @method bool         updatePostPassword(int $id, string|Operand $newValue)
- * @method bool         updatePostName(int $id, string|Operand $newValue)
- * @method bool         updateToPing(int $id, string|Operand $newValue)
- * @method bool         updatePinged(int $id, string|Operand $newValue)
- * @method bool         updatePostModifiedGmt(int $id, DateTimeInterface|Operand $newValue)
- * @method bool         updatePostParent(int $id, int|Operand $newValue)
- * @method bool         updateGuid(int $id, string|Operand $newValue)
- * @method bool         updateMenuOrder(int $id, int|Operand $newValue)
- * @method bool         updatePostType(int $id, string|Operand $newValue)
- * @method bool         updatePostMimeType(int $id, string|Operand $newValue)
- * @method bool         updateCommentCount(int $id, int|Operand $newValue)
- */
 abstract class AbstractEntityRepository implements EntityRepositoryInterface
 {
     use NestedCriteriaTrait;
@@ -90,13 +27,15 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
     protected const MAPPED_FIELDS = [];
     protected const TABLE_NAME = 'posts';
+    protected const TABLE_META_NAME = 'postmeta';
+    protected const TABLE_IDENTIFIER = 'id';
+    protected const TABLE_META_IDENTIFIER = 'post_id';
+    protected const FALLBACK_ENTITY = BaseEntity::class;
+    protected const IS_SPECIAL_CRITERIA = 1;
 
     protected EntityManagerInterface $entityManager;
     protected SerializerInterface $serializer;
-
-    private array $entityBaseFields = [];
-    private array $entityExtraFields = [];
-    private PropertyNormalizer $propertyNormalizer;
+    protected PropertyNormalizer $propertyNormalizer;
 
     public function __construct(
         private string $entityClassName,
@@ -104,7 +43,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $this->propertyNormalizer = new PropertyNormalizer(null, new CamelCaseToSnakeCaseNameConverter());
     }
 
-    public function __call(string $name, array $arguments): BaseEntity|array|bool
+    public function __call(string $name, array $arguments): mixed
     {
         if (str_starts_with($name, 'findOneBy')) {
             return $this->doFindOneBy($name, $arguments);
@@ -118,7 +57,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             return $this->doUpdate($name, $arguments);
         }
 
-        throw new MethodNotFoundException(self::class, $name);
+        throw new MethodNotFoundException(static::class, $name);
     }
 
     public function getEntityClassName(): string
@@ -132,9 +71,9 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         $affectedRows = $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->update($this->entityManager->getTablesPrefix() . self::TABLE_NAME)
+            ->update($this->entityManager->getTablesPrefix() . static::TABLE_NAME)
             ->set($field, ':value')
-            ->where('ID = :id')
+            ->where(sprintf('%s = :id', static::TABLE_IDENTIFIER))
             ->setParameters([
                 'id' => $id,
                 'key' => strtolower($field),
@@ -163,123 +102,28 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $queryBuilder = $this->entityManager->getConnection()
             ->createQueryBuilder()
             ->select($this->getPrefixedEntityBaseFields('p'))
-            ->from($this->entityManager->getTablesPrefix() . self::TABLE_NAME, 'p')
-            ->where('post_type = :post_type')
-            ->setParameter('post_type', $this->getPostType())
+            ->from($this->entityManager->getTablesPrefix() . static::TABLE_NAME, 'p')
         ;
 
-        $extraFields = $this->getEntityExtraFields();
-
-        if (!empty($extraFields)) {
-            $queryBuilder->leftJoin(
-                'p',
-                $this->entityManager->getTablesPrefix() . 'postmeta',
-                'pm_self',
-                'p.ID = pm_self.post_id',
-            );
-
-            foreach ($extraFields as $extraField) {
-                $fieldName = property_to_field($extraField);
-                $mappedMetaKey = $this->getMappedMetaKey($fieldName);
-                $queryBuilder->addSelect(select_from_eav($fieldName, $mappedMetaKey));
-            }
-
-            $queryBuilder->groupBy('p.ID');
+        if (is_subclass_of($this->getEntityClassName(), BaseEntity::class)) {
+            $queryBuilder->where('post_type = :post_type')
+                ->setParameter('post_type', $this->getPostType())
+            ;
         }
+
+        $this->addSelectForExtraFields($queryBuilder);
 
         foreach ($normalizedCriteria as $field => $value) {
-            if ($value instanceof SelectColumns) {
-                $this->selectColumns($queryBuilder, $extraFields, $value);
-
+            if ($this->handleSpecialCriteria($queryBuilder, $criteria, $field, $value) === self::IS_SPECIAL_CRITERIA) {
                 continue;
             }
 
-            if ($value instanceof NestedCondition) {
-                $this->createNestedCriteria($queryBuilder, $criteria[$field]->getCriteria(), $value);
-
-                continue;
-            }
-
-            if ($value instanceof RelationshipCondition) {
-                $this->createRelationshipCriteria($queryBuilder, $value);
-
-                continue;
-            }
-
-            $expr = sprintf(
-                '`%s` %s :%s',
-                $field,
-                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperator() : '=',
-                $field,
-            );
-
-            if (in_array($field, $extraFields, true)) {
-                $queryBuilder->andHaving($expr);
-            } else {
-                $queryBuilder->andWhere($expr);
-            }
-
-            $queryBuilder->setParameter(
-                $field,
-                $criteria[$field] instanceof Operand ? $criteria[$field]->getOperand() : $value
-            );
+            $this->handleRegularCriteria($queryBuilder, $criteria, $field, $value);
         }
 
-        if (!empty($orderBy)) {
-            foreach ($orderBy as $field => $orientation) {
-                $this->validateFieldName($field, BaseEntity::class, self::TABLE_NAME);
-
-                if (!in_array(strtolower($orientation), ['asc', 'desc'], true)) {
-                    throw new InvalidOrderByOrientationException($orientation);
-                }
-
-                $queryBuilder->addOrderBy($field, $orientation);
-            }
-        }
+        $this->addOrderByClause($queryBuilder, $orderBy);
 
         return $queryBuilder;
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function getEntityBaseFields(): array
-    {
-        if (empty($this->entityBaseFields)) {
-            $entityClassName = $this->getEntityClassName();
-            $this->entityBaseFields = array_keys($this->serializer->normalize(new $entityClassName(), null, [
-                'groups' => ['base'],
-            ]));
-        }
-
-        return $this->entityBaseFields;
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function getPrefixedEntityBaseFields(string $prefix): array
-    {
-        return array_map(
-            static fn (string $property): string => sprintf('%s.%s', $prefix, $property),
-            $this->getEntityBaseFields(),
-        );
-    }
-
-    /**
-     * @return string[]
-     */
-    protected function getEntityExtraFields(): array
-    {
-        $baseFields = $this->getEntityBaseFields();
-
-        if (empty($this->entityExtraFields)) {
-            $entityClassName = $this->getEntityClassName();
-            $allFields = array_keys($this->propertyNormalizer->normalize(new $entityClassName()));
-            $this->entityExtraFields = array_diff($allFields, $baseFields);
-        }
-
-        return $this->entityExtraFields;
     }
 
     protected function normalize(string $field, mixed $value): string
@@ -294,7 +138,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return 'post';
     }
 
-    private function doUpdate(string $name, array $arguments): bool
+    protected function doUpdate(string $name, array $arguments): bool
     {
         $resolver = (new OptionsResolver())
             ->setRequired(['0', '1'])
@@ -308,7 +152,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return $this->updateSingleField($arguments[0], property_to_field(substr($name, 6)), $arguments[1]);
     }
 
-    private function getMappedMetaKey(mixed $fieldName): string
+    protected function getMappedMetaKey(mixed $fieldName): string
     {
         if (
             !is_array(static::MAPPED_FIELDS)
@@ -325,6 +169,95 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         return $key;
+    }
+
+    protected function addSelectForExtraFields(QueryBuilder $queryBuilder): void
+    {
+        $extraFields = $this->getEntityExtraFields();
+
+        if (!empty($extraFields)) {
+            $queryBuilder->leftJoin(
+                'p',
+                $this->entityManager->getTablesPrefix() . static::TABLE_META_NAME,
+                'pm_self',
+                sprintf('p.%s = pm_self.%s', static::TABLE_IDENTIFIER, static::TABLE_META_IDENTIFIER),
+            );
+
+            foreach ($extraFields as $extraField) {
+                $fieldName = property_to_field($extraField);
+                $mappedMetaKey = $this->getMappedMetaKey($fieldName);
+                $queryBuilder->addSelect(select_from_eav($fieldName, $mappedMetaKey));
+            }
+
+            $queryBuilder->groupBy('p.ID');
+        }
+    }
+
+    protected function handleSpecialCriteria(
+        QueryBuilder $queryBuilder,
+        array $criteria,
+        int|string $field,
+        mixed $value,
+    ): int {
+        if ($value instanceof SelectColumns) {
+            $this->selectColumns($queryBuilder, $this->getEntityExtraFields(), $value);
+
+            return self::IS_SPECIAL_CRITERIA;
+        }
+
+        if ($value instanceof NestedCondition) {
+            $this->createNestedCriteria($queryBuilder, $criteria[$field]->getCriteria(), $value);
+
+            return self::IS_SPECIAL_CRITERIA;
+        }
+
+        if ($value instanceof RelationshipCondition) {
+            $this->createRelationshipCriteria($queryBuilder, $value);
+
+            return self::IS_SPECIAL_CRITERIA;
+        }
+
+        return 0;
+    }
+
+    protected function handleRegularCriteria(
+        QueryBuilder $queryBuilder,
+        array $criteria,
+        string $field,
+        mixed $value,
+    ): void {
+        $expr = sprintf(
+            '`%s` %s :%s',
+            $field,
+            $criteria[$field] instanceof Operand ? $criteria[$field]->getOperator() : '=',
+            $field,
+        );
+
+        if (in_array($field, $this->getEntityExtraFields(), true)) {
+            $queryBuilder->andHaving($expr);
+        } else {
+            $queryBuilder->andWhere($expr);
+        }
+
+        $queryBuilder->setParameter(
+            $field,
+            $criteria[$field] instanceof Operand ? $criteria[$field]->getOperand() : $value
+        );
+    }
+
+    protected function addOrderByClause(QueryBuilder $queryBuilder, ?array $orderBy): void
+    {
+        if (!empty($orderBy)) {
+            foreach ($orderBy as $field => $orientation) {
+                $this->validateFieldName($field, static::FALLBACK_ENTITY, static::TABLE_NAME);
+
+                if (!in_array(strtolower($orientation), ['asc', 'desc'], true)) {
+                    throw new InvalidOrderByOrientationException($orientation);
+                }
+
+                $queryBuilder->addOrderBy($field, $orientation);
+            }
+        }
     }
 
     private function createRelationshipCriteria(
