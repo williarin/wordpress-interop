@@ -22,6 +22,9 @@ trait FindByTrait
 {
     use NormalizerTrait;
 
+    protected array $entityBaseFields = [];
+    protected array $entityExtraFields = [];
+
     public function find(int $id): mixed
     {
         $classId = $this->getEntityIdProperty();
@@ -64,23 +67,49 @@ trait FindByTrait
         return $this->denormalize($result, $this->getEntityClassName() . '[]');
     }
 
-    private function getEntityIdProperty(): string
+    /**
+     * @return string[]
+     */
+    protected function getEntityBaseFields(): array
     {
-        foreach ((new \ReflectionClass($this->getEntityClassName()))->getProperties() as $property) {
-            $attributes = array_filter(
-                $property->getAttributes(Id::class),
-                static fn (\ReflectionAttribute $attribute) => $attribute->getName() === Id::class,
-            );
-
-            if (!empty($attributes)) {
-                return property_to_field($property->getName());
-            }
+        if (empty($this->entityBaseFields)) {
+            $entityClassName = $this->getEntityClassName();
+            $this->entityBaseFields = array_keys($this->serializer->normalize(new $entityClassName(), null, [
+                'groups' => ['base'],
+            ]));
         }
 
-        return 'id';
+        return $this->entityBaseFields;
     }
 
-    private function doFindOneBy(string $name, array $arguments): mixed
+    /**
+     * @return string[]
+     */
+    protected function getEntityExtraFields(): array
+    {
+        $baseFields = $this->getEntityBaseFields();
+
+        if (empty($this->entityExtraFields)) {
+            $entityClassName = $this->getEntityClassName();
+            $allFields = array_keys($this->propertyNormalizer->normalize(new $entityClassName()));
+            $this->entityExtraFields = array_diff($allFields, $baseFields);
+        }
+
+        return $this->entityExtraFields;
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function getPrefixedEntityBaseFields(string $prefix): array
+    {
+        return array_map(
+            static fn (string $property): string => sprintf('%s.%s', $prefix, $property),
+            $this->getEntityBaseFields(),
+        );
+    }
+
+    protected function doFindOneBy(string $name, array $arguments): mixed
     {
         $resolver = (new OptionsResolver())
             ->setRequired(['0'])
@@ -98,7 +127,7 @@ trait FindByTrait
         ], $arguments[1]);
     }
 
-    private function doFindBy(string $name, array $arguments): array
+    protected function doFindBy(string $name, array $arguments): array
     {
         $resolver = (new OptionsResolver())
             ->setRequired(['0'])
@@ -118,6 +147,22 @@ trait FindByTrait
         return $this->findBy([
             $fieldName => $arguments[0],
         ], ...array_slice($arguments, 1));
+    }
+
+    private function getEntityIdProperty(): string
+    {
+        foreach ((new \ReflectionClass($this->getEntityClassName()))->getProperties() as $property) {
+            $attributes = array_filter(
+                $property->getAttributes(Id::class),
+                static fn (\ReflectionAttribute $attribute) => $attribute->getName() === Id::class,
+            );
+
+            if (!empty($attributes)) {
+                return property_to_field($property->getName());
+            }
+        }
+
+        return 'id';
     }
 
     private function validateArguments(OptionsResolver $resolver, array $arguments): array
