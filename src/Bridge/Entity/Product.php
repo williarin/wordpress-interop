@@ -20,7 +20,7 @@ use Williarin\WordpressInterop\Bridge\Type\GenericData;
  * @property ?float $height
  */
 #[RepositoryClass(ProductRepository::class)]
-final class Product extends BaseEntity
+class Product extends BaseEntity
 {
     public ?string $sku = null;
     public ?string $taxStatus = null;

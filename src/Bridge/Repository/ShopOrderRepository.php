@@ -53,7 +53,7 @@ use Williarin\WordpressInterop\Bridge\Entity\ShopOrder;
  * @method ShopOrder[] findByCommentCount(int $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
  * @method ShopOrder[] findAll()
  */
-final class ShopOrderRepository extends AbstractEntityRepository
+class ShopOrderRepository extends AbstractEntityRepository
 {
     protected const MAPPED_FIELDS = [
         'payment_method',

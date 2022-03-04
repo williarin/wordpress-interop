@@ -9,7 +9,7 @@ use Williarin\WordpressInterop\Bridge\Repository\AttachmentRepository;
 use Williarin\WordpressInterop\Bridge\Type\AttachmentMetadata;
 
 #[RepositoryClass(AttachmentRepository::class)]
-final class Attachment extends BaseEntity
+class Attachment extends BaseEntity
 {
     public ?string $attachedFile = null;
     public ?AttachmentMetadata $attachmentMetadata = null;

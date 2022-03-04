@@ -21,7 +21,7 @@ use Williarin\WordpressInterop\Criteria\Operand;
  * @method bool            updateOrderItemName(int $id, string|Operand $newValue)
  * @method bool            updateOrderItemType(int $id, string|Operand $newValue)
  */
-final class ShopOrderItemRepository extends AbstractEntityRepository
+class ShopOrderItemRepository extends AbstractEntityRepository
 {
     protected const TABLE_NAME = 'woocommerce_order_items';
     protected const TABLE_META_NAME = 'woocommerce_order_itemmeta';

@@ -107,7 +107,7 @@ use Williarin\WordpressInterop\Criteria\Operand;
  * @method Product[] findByHeight(float|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
  * @method Product[] findAll(array $orderBy = null)
  */
-final class ProductRepository extends AbstractEntityRepository
+class ProductRepository extends AbstractEntityRepository
 {
     protected const MAPPED_FIELDS = [
         'sku',

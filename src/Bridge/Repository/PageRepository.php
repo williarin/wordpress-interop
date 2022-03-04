@@ -54,7 +54,7 @@ use Williarin\WordpressInterop\Criteria\Operand;
  * @method Page[] findByCommentCount(int|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
  * @method Page[] findAll(array $orderBy = null)
  */
-final class PageRepository extends AbstractEntityRepository
+class PageRepository extends AbstractEntityRepository
 {
     protected const MAPPED_FIELDS = ['thumbnail_id'];
 

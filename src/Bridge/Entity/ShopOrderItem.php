@@ -10,7 +10,7 @@ use Williarin\WordpressInterop\Attributes\RepositoryClass;
 use Williarin\WordpressInterop\Bridge\Repository\ShopOrderItemRepository;
 
 #[RepositoryClass(ShopOrderItemRepository::class)]
-final class ShopOrderItem
+class ShopOrderItem
 {
     #[Id]
     #[Groups('base')]

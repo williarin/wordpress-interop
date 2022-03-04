@@ -57,7 +57,7 @@ use Williarin\WordpressInterop\Criteria\RelationshipCondition;
  * @method Attachment[] findByAttachedFile(string|Operand $newValue, array $orderBy = null, ?int $limit = null, int $offset = null)
  * @method Attachment[] findAll(array $orderBy = null)
  */
-final class AttachmentRepository extends AbstractEntityRepository
+class AttachmentRepository extends AbstractEntityRepository
 {
     protected const MAPPED_FIELDS = [
         '_wp_attached_file' => 'attached_file',
