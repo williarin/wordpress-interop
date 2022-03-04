@@ -8,7 +8,7 @@ use Williarin\WordpressInterop\Attributes\RepositoryClass;
 use Williarin\WordpressInterop\Bridge\Repository\PostRepository;
 
 #[RepositoryClass(PostRepository::class)]
-final class Post extends BaseEntity
+class Post extends BaseEntity
 {
     public ?int $thumbnailId = null;
 }

@@ -14,7 +14,7 @@ use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
 use Williarin\WordpressInterop\Exception\MethodNotFoundException;
 
-final class TermRepository implements RepositoryInterface
+class TermRepository implements RepositoryInterface
 {
     use NestedCriteriaTrait;
     use FindByTrait;

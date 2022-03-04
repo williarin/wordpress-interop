@@ -8,6 +8,6 @@ use Williarin\WordpressInterop\Attributes\RepositoryClass;
 use Williarin\WordpressInterop\Bridge\Repository\OptionRepository;
 
 #[RepositoryClass(OptionRepository::class)]
-final class Option
+class Option
 {
 }

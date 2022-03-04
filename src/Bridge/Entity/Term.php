@@ -9,7 +9,7 @@ use Williarin\WordpressInterop\Attributes\RepositoryClass;
 use Williarin\WordpressInterop\Bridge\Repository\TermRepository;
 
 #[RepositoryClass(TermRepository::class)]
-final class Term
+class Term
 {
     #[Id]
     public ?int $termId = null;

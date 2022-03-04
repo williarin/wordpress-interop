@@ -20,7 +20,7 @@ use function Williarin\WordpressInterop\Util\String\unserialize_if_needed;
  * @method string getBlogDescription()
  * @method array  getActivePlugins()
  */
-final class OptionRepository implements RepositoryInterface
+class OptionRepository implements RepositoryInterface
 {
     public const OPTION_SITE_URL = 'siteurl';
     public const OPTION_BLOG_NAME = 'blogname';

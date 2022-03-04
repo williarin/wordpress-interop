@@ -8,6 +8,6 @@ use Williarin\WordpressInterop\Attributes\RepositoryClass;
 use Williarin\WordpressInterop\Bridge\Repository\PostMetaRepository;
 
 #[RepositoryClass(PostMetaRepository::class)]
-final class PostMeta
+class PostMeta
 {
 }

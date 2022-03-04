@@ -8,7 +8,7 @@ use Williarin\WordpressInterop\Attributes\RepositoryClass;
 use Williarin\WordpressInterop\Bridge\Repository\ShopOrderRepository;
 
 #[RepositoryClass(ShopOrderRepository::class)]
-final class ShopOrder extends BaseEntity
+class ShopOrder extends BaseEntity
 {
     public ?string $paymentMethod = null;
     public ?string $paypalEmail = null;
