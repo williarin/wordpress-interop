@@ -79,6 +79,10 @@ class ShopOrderRepository extends AbstractEntityRepository
         'shipping_postcode',
         'shipping_country',
         'shipping_phone',
+        'order_total',
+        'order_currency',
+        'paid_date',
+        'customer_user',
     ];
 
     public function __construct()
