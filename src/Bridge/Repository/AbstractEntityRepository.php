@@ -189,7 +189,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 $queryBuilder->addSelect(select_from_eav($fieldName, $mappedMetaKey));
             }
 
-            $queryBuilder->groupBy('p.ID');
+            $queryBuilder->groupBy(sprintf('p.%s', static::TABLE_IDENTIFIER));
         }
     }
 
@@ -269,11 +269,11 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         $queryBuilder->leftJoin(
             'p',
-            $this->entityManager->getTablesPrefix() . 'postmeta',
+            $this->entityManager->getTablesPrefix() . static::TABLE_META_NAME,
             $alias,
-            sprintf('p.ID = %s.meta_value', $alias),
+            sprintf('p.%s = %s.meta_value', static::TABLE_IDENTIFIER, $alias),
         )
-            ->andWhere(sprintf('%s.post_id = :%s_id', $alias, $alias))
+            ->andWhere(sprintf('%s.%s = :%s_id', $alias, static::TABLE_META_IDENTIFIER, $alias))
             ->andWhere(sprintf('%s.meta_key = :%s_field', $alias, $alias))
             ->setParameter(sprintf('%s_id', $alias), $condition->getRelationshipId())
             ->setParameter(sprintf('%s_field', $alias), $condition->getRelationshipFieldName())
