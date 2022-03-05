@@ -224,6 +224,7 @@ $repository->updateSingleField(4, 'post_status', 'publish');
 * `Option` and `OptionRepository`
 * `PostMeta` and `PostMetaRepository`
 * `Term` and `TermRepository`
+* `User` and `UserRepository`
 * `Product` and `ProductRepository` (WooCommerce)
 * `ShopOrder` and `ShopOrderRepository` (WooCommerce)
 * `ShopOrderItem` and `ShopOrderItemRepository` (WooCommerce)
