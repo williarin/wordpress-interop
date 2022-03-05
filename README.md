@@ -243,7 +243,7 @@ $blogName = $manager->getRepository(Option::class)->findBlogName();
 $plugins = $manager->getRepository(Option::class)->findActivePlugins();
 ```
 
-### Create your own repositories
+### Create your own entities and repositories
 
 Say you have a custom post type named `project`.
 
@@ -317,6 +317,15 @@ final class ShopOrderItemRepository extends AbstractEntityRepository
     }
 }
 ```
+
+### Entity and repository inheritance
+
+You might have some custom attributes for existing entities such as `Post`.
+
+1. Create a new entity that extends `Post` with new fields
+2. Create a new repository that extends `PostRepository` and override `getEntityClassName()` method to return your new `MyPost` entity class name
+3. Add mapped fields to your `PostRepository`
+4. Add `#[RepositoryClass(MyPostRepository::class)]` to your `MyPost` entity
 
 ## License
 
