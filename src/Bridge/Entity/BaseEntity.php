@@ -84,8 +84,11 @@ abstract class BaseEntity
             return;
         }
 
-        $expectedType = (new \ReflectionProperty(static::class, $property))->getType()->getName();
-        settype($value, $expectedType);
+        try {
+            $expectedType = (new \ReflectionProperty(static::class, $property))->getType()->getName();
+            settype($value, $expectedType);
+        } catch (\ReflectionException) {
+        }
 
         $this->{$property} = $value;
     }

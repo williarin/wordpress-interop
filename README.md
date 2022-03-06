@@ -180,12 +180,13 @@ Query entities based on their terms and taxonomies relationships.
 
 ```php
 // Fetch products in the category "Hoodies"
-$products = $this->repository->findBy([
-    new TermRelationshipCondition([
-        'taxonomy' => 'product_cat',
-        'name' => 'Hoodies',
-    ]),
-]);
+$products = $manager->getRepository(Product::class)
+    ->findBy([
+        new TermRelationshipCondition([
+            'taxonomy' => 'product_cat',
+            'name' => 'Hoodies',
+        ]),
+    ]);
 ```
 
 ### Restrict selected columns
@@ -204,6 +205,20 @@ $products = $manager->getRepository(Product::class)
     ]);
 
 // Product entities are filled with null values except $postTitle and $sku
+```
+
+You can as well select a column which doesn't have a mapped property in your entity.
+
+```php
+$product = $manager->getRepository(Product::class)
+    ->findOneBy([
+        new SelectColumns(['id', 'post_title', 'name AS category']),
+        new TermRelationshipCondition([
+            'taxonomy' => 'product_cat'
+        ]),
+    ]);
+
+// $product->category will have the corresponding category name
 ```
 
 ### Extending the generated query
