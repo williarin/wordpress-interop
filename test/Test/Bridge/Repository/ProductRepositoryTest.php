@@ -9,6 +9,7 @@ use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
+use Williarin\WordpressInterop\Criteria\TermRelationshipCondition;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidTypeException;
 use Williarin\WordpressInterop\Test\TestCase;
@@ -217,10 +218,71 @@ class ProductRepositoryTest extends TestCase
 
     public function testOperatorInWithEavAttribute(): void
     {
-        $posts = $this->repository->findBySku(new Operand(['woo-tshirt', 'woo-single'], Operand::OPERATOR_IN));
-        self::assertIsArray($posts);
-        self::assertCount(2, $posts);
-        self::assertContainsOnlyInstancesOf(Product::class, $posts);
-        self::assertEquals([17, 27], array_column($posts, 'id'));
+        $products = $this->repository->findBySku(
+            new Operand(['woo-tshirt', 'woo-single'], Operand::OPERATOR_IN),
+        );
+        self::assertIsArray($products);
+        self::assertCount(2, $products);
+        self::assertContainsOnlyInstancesOf(Product::class, $products);
+        self::assertEquals([17, 27], array_column($products, 'id'));
+    }
+
+    public function testTermRelationshipConditionWithTaxonomyOnly(): void
+    {
+        $products = $this->repository->findBy([
+            new TermRelationshipCondition([
+                'taxonomy' => 'product_cat',
+            ]),
+        ]);
+        self::assertIsArray($products);
+        self::assertCount(18, $products);
+        self::assertContainsOnlyInstancesOf(Product::class, $products);
+    }
+
+    public function testTermRelationshipConditionWithTaxonomyAndTerm(): void
+    {
+        $products = $this->repository->findBy([
+            new TermRelationshipCondition([
+                'taxonomy' => 'product_cat',
+                'name' => 'Hoodies',
+            ]),
+        ]);
+        self::assertIsArray($products);
+        self::assertCount(4, $products);
+        self::assertContainsOnlyInstancesOf(Product::class, $products);
+        self::assertEquals([
+            'Hoodie',
+            'Hoodie with Logo',
+            'Hoodie with Pocket',
+            'Hoodie with Zipper',
+        ], array_column($products, 'postTitle'));
+    }
+
+    public function testTermRelationshipConditionWithTermOnly(): void
+    {
+        $products = $this->repository->findBy([
+            new TermRelationshipCondition([
+                'name' => 'Music',
+            ]),
+        ]);
+        self::assertIsArray($products);
+        self::assertCount(2, $products);
+        self::assertContainsOnlyInstancesOf(Product::class, $products);
+        self::assertEquals([
+            'Album',
+            'Single',
+        ], array_column($products, 'postTitle'));
+    }
+
+    public function testTermRelationshipConditionWithTermAndWrongTaxonomy(): void
+    {
+        $products = $this->repository->findBy([
+            new TermRelationshipCondition([
+                'taxonomy' => 'category',
+                'name' => 'Music',
+            ]),
+        ]);
+        self::assertIsArray($products);
+        self::assertCount(0, $products);
     }
 }

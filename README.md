@@ -160,7 +160,7 @@ $products = $manager->getRepository(Product::class)
     ]);
 ```
 
-### Relationship conditions
+### EAV relationship conditions
 
 Query entities based on their EAV relationships.
 
@@ -172,6 +172,20 @@ $attachment = $manager->getRepository(Attachment::class)
     ->findOneBy([
         new RelationshipCondition(4, '_thumbnail_id'),
     ]);
+```
+
+### Term and taxonomy relationship conditions
+
+Query entities based on their terms and taxonomies relationships.
+
+```php
+// Fetch products in the category "Hoodies"
+$products = $this->repository->findBy([
+    new TermRelationshipCondition([
+        'taxonomy' => 'product_cat',
+        'name' => 'Hoodies',
+    ]),
+]);
 ```
 
 ### Restrict selected columns
