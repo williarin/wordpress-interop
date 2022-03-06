@@ -226,23 +226,34 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         string $field,
         mixed $value,
     ): void {
-        $expr = sprintf(
-            '`%s` %s :%s',
-            $field,
-            $criteria[$field] instanceof Operand ? $criteria[$field]->getOperator() : '=',
-            $field,
-        );
+        $parameter = ":{$field}";
+        $operator = '=';
+
+        if ($criteria[$field] instanceof Operand) {
+            $operator = $criteria[$field]->getOperator();
+
+            if ($operator === Operand::OPERATOR_IN) {
+                $operator = 'IN';
+                $parameters = array_map(static fn (int $number) => "{$field}_{$number}", range(0, count($value) - 1));
+                $parameter = sprintf('(:%s)', implode(', :', $parameters));
+
+                foreach ($parameters as $index => $name) {
+                    $queryBuilder->setParameter($name, $value[$index]);
+                }
+            } else {
+                $queryBuilder->setParameter($field, $criteria[$field]->getOperand());
+            }
+        } else {
+            $queryBuilder->setParameter($field, $value);
+        }
+
+        $expr = sprintf('`%s` %s %s', $field, $operator, $parameter);
 
         if (in_array($field, $this->getEntityExtraFields(), true)) {
             $queryBuilder->andHaving($expr);
         } else {
             $queryBuilder->andWhere($expr);
         }
-
-        $queryBuilder->setParameter(
-            $field,
-            $criteria[$field] instanceof Operand ? $criteria[$field]->getOperand() : $value
-        );
     }
 
     protected function addOrderByClause(QueryBuilder $queryBuilder, ?array $orderBy): void

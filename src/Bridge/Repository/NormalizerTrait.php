@@ -7,6 +7,7 @@ namespace Williarin\WordpressInterop\Bridge\Repository;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
+use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Criteria\RelationshipCondition;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
 
@@ -33,9 +34,11 @@ trait NormalizerTrait
                 $output[] = new NestedCondition($value->getOperator(), $this->normalizeCriteria($value->getCriteria()));
             } elseif ($value instanceof RelationshipCondition || $value instanceof SelectColumns) {
                 $output[] = $value;
+            } elseif ($value instanceof Operand && $value->isLooseOperator()) {
+                $output[$field] = $value->getOperand();
             } else {
-                $value = $this->validateFieldValue($field, $value);
-                $output[$field] = (string) $this->serializer->normalize($value);
+                $resolvedValue = $this->validateFieldValue($field, $value);
+                $output[$field] = (string) $this->serializer->normalize($resolvedValue);
             }
         }
 

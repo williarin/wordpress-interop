@@ -214,4 +214,13 @@ class ProductRepositoryTest extends TestCase
 
         self::assertEquals([$product1, $product2], $products);
     }
+
+    public function testOperatorInWithEavAttribute(): void
+    {
+        $posts = $this->repository->findBySku(new Operand(['woo-tshirt', 'woo-single'], Operand::OPERATOR_IN));
+        self::assertIsArray($posts);
+        self::assertCount(2, $posts);
+        self::assertContainsOnlyInstancesOf(Product::class, $posts);
+        self::assertEquals([17, 27], array_column($posts, 'id'));
+    }
 }

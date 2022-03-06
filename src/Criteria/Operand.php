@@ -15,6 +15,7 @@ final class Operand
     public const OPERATOR_LIKE = 'LIKE';
     public const OPERATOR_RLIKE = 'RLIKE';
     public const OPERATOR_REGEXP = 'REGEXP';
+    public const OPERATOR_IN = 'IN';
 
     public function __construct(
         private mixed $operand,
@@ -34,6 +35,11 @@ final class Operand
 
     public function isLooseOperator(): bool
     {
-        return in_array($this->operator, [self::OPERATOR_LIKE, self::OPERATOR_RLIKE, self::OPERATOR_REGEXP], true);
+        return in_array($this->operator, [
+            self::OPERATOR_LIKE,
+            self::OPERATOR_RLIKE,
+            self::OPERATOR_REGEXP,
+            self::OPERATOR_IN,
+        ], true);
     }
 }
