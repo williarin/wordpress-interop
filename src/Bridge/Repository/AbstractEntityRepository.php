@@ -191,7 +191,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 $queryBuilder->addSelect(select_from_eav($fieldName, $mappedMetaKey));
             }
 
-            $queryBuilder->groupBy(sprintf('p.%s', static::TABLE_IDENTIFIER));
+            $queryBuilder->addGroupBy(sprintf('p.%s', static::TABLE_IDENTIFIER));
         }
     }
 
@@ -364,16 +364,46 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     private function selectColumns(QueryBuilder $queryBuilder, array $extraFields, SelectColumns $value): void
     {
         $selects = [];
+        $hasExtraFields = false;
 
         foreach ($value->getColumns() as $column) {
             if (in_array($column, $extraFields, true)) {
                 $mappedMetaKey = $this->getMappedMetaKey($column);
                 $selects[] = select_from_eav($column, $mappedMetaKey);
+                $hasExtraFields = true;
+            } elseif (str_starts_with($column, 'MAX(')) {
+                $selects[] = $column;
+                $hasExtraFields = true;
             } else {
                 $selects[] = $column;
             }
         }
 
         $queryBuilder->select(...$selects);
+
+        if (!$hasExtraFields) {
+            $queryBuilder->resetQueryPart('groupBy');
+
+            $joinQueryPart = $queryBuilder->getQueryPart('join');
+            $queryBuilder->resetQueryPart('join');
+
+            foreach ($joinQueryPart['p'] as $index => $part) {
+                if ($part['joinAlias'] === 'pm_self') {
+                    unset($joinQueryPart['p'][$index]);
+                }
+            }
+
+            foreach ($joinQueryPart as $alias => $parts) {
+                foreach ($parts as $part) {
+                    $method = match ($part['joinType']) {
+                        'left' => 'leftJoin',
+                        'right' => 'rightJoin',
+                        default => 'join',
+                    };
+
+                    $queryBuilder->{$method}($alias, $part['joinTable'], $part['joinAlias'], $part['joinCondition']);
+                }
+            }
+        }
     }
 }

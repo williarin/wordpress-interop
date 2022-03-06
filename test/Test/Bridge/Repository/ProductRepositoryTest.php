@@ -285,4 +285,35 @@ class ProductRepositoryTest extends TestCase
         self::assertIsArray($products);
         self::assertCount(0, $products);
     }
+
+    public function testSelectingTermName(): void
+    {
+        $product = $this->repository->findOneBy([
+            new SelectColumns(['id', 'post_title', 'name AS category']),
+            new TermRelationshipCondition([
+                'taxonomy' => 'product_cat'
+            ]),
+        ]);
+
+        $expected = new Product();
+        $expected->id = 14;
+        $expected->postTitle = 'V-Neck T-Shirt';
+        $expected->category = 'Tshirts';
+
+        self::assertEquals($expected, $product);
+    }
+
+    public function testEmptyTermRelationshipCondition(): void
+    {
+        $product = $this->repository->findOneBy([
+            new SelectColumns(['id', 'name AS category']),
+            new TermRelationshipCondition([]),
+        ]);
+
+        $expected = new Product();
+        $expected->id = 16;
+        $expected->category = 'simple';
+
+        self::assertEquals($expected, $product);
+    }
 }
