@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Entity\Post;
 use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
+use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
 use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
@@ -150,5 +151,23 @@ class PostRepositoryTest extends TestCase
         self::assertCount(4, $posts);
         self::assertContainsOnlyInstancesOf(Post::class, $posts);
         self::assertEquals([12, 11, 10, 1], array_column($posts, 'id'));
+    }
+
+    public function testOperatorIn(): void
+    {
+        $posts = $this->repository->findBy(['post_status' => new Operand(['draft', 'publish'], Operand::OPERATOR_IN)]);
+        self::assertIsArray($posts);
+        self::assertCount(3, $posts);
+        self::assertContainsOnlyInstancesOf(Post::class, $posts);
+        self::assertEquals([12, 1, 10], array_column($posts, 'id'));
+    }
+
+    public function testOperatorInWithMagicMethod(): void
+    {
+        $posts = $this->repository->findByPostStatus(new Operand(['draft', 'private'], Operand::OPERATOR_IN));
+        self::assertIsArray($posts);
+        self::assertCount(2, $posts);
+        self::assertContainsOnlyInstancesOf(Post::class, $posts);
+        self::assertEquals([12, 11], array_column($posts, 'id'));
     }
 }

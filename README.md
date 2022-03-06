@@ -95,6 +95,10 @@ $post = $manager->getRepository(Post::class)
         ['comment_count' => 'DESC', 'post_date' => 'DESC'],
     );
 
+// Fetch all posts which have draft or private status
+$posts = $manager->getRepository(Post::class)
+    ->findByPostStatus(new Operand(['draft', 'private'], Operand::OPERATOR_IN));
+
 // Fetch all posts
 $posts = $manager->getRepository(Post::class)->findAll();
 
