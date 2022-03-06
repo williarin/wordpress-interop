@@ -14,9 +14,11 @@ use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Criteria\RelationshipCondition;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
+use Williarin\WordpressInterop\Criteria\TermRelationshipCondition;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
 use Williarin\WordpressInterop\Exception\MethodNotFoundException;
+use function Symfony\Component\String\u;
 use function Williarin\WordpressInterop\Util\String\property_to_field;
 use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
@@ -217,6 +219,12 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             return self::IS_SPECIAL_CRITERIA;
         }
 
+        if ($value instanceof TermRelationshipCondition) {
+            $this->createTermRelationshipCriteria($queryBuilder, $value);
+
+            return self::IS_SPECIAL_CRITERIA;
+        }
+
         return 0;
     }
 
@@ -226,7 +234,11 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         string $field,
         mixed $value,
     ): void {
-        $parameter = ":{$field}";
+        $snakeField = u($field)
+            ->snake()
+            ->toString()
+        ;
+        $parameter = ":{$snakeField}";
         $operator = '=';
 
         if ($criteria[$field] instanceof Operand) {
@@ -234,22 +246,25 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
             if ($operator === Operand::OPERATOR_IN) {
                 $operator = 'IN';
-                $parameters = array_map(static fn (int $number) => "{$field}_{$number}", range(0, count($value) - 1));
+                $parameters = array_map(
+                    static fn (int $number) => "{$snakeField}_{$number}",
+                    range(0, count($value) - 1),
+                );
                 $parameter = sprintf('(:%s)', implode(', :', $parameters));
 
                 foreach ($parameters as $index => $name) {
                     $queryBuilder->setParameter($name, $value[$index]);
                 }
             } else {
-                $queryBuilder->setParameter($field, $criteria[$field]->getOperand());
+                $queryBuilder->setParameter($snakeField, $criteria[$field]->getOperand());
             }
         } else {
-            $queryBuilder->setParameter($field, $value);
+            $queryBuilder->setParameter($snakeField, $value);
         }
 
-        $expr = sprintf('`%s` %s %s', $field, $operator, $parameter);
+        $expr = sprintf('%s %s %s', $field, $operator, $parameter);
 
-        if (in_array($field, $this->getEntityExtraFields(), true)) {
+        if (in_array(substr($field, (strpos($field, '.') ?: -1) + 1), $this->getEntityExtraFields(), true)) {
             $queryBuilder->andHaving($expr);
         } else {
             $queryBuilder->andWhere($expr);
@@ -289,6 +304,61 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             ->setParameter(sprintf('%s_id', $alias), $condition->getRelationshipId())
             ->setParameter(sprintf('%s_field', $alias), $condition->getRelationshipFieldName())
         ;
+    }
+
+    private function createTermRelationshipCriteria(
+        QueryBuilder $queryBuilder,
+        TermRelationshipCondition $condition,
+    ): void {
+        static $aliasNumber = 0;
+
+        $queryBuilder
+            ->join(
+                'p',
+                $this->entityManager->getTablesPrefix() . 'term_relationships',
+                sprintf('tr_%d', $aliasNumber),
+                sprintf('p.%s = tr_%s.object_id', static::TABLE_IDENTIFIER, $aliasNumber),
+            )
+            ->join(
+                sprintf('tr_%d', $aliasNumber),
+                $this->entityManager->getTablesPrefix() . 'term_taxonomy',
+                sprintf('tt_%d', $aliasNumber),
+                sprintf('tr_%d.term_taxonomy_id = tt_%d.term_taxonomy_id', $aliasNumber, $aliasNumber),
+            )
+            ->join(
+                sprintf('tt_%d', $aliasNumber),
+                $this->entityManager->getTablesPrefix() . 'terms',
+                sprintf('t_%d', $aliasNumber),
+                sprintf('tt_%d.term_id = t_%d.term_id', $aliasNumber, $aliasNumber),
+            )
+        ;
+
+        $prefixedCriteria = $this->getPrefixedCriteriaForTermRelationshipCondition(
+            $condition->getCriteria(),
+            $aliasNumber,
+        );
+
+        foreach ($prefixedCriteria as $field => $value) {
+            $this->handleRegularCriteria($queryBuilder, $prefixedCriteria, $field, $value);
+        }
+
+        ++$aliasNumber;
+    }
+
+    private function getPrefixedCriteriaForTermRelationshipCondition(array $criteria, int $aliasNumber): array
+    {
+        $output = [];
+
+        foreach ($criteria as $field => $value) {
+            $prefixedField = match ($field) {
+                'term_id', 'name', 'slug', 'term_group' => sprintf('t_%d.%s', $aliasNumber, $field),
+                'taxonomy', 'description', 'count' => sprintf('tt_%d.%s', $aliasNumber, $field),
+            };
+
+            $output[$prefixedField] = $value;
+        }
+
+        return $output;
     }
 
     private function selectColumns(QueryBuilder $queryBuilder, array $extraFields, SelectColumns $value): void

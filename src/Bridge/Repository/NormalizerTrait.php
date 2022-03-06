@@ -10,6 +10,7 @@ use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Criteria\RelationshipCondition;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
+use Williarin\WordpressInterop\Criteria\TermRelationshipCondition;
 
 /**
  * @property SerializerInterface $serializer
@@ -32,7 +33,11 @@ trait NormalizerTrait
         foreach ($criteria as $field => $value) {
             if ($value instanceof NestedCondition) {
                 $output[] = new NestedCondition($value->getOperator(), $this->normalizeCriteria($value->getCriteria()));
-            } elseif ($value instanceof RelationshipCondition || $value instanceof SelectColumns) {
+            } elseif (
+                $value instanceof RelationshipCondition
+                || $value instanceof TermRelationshipCondition
+                || $value instanceof SelectColumns
+            ) {
                 $output[] = $value;
             } elseif ($value instanceof Operand && $value->isLooseOperator()) {
                 $output[$field] = $value->getOperand();
