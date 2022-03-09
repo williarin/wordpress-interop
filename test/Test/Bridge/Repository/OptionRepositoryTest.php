@@ -103,6 +103,12 @@ class OptionRepositoryTest extends TestCase
         self::assertFalse($this->repository->update('nonexistent_option', 'world'));
     }
 
+    public function testUpdateNonExistentOptionThrowsException(): void
+    {
+        $this->expectException(OptionNotFoundException::class);
+        $this->repository->update('nonexistent_option', 'world', true);
+    }
+
     public function testDeleteOptionWorks(): void
     {
         $this->repository->delete('an_option_to_delete');

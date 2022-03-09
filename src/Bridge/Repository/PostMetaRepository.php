@@ -78,10 +78,14 @@ class PostMetaRepository implements RepositoryInterface
         return $affectedRows > 0;
     }
 
-    public function update(int $postId, string $metaKey, mixed $metaValue): bool
+    public function update(int $postId, string $metaKey, mixed $metaValue, bool $throwExceptionIfNotFound = false): bool
     {
         if (is_array($metaValue)) {
             $metaValue = serialize($metaValue);
+        }
+
+        if ($throwExceptionIfNotFound) {
+            $this->find($postId, $metaKey, false);
         }
 
         $affectedRows = $this->entityManager->getConnection()
