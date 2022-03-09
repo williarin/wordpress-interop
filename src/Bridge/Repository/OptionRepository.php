@@ -110,10 +110,14 @@ class OptionRepository implements RepositoryInterface
         return $affectedRows > 0;
     }
 
-    public function update(string $optionName, mixed $optionValue): bool
+    public function update(string $optionName, mixed $optionValue, bool $throwExceptionIfNotFound = false): bool
     {
         if (is_array($optionValue)) {
             $optionValue = serialize($optionValue);
+        }
+
+        if ($throwExceptionIfNotFound) {
+            $this->find($optionName);
         }
 
         $affectedRows = $this->entityManager->getConnection()

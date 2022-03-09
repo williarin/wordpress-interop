@@ -86,6 +86,12 @@ class PostMetaRepositoryTest extends TestCase
         self::assertFalse($this->repository->update(5555, 'nonexistent_key', 'world'));
     }
 
+    public function testUpdateNonExistentKeyThrowsException(): void
+    {
+        $this->expectException(PostMetaKeyNotFoundException::class);
+        $this->repository->update(5555, 'nonexistent_key', 'world', true);
+    }
+
     public function testDeletePostMetaWorks(): void
     {
         $this->repository->delete(5, 'a_key_to_delete');
