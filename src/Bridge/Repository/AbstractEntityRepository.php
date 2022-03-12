@@ -376,6 +376,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 $hasExtraFields = true;
             } else {
                 $selects[] = $column;
+                $queryBuilder->addGroupBy(($alias = strrchr($column, ' ')) ? substr($alias, 1) : $column);
             }
         }
 

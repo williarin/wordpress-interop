@@ -316,4 +316,25 @@ class ProductRepositoryTest extends TestCase
 
         self::assertEquals($expected, $product);
     }
+
+    public function testTermRelationshipConditionAndEavCondition(): void
+    {
+        $product = $this->repository->findOneBy([
+                new SelectColumns(['id', 'post_title', 'post_name', 'post_status', 'sku', 'name AS category']),
+                new TermRelationshipCondition([
+                    'taxonomy' => 'product_cat',
+                ]),
+                'sku' => 'woo-hoodie-with-zipper',
+            ]);
+
+        $expected = new Product();
+        $expected->id = 23;
+        $expected->postTitle = 'Hoodie with Zipper';
+        $expected->postName = 'hoodie-with-zipper';
+        $expected->postStatus = 'publish';
+        $expected->sku = 'woo-hoodie-with-zipper';
+        $expected->category = 'Hoodies';
+
+        self::assertEquals($expected, $product);
+    }
 }
