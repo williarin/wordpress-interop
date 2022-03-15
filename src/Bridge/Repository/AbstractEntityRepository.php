@@ -39,6 +39,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     protected SerializerInterface $serializer;
     protected PropertyNormalizer $propertyNormalizer;
 
+    private array $tableAliases = [];
+
     public function __construct(
         private string $entityClassName,
     ) {
@@ -100,15 +102,19 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     public function createFindByQueryBuilder(array $criteria, ?array $orderBy): QueryBuilder
     {
         $normalizedCriteria = $this->normalizeCriteria($criteria);
+        $this->tableAliases['p'] = $this->getEntityBaseFields();
+
+        $prefixedEntityBaseField = $this->getPrefixedEntityBaseFields('p');
 
         $queryBuilder = $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->select($this->getPrefixedEntityBaseFields('p'))
+            ->select($prefixedEntityBaseField)
             ->from($this->entityManager->getTablesPrefix() . static::TABLE_NAME, 'p')
+            ->addGroupBy(...$prefixedEntityBaseField)
         ;
 
         if (is_subclass_of($this->getEntityClassName(), BaseEntity::class)) {
-            $queryBuilder->where('post_type = :post_type')
+            $queryBuilder->where('p.post_type = :post_type')
                 ->setParameter('post_type', $this->getPostType())
             ;
         }
@@ -178,6 +184,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $extraFields = $this->getEntityExtraFields();
 
         if (!empty($extraFields)) {
+            $this->tableAliases['pm_self'] = [];
+
             $queryBuilder->leftJoin(
                 'p',
                 $this->entityManager->getTablesPrefix() . static::TABLE_META_NAME,
@@ -188,6 +196,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             foreach ($extraFields as $extraField) {
                 $fieldName = property_to_field($extraField);
                 $mappedMetaKey = $this->getMappedMetaKey($fieldName);
+                $this->tableAliases['pm_self'][] = $fieldName;
                 $queryBuilder->addSelect(select_from_eav($fieldName, $mappedMetaKey));
             }
 
@@ -262,11 +271,19 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             $queryBuilder->setParameter($snakeField, $value);
         }
 
-        $expr = sprintf('%s %s %s', $field, $operator, $parameter);
+        $prefixedField = $field;
+
+        foreach ($this->tableAliases as $alias => $fields) {
+            if (in_array($field, $fields, true)) {
+                $prefixedField = sprintf('%s.%s', $alias, $field);
+            }
+        }
 
         if (in_array(substr($field, (strpos($field, '.') ?: -1) + 1), $this->getEntityExtraFields(), true)) {
+            $expr = sprintf('%s %s %s', $field, $operator, $parameter);
             $queryBuilder->andHaving($expr);
         } else {
+            $expr = sprintf('%s %s %s', $prefixedField, $operator, $parameter);
             $queryBuilder->andWhere($expr);
         }
     }
@@ -292,6 +309,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     ): void {
         static $aliasNumber = 0;
         $alias = sprintf('pm_relation_%d', $aliasNumber++);
+
+        $this->tableAliases[$alias] = [$condition->getRelationshipFieldName()];
 
         $queryBuilder->leftJoin(
             'p',
@@ -375,6 +394,12 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 $selects[] = $column;
                 $hasExtraFields = true;
             } else {
+                foreach ($this->tableAliases as $alias => $fields) {
+                    if (in_array($column, $fields, true)) {
+                        $column = sprintf('%s.%s', $alias, $column);
+                    }
+                }
+
                 $selects[] = $column;
                 $queryBuilder->addGroupBy(($alias = strrchr($column, ' ')) ? substr($alias, 1) : $column);
             }
@@ -386,6 +411,11 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             $queryBuilder->resetQueryPart('groupBy');
 
             $joinQueryPart = $queryBuilder->getQueryPart('join');
+
+            if (empty($joinQueryPart)) {
+                return;
+            }
+
             $queryBuilder->resetQueryPart('join');
 
             foreach ($joinQueryPart['p'] as $index => $part) {
