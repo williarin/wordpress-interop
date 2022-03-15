@@ -253,8 +253,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         if ($criteria[$field] instanceof Operand) {
             $operator = $criteria[$field]->getOperator();
 
-            if ($operator === Operand::OPERATOR_IN) {
-                $operator = 'IN';
+            if (in_array($operator, [Operand::OPERATOR_IN, Operand::OPERATOR_NOT_IN], true)) {
                 $parameters = array_map(
                     static fn (int $number) => "{$snakeField}_{$number}",
                     range(0, count($value) - 1),

@@ -170,4 +170,22 @@ class PostRepositoryTest extends TestCase
         self::assertContainsOnlyInstancesOf(Post::class, $posts);
         self::assertEquals([12, 11], array_column($posts, 'id'));
     }
+
+    public function testOperatorNotIn(): void
+    {
+        $posts = $this->repository->findBy(['post_status' => new Operand(['draft', 'publish'], Operand::OPERATOR_NOT_IN)]);
+        self::assertIsArray($posts);
+        self::assertCount(1, $posts);
+        self::assertContainsOnlyInstancesOf(Post::class, $posts);
+        self::assertEquals([11], array_column($posts, 'id'));
+    }
+
+    public function testOperatorNotInWithMagicMethod(): void
+    {
+        $posts = $this->repository->findByPostStatus(new Operand(['draft', 'private'], Operand::OPERATOR_NOT_IN));
+        self::assertIsArray($posts);
+        self::assertCount(2, $posts);
+        self::assertContainsOnlyInstancesOf(Post::class, $posts);
+        self::assertEquals([1, 10], array_column($posts, 'id'));
+    }
 }
