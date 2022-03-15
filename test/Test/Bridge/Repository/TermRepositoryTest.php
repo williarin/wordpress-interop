@@ -37,7 +37,11 @@ class TermRepositoryTest extends TestCase
         );
 
         self::assertInstanceOf(Term::class, $term);
+        self::assertSame(16, $term->termId);
         self::assertSame('Tshirts', $term->name);
+        self::assertSame('tshirts', $term->slug);
+        self::assertSame('product_cat', $term->taxonomy);
+        self::assertSame(5, $term->count);
     }
 
     public function testFindOneByDescending(): void

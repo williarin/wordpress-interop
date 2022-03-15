@@ -8,6 +8,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Exception\MissingOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Williarin\WordpressInterop\Attributes\External;
 use Williarin\WordpressInterop\Attributes\Id;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidArgumentException;
@@ -22,8 +23,9 @@ trait FindByTrait
 {
     use NormalizerTrait;
 
-    protected array $entityBaseFields = [];
-    protected array $entityExtraFields = [];
+    protected ?array $entityBaseFields = null;
+    protected ?array $entityExternalFields = null;
+    protected ?array $entityExtraFields = null;
 
     public function find(int $id): mixed
     {
@@ -72,7 +74,7 @@ trait FindByTrait
      */
     protected function getEntityBaseFields(): array
     {
-        if (empty($this->entityBaseFields)) {
+        if ($this->entityBaseFields === null) {
             $entityClassName = $this->getEntityClassName();
             $this->entityBaseFields = array_keys($this->serializer->normalize(new $entityClassName(), null, [
                 'groups' => ['base'],
@@ -82,17 +84,32 @@ trait FindByTrait
         return $this->entityBaseFields;
     }
 
+    protected function getExternalFields(): array
+    {
+        if ($this->entityExternalFields === null) {
+            $this->entityExternalFields = [];
+
+            foreach ((new \ReflectionClass($this->getEntityClassName()))->getProperties() as $property) {
+                if (\count($property->getAttributes(External::class)) > 0) {
+                    $this->entityExternalFields[] = property_to_field($property->getName());
+                }
+            }
+        }
+
+        return $this->entityExternalFields;
+    }
+
     /**
      * @return string[]
      */
     protected function getEntityExtraFields(): array
     {
-        $baseFields = $this->getEntityBaseFields();
-
-        if (empty($this->entityExtraFields)) {
+        if ($this->entityExtraFields === null) {
+            $baseFields = $this->getEntityBaseFields();
+            $externalFields = $this->getExternalFields();
             $entityClassName = $this->getEntityClassName();
             $allFields = array_keys($this->propertyNormalizer->normalize(new $entityClassName()));
-            $this->entityExtraFields = array_diff($allFields, $baseFields);
+            $this->entityExtraFields = array_diff($allFields, $baseFields, $externalFields);
         }
 
         return $this->entityExtraFields;
