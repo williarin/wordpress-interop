@@ -23,9 +23,9 @@ trait FindByTrait
 {
     use NormalizerTrait;
 
-    protected ?array $entityBaseFields = null;
-    protected ?array $entityExternalFields = null;
-    protected ?array $entityExtraFields = null;
+    protected array $entityBaseFields = [];
+    protected array $entityExternalFields = [];
+    protected array $entityExtraFields = [];
 
     public function find(int $id): mixed
     {
@@ -72,47 +72,53 @@ trait FindByTrait
     /**
      * @return string[]
      */
-    protected function getEntityBaseFields(): array
+    protected function getEntityBaseFields(string $entityClassName = null): array
     {
-        if ($this->entityBaseFields === null) {
-            $entityClassName = $this->getEntityClassName();
-            $this->entityBaseFields = array_keys($this->serializer->normalize(new $entityClassName(), null, [
-                'groups' => ['base'],
-            ]));
+        $entityClassName = $entityClassName ?? $this->getEntityClassName();
+
+        if (!array_key_exists($entityClassName, $this->entityBaseFields)) {
+            $this->entityBaseFields[$entityClassName] = array_keys(
+                $this->serializer->normalize(new $entityClassName(), null, [
+                    'groups' => ['base'],
+                ])
+            );
         }
 
-        return $this->entityBaseFields;
+        return $this->entityBaseFields[$entityClassName];
     }
 
-    protected function getExternalFields(): array
+    protected function getExternalFields(string $entityClassName = null): array
     {
-        if ($this->entityExternalFields === null) {
-            $this->entityExternalFields = [];
+        $entityClassName = $entityClassName ?? $this->getEntityClassName();
 
-            foreach ((new \ReflectionClass($this->getEntityClassName()))->getProperties() as $property) {
+        if (!array_key_exists($entityClassName, $this->entityExternalFields)) {
+            $this->entityExternalFields[$entityClassName] = [];
+
+            foreach ((new \ReflectionClass($entityClassName))->getProperties() as $property) {
                 if (\count($property->getAttributes(External::class)) > 0) {
-                    $this->entityExternalFields[] = property_to_field($property->getName());
+                    $this->entityExternalFields[$entityClassName][] = property_to_field($property->getName());
                 }
             }
         }
 
-        return $this->entityExternalFields;
+        return $this->entityExternalFields[$entityClassName];
     }
 
     /**
      * @return string[]
      */
-    protected function getEntityExtraFields(): array
+    protected function getEntityExtraFields(string $entityClassName = null): array
     {
-        if ($this->entityExtraFields === null) {
-            $baseFields = $this->getEntityBaseFields();
-            $externalFields = $this->getExternalFields();
-            $entityClassName = $this->getEntityClassName();
+        $entityClassName = $entityClassName ?? $this->getEntityClassName();
+
+        if (!array_key_exists($entityClassName, $this->entityExtraFields)) {
+            $baseFields = $this->getEntityBaseFields($entityClassName);
+            $externalFields = $this->getExternalFields($entityClassName);
             $allFields = array_keys($this->propertyNormalizer->normalize(new $entityClassName()));
-            $this->entityExtraFields = array_diff($allFields, $baseFields, $externalFields);
+            $this->entityExtraFields[$entityClassName] = array_diff($allFields, $baseFields, $externalFields);
         }
 
-        return $this->entityExtraFields;
+        return $this->entityExtraFields[$entityClassName];
     }
 
     /**

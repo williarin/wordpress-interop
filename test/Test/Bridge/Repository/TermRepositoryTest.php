@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
+use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Entity\Term;
 use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
 use Williarin\WordpressInterop\Bridge\Repository\TermRepository;
+use Williarin\WordpressInterop\Criteria\NestedCondition;
+use Williarin\WordpressInterop\Criteria\Operand;
+use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\Test\TestCase;
 
@@ -75,5 +79,22 @@ class TermRepositoryTest extends TestCase
         $expected->name = 'Tshirts';
 
         self::assertEquals($expected, $term);
+    }
+
+    public function testFindByPostRelationshipCondition(): void
+    {
+        $terms = $this->repository->findBy([
+            new SelectColumns(['taxonomy', 'name']),
+            new PostRelationshipCondition(Product::class, [
+                'post_status' => new Operand(['publish', 'private'], Operand::OPERATOR_IN),
+                'sku' => 'super-forces-hoodie',
+            ]),
+            'taxonomy' => new Operand(['product_tag', 'product_type', 'product_visibility'], Operand::OPERATOR_NOT_IN),
+        ]);
+
+        self::assertEquals([
+            'product_cat' => 'Hoodies',
+            'pa_manufacturer' => 'MegaBrand',
+        ], array_combine(array_column($terms, 'taxonomy'), array_column($terms, 'name')));
     }
 }

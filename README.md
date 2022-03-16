@@ -189,6 +189,27 @@ $products = $manager->getRepository(Product::class)
     ]);
 ```
 
+### Post relationship conditions
+
+Query terms based on their posts relationships.
+
+```php
+// Fetch all terms of the product with SKU "super-forces-hoodie"
+// belonging to all taxonomies except "product_tag", "product_type", "product_visibility".
+$terms = $manager->getRepository(Term::class)
+    ->findBy([
+        new SelectColumns(['taxonomy', 'name']),
+        new PostRelationshipCondition(Product::class, [
+            'post_status' => new Operand(['publish', 'private'], Operand::OPERATOR_IN),
+            'sku' => 'super-forces-hoodie',
+        ]),
+        'taxonomy' => new Operand(
+            ['product_tag', 'product_type', 'product_visibility'],
+            Operand::OPERATOR_NOT_IN,
+        ),
+    ]);
+```
+
 ### Restrict selected columns
 
 Querying all columns at once is slow, especially if you have a lot of entities to retrieve.
