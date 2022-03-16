@@ -45,6 +45,13 @@ reset-woocommerce:
 	@$(CLI) wc shop_order create --user=1 --customer_id=0 --line_items='[{"product_id":20},{"product_id":22}]' \
 		--billing='{"first_name":"Trudie","last_name":"Metz","company":"Amazon","address_1":"135 Wyandot Ave","city":"Marion","state":"Ohio","postcode":"43302","country":"United States","email":"trudie@woo.local","phone":"(740) 383-4031"}' \
 		--shipping='{"first_name":"Trudie","last_name":"Metz","company":"Amazon","address_1":"135 Wyandot Ave","city":"Marion","state":"Ohio","postcode":"43302","country":"United States","email":"trudie@woo.local","phone":"(740) 383-4031"}'
+	@$(CLI) wc product_attribute create --name="Manufacturer" --user=1
+	@$(CLI) wc product_attribute_term create 1 --name="SuperBrand" --user=1
+	@$(CLI) wc product_attribute_term create 1 --name="MegaBrand" --user=1
+	@$(CLI) wc product create --name="Special Forces Hoodie" --description="Military hoodie with logo" \
+		--type=simple --regular_price=500 --user=1 --categories='[{"id": 17}]' --sku="super-forces-hoodie" \
+		--attributes='[{"name": "pa_manufacturer", "visible": true, "options": ["MegaBrand"]}]'
+	@$(CLI) post term add 64 pa_manufacturer megabrand
 
 .PHONY: test
 test:

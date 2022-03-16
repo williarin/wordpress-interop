@@ -8,6 +8,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
+use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
 use Williarin\WordpressInterop\Criteria\RelationshipCondition;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\Criteria\TermRelationshipCondition;
@@ -26,7 +27,7 @@ trait NormalizerTrait
         ]);
     }
 
-    protected function normalizeCriteria(array $criteria): array
+    protected function normalizeCriteria(array $criteria, string $entityClassName = null): array
     {
         $output = [];
 
@@ -36,13 +37,14 @@ trait NormalizerTrait
             } elseif (
                 $value instanceof RelationshipCondition
                 || $value instanceof TermRelationshipCondition
+                || $value instanceof PostRelationshipCondition
                 || $value instanceof SelectColumns
             ) {
                 $output[] = $value;
             } elseif ($value instanceof Operand && $value->isLooseOperator()) {
                 $output[$field] = $value->getOperand();
             } else {
-                $resolvedValue = $this->validateFieldValue($field, $value);
+                $resolvedValue = $this->validateFieldValue($field, $value, $entityClassName);
                 $output[$field] = (string) $this->serializer->normalize($resolvedValue);
             }
         }

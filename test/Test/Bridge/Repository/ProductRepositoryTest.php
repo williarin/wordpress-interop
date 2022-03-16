@@ -46,7 +46,7 @@ class ProductRepositoryTest extends TestCase
     {
         $products = $this->repository->findAll();
         self::assertContainsOnlyInstancesOf(Product::class, $products);
-        self::assertCount(18, $products);
+        self::assertCount(19, $products);
     }
 
     public function testFindBySku(): void
@@ -82,13 +82,13 @@ class ProductRepositoryTest extends TestCase
             ['post_date' => 'DESC'],
         );
 
-        self::assertSame(37, $product->id);
+        self::assertSame(64, $product->id);
     }
     public function testFindAllPublishedProducts(): void
     {
         $products = $this->repository->findByPostStatus('publish');
         self::assertIsArray($products);
-        self::assertCount(18, $products);
+        self::assertCount(19, $products);
         self::assertContainsOnlyInstancesOf(Product::class, $products);
     }
 
@@ -235,7 +235,7 @@ class ProductRepositoryTest extends TestCase
             ]),
         ]);
         self::assertIsArray($products);
-        self::assertCount(18, $products);
+        self::assertCount(19, $products);
         self::assertContainsOnlyInstancesOf(Product::class, $products);
     }
 
@@ -248,13 +248,14 @@ class ProductRepositoryTest extends TestCase
             ]),
         ]);
         self::assertIsArray($products);
-        self::assertCount(4, $products);
+        self::assertCount(5, $products);
         self::assertContainsOnlyInstancesOf(Product::class, $products);
         self::assertEquals([
             'Hoodie',
             'Hoodie with Logo',
             'Hoodie with Pocket',
             'Hoodie with Zipper',
+            'Special Forces Hoodie',
         ], array_column($products, 'postTitle'));
     }
 

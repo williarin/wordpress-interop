@@ -12,6 +12,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
+use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
 use Williarin\WordpressInterop\Criteria\RelationshipCondition;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\Criteria\TermRelationshipCondition;
@@ -160,17 +161,22 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return $this->updateSingleField($arguments[0], property_to_field(substr($name, 6)), $arguments[1]);
     }
 
-    protected function getMappedMetaKey(mixed $fieldName): string
+    protected function getMappedMetaKey(mixed $fieldName, string $entityClassName = null): string
     {
+        $mappedFields = $entityClassName ? (new \ReflectionClassConstant(
+            $this->entityManager->getRepository($entityClassName),
+            'MAPPED_FIELDS',
+        ))->getValue() : static::MAPPED_FIELDS;
+
         if (
-            !is_array(static::MAPPED_FIELDS)
-            || empty(static::MAPPED_FIELDS)
-            || !in_array($fieldName, static::MAPPED_FIELDS, true)
+            !is_array($mappedFields)
+            || empty($mappedFields)
+            || !in_array($fieldName, $mappedFields, true)
         ) {
             return $fieldName;
         }
 
-        $key = array_search($fieldName, static::MAPPED_FIELDS, true);
+        $key = array_search($fieldName, $mappedFields, true);
 
         if (is_numeric($key)) {
             return sprintf('_%s', $fieldName);
@@ -234,6 +240,12 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             return self::IS_SPECIAL_CRITERIA;
         }
 
+        if ($value instanceof PostRelationshipCondition) {
+            $this->createPostRelationshipCriteria($queryBuilder, $value);
+
+            return self::IS_SPECIAL_CRITERIA;
+        }
+
         return 0;
     }
 
@@ -242,6 +254,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         array $criteria,
         string $field,
         mixed $value,
+        string $entityClassName = null,
+        int $aliasNumber = null,
     ): void {
         $snakeField = u($field)
             ->snake()
@@ -278,7 +292,23 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             }
         }
 
-        if (in_array(substr($field, (strpos($field, '.') ?: -1) + 1), $this->getEntityExtraFields(), true)) {
+        if (
+            $entityClassName !== null
+            && $aliasNumber !== null
+            && in_array(
+                substr($field, (strpos($field, '.') ?: -1) + 1),
+                $this->getEntityExtraFields($entityClassName),
+                true,
+            )
+        ) {
+            $exprKey = sprintf('pm_%d.meta_key = :%s_key', $aliasNumber, $snakeField);
+            $queryBuilder->andWhere($exprKey)
+                ->setParameter(sprintf('%s_key', $snakeField), $this->getMappedMetaKey($field, $entityClassName))
+            ;
+
+            $exprValue = sprintf('pm_%d.meta_value %s %s', $aliasNumber, $operator, $parameter);
+            $queryBuilder->andWhere($exprValue);
+        } elseif (in_array(substr($field, (strpos($field, '.') ?: -1) + 1), $this->getEntityExtraFields(), true)) {
             $expr = sprintf('%s %s %s', $field, $operator, $parameter);
             $queryBuilder->andHaving($expr);
         } else {
@@ -363,6 +393,71 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         ++$aliasNumber;
     }
 
+    private function createPostRelationshipCriteria(
+        QueryBuilder $queryBuilder,
+        PostRelationshipCondition $condition,
+    ): void {
+        static $aliasNumber = 0;
+
+        $queryBuilder
+            ->join(
+                'tt',
+                $this->entityManager->getTablesPrefix() . 'term_relationships',
+                sprintf('tr_%d', $aliasNumber),
+                sprintf('tt.term_taxonomy_id = tr_%s.term_taxonomy_id', $aliasNumber),
+            )
+            ->join(
+                sprintf('tr_%d', $aliasNumber),
+                $this->entityManager->getTablesPrefix() . 'posts',
+                sprintf('p_%d', $aliasNumber),
+                sprintf('tr_%d.object_id = p_%d.id', $aliasNumber, $aliasNumber),
+            )
+        ;
+
+        $this->addPostMetaJoinForPostRelationshipCondition($queryBuilder, $condition, $aliasNumber);
+        $prefixedCriteria = $this->getPrefixedCriteriaForPostRelationshipCondition($condition, $aliasNumber);
+        $normalizedCriteria = $this->normalizeCriteria($prefixedCriteria, $condition->getEntityClassName());
+
+        foreach ($normalizedCriteria as $field => $value) {
+            $this->handleRegularCriteria(
+                $queryBuilder,
+                $prefixedCriteria,
+                $field,
+                $value,
+                $condition->getEntityClassName(),
+                $aliasNumber,
+            );
+        }
+
+        ++$aliasNumber;
+    }
+
+    private function addPostMetaJoinForPostRelationshipCondition(
+        QueryBuilder $queryBuilder,
+        PostRelationshipCondition $condition,
+        int $aliasNumber,
+    ): void {
+        $extraFields = $this->getEntityExtraFields($condition->getEntityClassName());
+
+        if (!empty($extraFields)) {
+            $alias = sprintf('pm_%d', $aliasNumber);
+            $this->tableAliases[$alias] = [];
+
+            $queryBuilder->leftJoin(
+                sprintf('p_%d', $aliasNumber),
+                $this->entityManager->getTablesPrefix() . 'postmeta',
+                $alias,
+                sprintf('p_%d.id = pm_%d.post_id', $aliasNumber, $aliasNumber),
+            );
+
+            foreach ($extraFields as $extraField) {
+                $this->tableAliases[$alias][] = property_to_field($extraField);
+            }
+
+            $queryBuilder->addGroupBy(sprintf('p_%d.id', $aliasNumber));
+        }
+    }
+
     private function getPrefixedCriteriaForTermRelationshipCondition(array $criteria, int $aliasNumber): array
     {
         $output = [];
@@ -372,6 +467,25 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 'term_id', 'name', 'slug', 'term_group' => sprintf('t_%d.%s', $aliasNumber, $field),
                 'taxonomy', 'description', 'count' => sprintf('tt_%d.%s', $aliasNumber, $field),
             };
+
+            $output[$prefixedField] = $value;
+        }
+
+        return $output;
+    }
+
+    private function getPrefixedCriteriaForPostRelationshipCondition(
+        PostRelationshipCondition $condition,
+        int $aliasNumber
+    ): array {
+        $output = [];
+
+        foreach ($condition->getCriteria() as $field => $value) {
+            $prefixedField = $field;
+
+            if (in_array($field, $this->getEntityBaseFields($condition->getEntityClassName()), true)) {
+                $prefixedField = sprintf('p_%d.%s', $aliasNumber, $field);
+            }
 
             $output[$prefixedField] = $value;
         }
@@ -407,8 +521,6 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $queryBuilder->select(...$selects);
 
         if (!$hasExtraFields) {
-            $queryBuilder->resetQueryPart('groupBy');
-
             $joinQueryPart = $queryBuilder->getQueryPart('join');
 
             if (empty($joinQueryPart)) {

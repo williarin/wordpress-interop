@@ -40,10 +40,20 @@ trait FieldValidationTrait
         return $expectedType->getName();
     }
 
-    private function validateFieldValue(string $field, mixed $value): mixed
+    private function validateFieldValue(string $field, mixed $value, string $entityClassName = null): mixed
     {
-        $fallbackEntity = get_parent_class(static::class) ?: static::class;
-        $expectedType = $this->validateFieldName($field, $fallbackEntity, static::TABLE_NAME);
+        if (!$entityClassName) {
+            $fallbackEntity = get_parent_class(static::class) ?: static::class;
+            $expectedType = $this->validateFieldName($field, $fallbackEntity, static::TABLE_NAME);
+        } else {
+            $expectedType = $this->validateFieldName(
+                $field,
+                $entityClassName,
+                (new \ReflectionClassConstant($this->entityManager->getRepository($entityClassName), 'TABLE_NAME'))
+                    ->getValue()
+            );
+        }
+
         $resolvedValue = $value instanceof Operand ? $value->getOperand() : $value;
 
         if ($value instanceof Operand && $value->isLooseOperator()) {
