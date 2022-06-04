@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop\Exception;
 
 use Exception;
 use Williarin\WordpressInterop\Criteria\Operand;
+use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
 use Williarin\WordpressInterop\Criteria\RelationshipCondition;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\Criteria\TermRelationshipCondition;
@@ -32,10 +33,17 @@ final class EntityNotFoundException extends Exception
                     : $field;
 
                 if ($value instanceof Operand) {
-                    $value = sprintf('"%s"', $value->getOperand());
+                    $value = sprintf(
+                        '"%s"',
+                        is_array($value->getOperand())
+                            ? $this->implodeCriteria($value->getOperand())
+                            : $value->getOperand(),
+                    );
                 } elseif ($value instanceof RelationshipCondition) {
                     $value = sprintf('having a field "%s"', $value->getRelationshipFieldName());
                 } elseif ($value instanceof TermRelationshipCondition) {
+                    $value = sprintf('%s', $this->implodeCriteria($value->getCriteria()));
+                } elseif ($value instanceof PostRelationshipCondition) {
                     $value = sprintf('%s', $this->implodeCriteria($value->getCriteria()));
                 } elseif ($value instanceof SelectColumns) {
                     return '';
