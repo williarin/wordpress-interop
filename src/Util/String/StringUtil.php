@@ -30,20 +30,22 @@ function property_to_field(string $propertyName): string
 
 function field_to_property(string $fieldName): string
 {
-    return u($fieldName)
+    return u(($portion = strstr($fieldName, '.')) ? substr($portion, 1) : $fieldName)
         ->lower()
         ->camel()
         ->toString()
     ;
 }
 
-function select_from_eav(string $propertyName, ?string $metaKey = null, string $joinTableName = 'pm_self'): string
+function select_from_eav(string $fieldName, ?string $metaKey = null, string $joinTableName = 'pm_self'): string
 {
+    $fieldName = property_to_field($fieldName);
+
     return sprintf(
         "MAX(CASE WHEN %s.meta_key = '%s' THEN %s.meta_value END) `%s`",
         $joinTableName,
-        $metaKey ?? sprintf('_%s', ltrim($propertyName, '_')),
+        $metaKey ?? sprintf('_%s', ltrim($fieldName, '_')),
         $joinTableName,
-        $propertyName,
+        $fieldName,
     );
 }

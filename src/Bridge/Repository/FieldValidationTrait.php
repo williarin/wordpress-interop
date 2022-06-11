@@ -16,8 +16,11 @@ use function Williarin\WordpressInterop\Util\String\field_to_property;
  */
 trait FieldValidationTrait
 {
-    private function validateFieldName(string $fieldName, string $fallbackEntity, string $tableName): string
-    {
+    private function validateFieldName(
+        string $fieldName,
+        string $fallbackEntity,
+        string $tableName,
+    ): \ReflectionNamedType|\ReflectionUnionType {
         $propertyName = field_to_property($fieldName);
 
         try {
@@ -37,7 +40,7 @@ trait FieldValidationTrait
             }
         }
 
-        return $expectedType->getName();
+        return $expectedType;
     }
 
     private function validateFieldValue(string $field, mixed $value, string $entityClassName = null): mixed
@@ -67,10 +70,11 @@ trait FieldValidationTrait
         );
 
         if (
-            (is_object($resolvedValue) && !is_subclass_of($resolvedValue, $expectedType))
-            || (!is_object($resolvedValue) && $expectedType !== $newValueType)
+            (is_object($resolvedValue) && !is_subclass_of($resolvedValue, $expectedType->getName()))
+            || (!is_object($resolvedValue) && $expectedType->getName() !== $newValueType && $newValueType !== 'NULL')
+            || (!is_object($resolvedValue) && $newValueType === 'NULL' && !$expectedType->allowsNull())
         ) {
-            throw new InvalidTypeException(strtolower($field), $expectedType, $newValueType);
+            throw new InvalidTypeException(strtolower($field), $expectedType->getName(), $newValueType);
         }
 
         if (is_array($resolvedValue)) {
