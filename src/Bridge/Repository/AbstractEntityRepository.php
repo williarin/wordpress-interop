@@ -105,13 +105,13 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $normalizedCriteria = $this->normalizeCriteria($criteria);
         $this->tableAliases['p'] = $this->getEntityBaseFields();
 
-        $prefixedEntityBaseField = $this->getPrefixedEntityBaseFields('p');
+        $prefixedEntityBaseFields = $this->getPrefixedEntityBaseFields('p');
 
         $queryBuilder = $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->select($prefixedEntityBaseField)
+            ->select($prefixedEntityBaseFields)
             ->from($this->entityManager->getTablesPrefix() . static::TABLE_NAME, 'p')
-            ->addGroupBy(...$prefixedEntityBaseField)
+            ->addGroupBy(...$prefixedEntityBaseFields)
         ;
 
         if (is_subclass_of($this->getEntityClassName(), BaseEntity::class)) {
@@ -497,6 +497,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     {
         $selects = [];
         $hasExtraFields = false;
+
+        $queryBuilder->resetQueryPart('groupBy');
 
         foreach ($value->getColumns() as $column) {
             if (in_array($column, $extraFields, true)) {
