@@ -172,7 +172,28 @@ $attachment = $manager->getRepository(Attachment::class)
     ->findOneBy([
         new RelationshipCondition(4, '_thumbnail_id'),
     ]);
+
+// Get featured images of posts 4, 13, 18 and 23 at once
+$attachments = $manager->getRepository(Attachment::class)
+    ->findBy([
+        new RelationshipCondition(
+            new Operand([4, 13, 18, 23], Operand::OPERATOR_IN),
+            '_thumbnail_id',
+        ),
+    ]);
+
+// Same as above example but include the original ID in the result
+$attachments = $manager->getRepository(Attachment::class)
+    ->findBy([
+        new RelationshipCondition(
+            new Operand([4, 13, 18, 23], Operand::OPERATOR_IN),
+            '_thumbnail_id',
+            'original_post_id',
+        ),
+    ]);
+// $attachments[0]->originalPostId === 4
 ```
+
 
 ### Term and taxonomy relationship conditions
 
