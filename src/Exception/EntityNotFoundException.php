@@ -29,7 +29,7 @@ final class EntityNotFoundException extends Exception
         return implode(', ', array_filter(array_map(
             function (mixed $value, int|string $field): string {
                 $field = $value instanceof RelationshipCondition
-                    ? sprintf('relationship ID "%s"', $value->getRelationshipId())
+                    ? sprintf('relationship ID "%s"', $value->getRelationshipIdOrOperand())
                     : $field;
 
                 if ($value instanceof Operand) {

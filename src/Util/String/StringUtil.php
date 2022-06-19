@@ -42,7 +42,7 @@ function select_from_eav(string $fieldName, ?string $metaKey = null, string $joi
     $fieldName = property_to_field($fieldName);
 
     return sprintf(
-        "MAX(CASE WHEN %s.meta_key = '%s' THEN %s.meta_value END) `%s`",
+        "MAX(CASE WHEN %s.meta_key = '%s' THEN %s.meta_value END) AS `%s`",
         $joinTableName,
         $metaKey ?? sprintf('_%s', ltrim($fieldName, '_')),
         $joinTableName,

@@ -13,7 +13,7 @@ class SelectFromEavTest extends TestCase
     public function testSnakeCase(): void
     {
         self::assertEquals(
-            "MAX(CASE WHEN pm_self.meta_key = '_product_attributes' THEN pm_self.meta_value END) `product_attributes`",
+            "MAX(CASE WHEN pm_self.meta_key = '_product_attributes' THEN pm_self.meta_value END) AS `product_attributes`",
             select_from_eav('product_attributes'),
         );
     }
@@ -21,7 +21,7 @@ class SelectFromEavTest extends TestCase
     public function testCamelCase(): void
     {
         self::assertEquals(
-            "MAX(CASE WHEN pm_self.meta_key = '_product_attributes' THEN pm_self.meta_value END) `product_attributes`",
+            "MAX(CASE WHEN pm_self.meta_key = '_product_attributes' THEN pm_self.meta_value END) AS `product_attributes`",
             select_from_eav('productAttributes'),
         );
     }
@@ -29,7 +29,7 @@ class SelectFromEavTest extends TestCase
     public function testMetaKey(): void
     {
         self::assertEquals(
-            "MAX(CASE WHEN pm_self.meta_key = 'some_key' THEN pm_self.meta_value END) `product_attributes`",
+            "MAX(CASE WHEN pm_self.meta_key = 'some_key' THEN pm_self.meta_value END) AS `product_attributes`",
             select_from_eav('product_attributes', 'some_key'),
         );
     }
@@ -37,7 +37,7 @@ class SelectFromEavTest extends TestCase
     public function testJoinTableName(): void
     {
         self::assertEquals(
-            "MAX(CASE WHEN some_table.meta_key = 'some_key' THEN some_table.meta_value END) `product_attributes`",
+            "MAX(CASE WHEN some_table.meta_key = 'some_key' THEN some_table.meta_value END) AS `product_attributes`",
             select_from_eav('product_attributes', 'some_key', 'some_table'),
         );
     }

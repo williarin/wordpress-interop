@@ -41,6 +41,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     protected PropertyNormalizer $propertyNormalizer;
 
     private array $tableAliases = [];
+    private array $additionalFieldsToSelect = [];
 
     public function __construct(
         private string $entityClassName,
@@ -131,6 +132,9 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         $this->addOrderByClause($queryBuilder, $orderBy);
+
+        $queryBuilder->addSelect(...$this->additionalFieldsToSelect);
+        $this->additionalFieldsToSelect = [];
 
         return $queryBuilder;
     }
@@ -338,6 +342,33 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     ): void {
         static $aliasNumber = 0;
         $alias = sprintf('pm_relation_%d', $aliasNumber++);
+        $snakeField = u($condition->getRelationshipFieldName())
+            ->snake()
+            ->toString()
+        ;
+        $parameter = ":{$snakeField}";
+        $operator = '=';
+
+        if (($operand = $condition->getRelationshipIdOrOperand()) instanceof Operand) {
+            $operator = $operand->getOperator();
+            $value = $operand->getOperand();
+
+            if (in_array($operator, [Operand::OPERATOR_IN, Operand::OPERATOR_NOT_IN], true)) {
+                $parameters = array_map(
+                    static fn (int $number) => "{$snakeField}_{$number}",
+                    range(0, count($value) - 1),
+                );
+                $parameter = sprintf('(:%s)', implode(', :', $parameters));
+
+                foreach ($parameters as $index => $name) {
+                    $queryBuilder->setParameter($name, $value[$index]);
+                }
+            } else {
+                $queryBuilder->setParameter($snakeField, $value);
+            }
+        } else {
+            $queryBuilder->setParameter($snakeField, $condition->getRelationshipIdOrOperand());
+        }
 
         $this->tableAliases[$alias] = [$condition->getRelationshipFieldName()];
 
@@ -347,11 +378,20 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             $alias,
             sprintf('p.%s = %s.meta_value', static::TABLE_IDENTIFIER, $alias),
         )
-            ->andWhere(sprintf('%s.%s = :%s_id', $alias, static::TABLE_META_IDENTIFIER, $alias))
+            ->andWhere(sprintf('%s.%s %s %s', $alias, static::TABLE_META_IDENTIFIER, $operator, $parameter))
             ->andWhere(sprintf('%s.meta_key = :%s_field', $alias, $alias))
-            ->setParameter(sprintf('%s_id', $alias), $condition->getRelationshipId())
             ->setParameter(sprintf('%s_field', $alias), $condition->getRelationshipFieldName())
         ;
+
+        if (!empty($condition->getAlias())) {
+            $this->additionalFieldsToSelect[] = sprintf(
+                "MAX(CASE WHEN %s.meta_key = '%s' THEN %s.post_id END) AS `%s`",
+                $alias,
+                $condition->getRelationshipFieldName(),
+                $alias,
+                trim($condition->getAlias(), '_'),
+            );
+        }
     }
 
     private function createTermRelationshipCriteria(
@@ -520,7 +560,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             }
         }
 
-        $queryBuilder->select(...$selects);
+        $queryBuilder->select(...$selects, ...$this->additionalFieldsToSelect);
+        $this->additionalFieldsToSelect = [];
 
         if (!$hasExtraFields) {
             $joinQueryPart = $queryBuilder->getQueryPart('join');
