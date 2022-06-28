@@ -19,4 +19,9 @@ class UnserializeIfNeededTest extends TestCase
     {
         self::assertEquals(['hello' => 'world'], unserialize_if_needed(serialize(['hello' => 'world'])));
     }
+
+    public function testNull(): void
+    {
+        self::assertNull(unserialize_if_needed(null));
+    }
 }

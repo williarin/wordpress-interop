@@ -6,8 +6,12 @@ namespace Williarin\WordpressInterop\Util\String;
 
 use function Symfony\Component\String\u;
 
-function unserialize_if_needed(string $data): string|array
+function unserialize_if_needed(?string $data): string|array|null
 {
+    if ($data === null) {
+        return null;
+    }
+
     $unserialized = @unserialize($data, [
         'allowed_classes' => [],
     ]);
