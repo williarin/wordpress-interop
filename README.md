@@ -291,6 +291,24 @@ $repository->updatePostDate(4, new \DateTime());
 $repository->updateSingleField(4, 'post_status', 'publish');
 ```
 
+### Entity creation or update
+Create or update an entity with all its fields at once.
+
+Limitations:
+* Only the base fields (the columns in `wp_posts` table) are persisted, not the EAV
+* All properties must be filled before object creation or update as the schema doesn't support NULL values
+* No change tracking
+
+```php
+$repository = $manager->getRepository(Post::class);
+$post = $repository->findOneByPostTitle('My post');
+$post->postTitle = 'A new title for my post';
+$post->postStatus = 'publish';
+$repository->persist($post);
+// or directly calling the EntityManager
+$manager->persist($post);
+```
+
 ### Available entities and repositories
 
 * `Post` and `PostRepository`

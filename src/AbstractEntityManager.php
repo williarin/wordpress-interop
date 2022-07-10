@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use ReflectionClass;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Attributes\RepositoryClass;
+use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
 use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
 
 abstract class AbstractEntityManager implements EntityManagerInterface
@@ -55,6 +56,11 @@ abstract class AbstractEntityManager implements EntityManagerInterface
     public function getTablesPrefix(): string
     {
         return $this->tablePrefix;
+    }
+
+    public function persist(BaseEntity $entity): void
+    {
+        $this->getRepository($entity::class)->persist($entity);
     }
 
     abstract protected function getRepositoryServiceForClass(?string $entityClassName): RepositoryInterface;

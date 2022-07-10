@@ -58,7 +58,7 @@ class AttachmentRepositoryTest extends TestCase
             ),
         ]);
         self::assertEquals([
-            '2022/06/featuredimage.png',
+            sprintf('%s/featuredimage.png', date('Y/m')),
             '2019/01/beanie-2.jpg',
             '2019/01/hoodie-with-zipper-2.jpg',
         ], array_column($attachments, 'attachedFile'));
