@@ -17,9 +17,11 @@ use Williarin\WordpressInterop\Criteria\RelationshipCondition;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\Criteria\TermRelationshipCondition;
 use Williarin\WordpressInterop\EntityManagerInterface;
+use Williarin\WordpressInterop\Exception\InvalidEntityException;
 use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
 use Williarin\WordpressInterop\Exception\MethodNotFoundException;
 use function Symfony\Component\String\u;
+use function Williarin\WordpressInterop\Util\String\field_to_property;
 use function Williarin\WordpressInterop\Util\String\property_to_field;
 use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
@@ -27,6 +29,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 {
     use NestedCriteriaTrait;
     use FindByTrait;
+    use EntityPropertiesTrait;
 
     protected const MAPPED_FIELDS = [];
     protected const TABLE_NAME = 'posts';
@@ -71,6 +74,16 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return $this->entityClassName;
     }
 
+    public function setEntityManager(EntityManagerInterface $entityManager): void
+    {
+        $this->entityManager = $entityManager;
+    }
+
+    public function setSerializer(SerializerInterface $serializer): void
+    {
+        $this->serializer = $serializer;
+    }
+
     public function updateSingleField(int $id, string $field, mixed $newValue): bool
     {
         $value = $this->normalize($field, $newValue);
@@ -89,16 +102,6 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         ;
 
         return $affectedRows > 0;
-    }
-
-    public function setEntityManager(EntityManagerInterface $entityManager): void
-    {
-        $this->entityManager = $entityManager;
-    }
-
-    public function setSerializer(SerializerInterface $serializer): void
-    {
-        $this->serializer = $serializer;
     }
 
     public function createFindByQueryBuilder(array $criteria, ?array $orderBy): QueryBuilder
@@ -137,6 +140,51 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $this->additionalFieldsToSelect = [];
 
         return $queryBuilder;
+    }
+
+    public function persist(mixed $entity): void
+    {
+        if ($entity::class !== $this->getEntityClassName() && !is_subclass_of($entity, $this->getEntityClassName())) {
+            throw new InvalidEntityException($entity, $this->getEntityClassName());
+        }
+
+        $baseFields = $this->getEntityBaseFields($entity::class);
+
+        $baseFields = array_combine($baseFields, array_map(
+            fn (mixed $value, string $field) => $this->normalize($field, $entity->{field_to_property($field)}),
+            array_flip($baseFields),
+            $baseFields,
+        ));
+
+        unset($value, $baseFields[static::TABLE_IDENTIFIER]);
+
+        if ($entity->{static::TABLE_IDENTIFIER} === null) {
+            $this->entityManager->getConnection()
+                ->createQueryBuilder()
+                ->insert($this->entityManager->getTablesPrefix() . static::TABLE_NAME)
+                ->values(array_combine(array_keys($baseFields), array_fill(0, count($baseFields), '?')))
+                ->setParameters(array_values($baseFields))
+                ->executeStatement()
+            ;
+
+            $entity->{static::TABLE_IDENTIFIER} = (int) $this->entityManager->getConnection()->lastInsertId();
+        } else {
+            $queryBuilder = $this->entityManager->getConnection()
+                ->createQueryBuilder()
+                ->update($this->entityManager->getTablesPrefix() . static::TABLE_NAME)
+                ->where(static::TABLE_IDENTIFIER, ':' . static::TABLE_IDENTIFIER)
+                ->setParameter(static::TABLE_IDENTIFIER, $entity->{static::TABLE_IDENTIFIER})
+            ;
+
+            foreach ($baseFields as $field => $value) {
+                $queryBuilder
+                    ->set($field, ":{$field}")
+                    ->setParameter($field, $value)
+                ;
+            }
+
+            $queryBuilder->executeStatement();
+        }
     }
 
     protected function normalize(string $field, mixed $value): string

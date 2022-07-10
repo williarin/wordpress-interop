@@ -58,6 +58,10 @@ test:
 	@./vendor/bin/phpunit
 	@./vendor/bin/ecs check
 
+.PHONY: coverage
+coverage:
+	@XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-html ./test/CoverageReport
+
 .PHONY: fix
 fix:
 	@./vendor/bin/ecs check --fix

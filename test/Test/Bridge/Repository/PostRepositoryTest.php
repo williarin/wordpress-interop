@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
+use Williarin\WordpressInterop\Bridge\Entity\Page;
 use Williarin\WordpressInterop\Bridge\Entity\Post;
 use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
+use Williarin\WordpressInterop\Exception\InvalidEntityException;
 use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
 use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
 use Williarin\WordpressInterop\Test\TestCase;
@@ -187,5 +189,66 @@ class PostRepositoryTest extends TestCase
         self::assertCount(2, $posts);
         self::assertContainsOnlyInstancesOf(Post::class, $posts);
         self::assertEquals([1, 10], array_column($posts, 'id'));
+    }
+
+    public function testPersistWrongEntityThrowsException(): void
+    {
+        $page = new Page();
+
+        $this->expectException(InvalidEntityException::class);
+        $this->repository->persist($page);
+    }
+
+    public function testPersistNewPost(): void
+    {
+        $post = new Post();
+        $post->postAuthor = 1;
+        $post->postTitle = 'Newly created post';
+        $post->postName = 'newly-created-post';
+        $post->postContent = 'How are you?';
+        $post->postContentFiltered = '';
+        $post->postExcerpt = '';
+        $post->postStatus = 'draft';
+        $post->commentStatus = 'open';
+        $post->commentCount = 0;
+        $post->pingStatus = 'open';
+        $post->postPassword = '';
+        $post->toPing = '';
+        $post->pinged = '';
+        $post->postModified = new \DateTime();
+        $post->postModifiedGmt = new \DateTime();
+        $post->postDate = new \DateTime();
+        $post->postDateGmt = new \DateTime();
+        $post->postParent = 0;
+        $post->guid = "http://localhost/$post->postName";
+        $post->menuOrder = 0;
+        $post->postType = 'post';
+        $post->postMimeType = '';
+
+        $this->repository->persist($post);
+        self::assertIsNumeric($post->id);
+    }
+
+    public function testPersistExistingPost(): void
+    {
+        $post = $this->repository->findOneByPostTitle('Another post');
+        self::assertSame(11, $post->id);
+
+        $post->postTitle = 'Another post with a new title';
+        $post->postStatus = 'publish';
+
+        $this->repository->persist($post);
+
+        try {
+            $this->repository->findOneByPostTitle('Another post');
+            self::fail();
+        } catch (\Exception $e) {
+            self::assertSame(EntityNotFoundException::class, $e::class);
+        }
+
+        $post = $this->repository->find(11);
+
+        self::assertSame('Another post with a new title', $post->postTitle);
+        self::assertSame('publish', $post->postStatus);
     }
 }

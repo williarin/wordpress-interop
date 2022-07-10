@@ -8,63 +8,57 @@ use PhpCsFixer\Fixer\Import\OrderedImportsFixer;
 use PhpCsFixer\Fixer\Operator\ConcatSpaceFixer;
 use PhpCsFixer\Fixer\Phpdoc\PhpdocTypesOrderFixer;
 use PhpCsFixerCustomFixers\Fixer\NoDuplicatedImportsFixer;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symplify\CodingStandard\Fixer\LineLength\DocBlockLineLengthFixer;
 use Symplify\CodingStandard\Fixer\LineLength\LineLengthFixer;
+use Symplify\EasyCodingStandard\Config\ECSConfig;
 use Symplify\EasyCodingStandard\ValueObject\Set\SetList;
-use Symplify\EasyCodingStandard\ValueObject\Option;
 
-return static function (ContainerConfigurator $containerConfigurator): void {
-    $parameters = $containerConfigurator->parameters();
-    $parameters->set(Option::PARALLEL, true);
-    $parameters->set(Option::PATHS, [
+return static function (ECSConfig $ecsConfig): void {
+    $ecsConfig->parallel();
+
+    $ecsConfig->paths([
         __DIR__ . '/src',
     ]);
-    $parameters->set(Option::SKIP, [
+
+    $ecsConfig->skip([
         __DIR__ . '/src/DependencyInjection/Configuration.php',
     ]);
 
-    $containerConfigurator->import(SetList::SYMPLIFY);
-    $containerConfigurator->import(SetList::PSR_12);
-    $containerConfigurator->import(SetList::PHP_CS_FIXER);
-    $containerConfigurator->import(SetList::DOCTRINE_ANNOTATIONS);
-    $containerConfigurator->import(SetList::CLEAN_CODE);
+    $ecsConfig->sets([
+        SetList::SYMPLIFY,
+        SetList::PSR_12,
+        SetList::PHP_CS_FIXER,
+        SetList::DOCTRINE_ANNOTATIONS,
+        SetList::CLEAN_CODE,
+    ]);
 
-    $services = $containerConfigurator->services();
+    $ecsConfig->ruleWithConfiguration(DocBlockLineLengthFixer::class, [
+        DocBlockLineLengthFixer::LINE_LENGTH => 120,
+    ]);
 
-    $services->set(DocBlockLineLengthFixer::class)
-        ->call('configure', [[
-            DocBlockLineLengthFixer::LINE_LENGTH => 120,
-        ]]);
+    $ecsConfig->ruleWithConfiguration(YodaStyleFixer::class, [
+        'equal' => false,
+        'identical' => false,
+        'less_and_greater' => false,
+    ]);
 
-    $services->set(YodaStyleFixer::class)
-        ->call('configure', [[
-            'equal' => false,
-            'identical' => false,
-            'less_and_greater' => false,
-        ]]);
+    $ecsConfig->ruleWithConfiguration(PhpdocTypesOrderFixer::class, [
+        'null_adjustment' => 'always_last',
+        'sort_algorithm' => 'none',
+    ]);
 
-    $services->set(PhpdocTypesOrderFixer::class)
-        ->call('configure', [[
-            'null_adjustment' => 'always_last',
-            'sort_algorithm' => 'none',
-        ]]);
+    $ecsConfig->ruleWithConfiguration(OrderedImportsFixer::class, [
+        'imports_order' => ['class', 'function', 'const'],
+    ]);
 
-    $services->set(OrderedImportsFixer::class)
-        ->call('configure', [[
-            'imports_order' => ['class', 'function', 'const'],
-        ]]);
+    $ecsConfig->ruleWithConfiguration(ConcatSpaceFixer::class, [
+        'spacing' => 'one',
+    ]);
 
-    $services->set(ConcatSpaceFixer::class)
-        ->call('configure', [[
-            'spacing' => 'one',
-        ]]);
+    $ecsConfig->ruleWithConfiguration(LineLengthFixer::class, [
+        LineLengthFixer::LINE_LENGTH => 120,
+    ]);
 
-    $services->set(LineLengthFixer::class)
-        ->call('configure', [[
-            LineLengthFixer::LINE_LENGTH => 120,
-        ]]);
-
-    $services->set(NoUnusedImportsFixer::class);
-    $services->set(NoDuplicatedImportsFixer::class);
+    $ecsConfig->rule(NoUnusedImportsFixer::class);
+    $ecsConfig->rule(NoDuplicatedImportsFixer::class);
 };

@@ -19,4 +19,6 @@ interface EntityRepositoryInterface extends RepositoryInterface
     public function createFindByQueryBuilder(array $criteria, ?array $orderBy): QueryBuilder;
 
     public function updateSingleField(int $id, string $field, mixed $newValue): bool;
+
+    public function persist(mixed $entity): void;
 }
