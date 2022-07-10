@@ -21,4 +21,6 @@ interface EntityRepositoryInterface extends RepositoryInterface
     public function updateSingleField(int $id, string $field, mixed $newValue): bool;
 
     public function persist(mixed $entity): void;
+
+    public function getMetaEntityClassName(): string;
 }

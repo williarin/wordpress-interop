@@ -21,7 +21,7 @@ class PostMetaRepository implements RepositoryInterface
         return PostMeta::class;
     }
 
-    public function find(int $postId, string $metaKey, bool $unserialize = true): string|array|int|bool|null
+    public function find(int $postId, string $metaKey, bool $unserialize = true): string|array|int|float|bool|null
     {
         /** @var string|false $result */
         $result = $this->entityManager->getConnection()
@@ -44,6 +44,27 @@ class PostMetaRepository implements RepositoryInterface
         }
 
         return $unserialize ? unserialize_if_needed($result) : $result;
+    }
+
+    /**
+     * @return array<string, string|array|int|float|bool|null>
+     */
+    public function findBy(int $postId, bool $unserialize = true): array
+    {
+        $result = $this->entityManager->getConnection()
+            ->createQueryBuilder()
+            ->select('meta_key', 'meta_value')
+            ->from($this->entityManager->getTablesPrefix() . 'postmeta')
+            ->where('post_id = :id')
+            ->setParameter('id', $postId)
+            ->executeQuery()
+            ->fetchAllAssociative()
+        ;
+
+        return array_map(
+            static fn (string $value) => $unserialize ? unserialize_if_needed($value) : $value,
+            array_combine(array_column($result, 'meta_key'), array_column($result, 'meta_value')),
+        );
     }
 
     public function create(int $postId, string $metaKey, mixed $metaValue): bool

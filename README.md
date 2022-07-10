@@ -309,6 +309,21 @@ $repository->persist($post);
 $manager->persist($post);
 ```
 
+### Entity duplication
+Duplicate an entity with all its EAV attributes and terms with `DuplicationService`.
+The resulting entity is already persisted and has a new ID.
+
+```php
+$duplicationService = new DuplicationService($entityManager, new AsciiSlugger();
+
+// Duplicate by ID
+$newProduct =  $this->duplicationService->duplicate(23, Product::class);
+
+// Duplicate by object
+$product = $manager->getRepository(Product::class)->findOneBySku('woo-hoodie-with-zipper');
+$newProduct =  $this->duplicationService->duplicate($product);
+```
+
 ### Available entities and repositories
 
 * `Post` and `PostRepository`

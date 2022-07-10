@@ -6,9 +6,13 @@ namespace Williarin\WordpressInterop\Bridge\Entity;
 
 use DateTimeInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Williarin\WordpressInterop\Attributes\Slug;
+use Williarin\WordpressInterop\Attributes\Unique;
 
 abstract class BaseEntity
 {
+    use DynamicPropertiesTrait;
+
     #[Groups('base')]
     public ?int $id = null;
 
@@ -24,6 +28,7 @@ abstract class BaseEntity
     #[Groups('base')]
     public ?string $postContent = null;
 
+    #[Unique]
     #[Groups('base')]
     public ?string $postTitle = null;
 
@@ -42,6 +47,7 @@ abstract class BaseEntity
     #[Groups('base')]
     public ?string $postPassword = null;
 
+    #[Unique, Slug]
     #[Groups('base')]
     public ?string $postName = null;
 
@@ -77,24 +83,4 @@ abstract class BaseEntity
 
     #[Groups('base')]
     public ?int $commentCount = null;
-
-    public function __set(string $property, mixed $value): void
-    {
-        if ($value === '' && !is_string($this->{$property})) {
-            return;
-        }
-
-        try {
-            $expectedType = (new \ReflectionProperty(static::class, $property))->getType()->getName();
-            settype($value, $expectedType);
-        } catch (\ReflectionException) {
-        }
-
-        $this->{$property} = $value;
-    }
-
-    public function __get(string $property): mixed
-    {
-        return $this->{$property};
-    }
 }

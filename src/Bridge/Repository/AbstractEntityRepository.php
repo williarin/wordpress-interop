@@ -10,6 +10,7 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
+use Williarin\WordpressInterop\Bridge\Entity\PostMeta;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
@@ -34,6 +35,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     protected const MAPPED_FIELDS = [];
     protected const TABLE_NAME = 'posts';
     protected const TABLE_META_NAME = 'postmeta';
+    protected const META_ENTITY_CLASS_NAME = PostMeta::class;
     protected const TABLE_IDENTIFIER = 'id';
     protected const TABLE_META_IDENTIFIER = 'post_id';
     protected const FALLBACK_ENTITY = BaseEntity::class;
@@ -72,6 +74,11 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     public function getEntityClassName(): string
     {
         return $this->entityClassName;
+    }
+
+    public function getMetaEntityClassName(): string
+    {
+        return static::META_ENTITY_CLASS_NAME;
     }
 
     public function setEntityManager(EntityManagerInterface $entityManager): void
@@ -187,6 +194,30 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
     }
 
+    public function getMappedMetaKey(mixed $fieldName, string $entityClassName = null): string
+    {
+        $mappedFields = $entityClassName ? (new \ReflectionClassConstant(
+            $this->entityManager->getRepository($entityClassName),
+            'MAPPED_FIELDS',
+        ))->getValue() : static::MAPPED_FIELDS;
+
+        if (
+            !is_array($mappedFields)
+            || empty($mappedFields)
+            || !in_array($fieldName, $mappedFields, true)
+        ) {
+            return $fieldName;
+        }
+
+        $key = array_search($fieldName, $mappedFields, true);
+
+        if (is_numeric($key)) {
+            return sprintf('_%s', $fieldName);
+        }
+
+        return $key;
+    }
+
     protected function normalize(string $field, mixed $value): string
     {
         $value = $this->validateFieldValue($field, $value);
@@ -211,30 +242,6 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $arguments = $this->validateArguments($resolver, $arguments);
 
         return $this->updateSingleField($arguments[0], property_to_field(substr($name, 6)), $arguments[1]);
-    }
-
-    protected function getMappedMetaKey(mixed $fieldName, string $entityClassName = null): string
-    {
-        $mappedFields = $entityClassName ? (new \ReflectionClassConstant(
-            $this->entityManager->getRepository($entityClassName),
-            'MAPPED_FIELDS',
-        ))->getValue() : static::MAPPED_FIELDS;
-
-        if (
-            !is_array($mappedFields)
-            || empty($mappedFields)
-            || !in_array($fieldName, $mappedFields, true)
-        ) {
-            return $fieldName;
-        }
-
-        $key = array_search($fieldName, $mappedFields, true);
-
-        if (is_numeric($key)) {
-            return sprintf('_%s', $fieldName);
-        }
-
-        return $key;
     }
 
     protected function addSelectForExtraFields(QueryBuilder $queryBuilder): void
@@ -502,6 +509,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             )
         ;
 
+        $this->additionalFieldsToSelect[] = 'tt.term_taxonomy_id';
         $this->addPostMetaJoinForPostRelationshipCondition($queryBuilder, $condition, $aliasNumber);
         $prefixedCriteria = $this->getPrefixedCriteriaForPostRelationshipCondition($condition, $aliasNumber);
         $normalizedCriteria = $this->normalizeCriteria($prefixedCriteria, $condition->getEntityClassName());

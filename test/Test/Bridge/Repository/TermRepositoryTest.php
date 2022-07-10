@@ -97,4 +97,38 @@ class TermRepositoryTest extends TestCase
             'pa_manufacturer' => 'MegaBrand',
         ], array_combine(array_column($terms, 'taxonomy'), array_column($terms, 'name')));
     }
+
+    public function testAddTermsToEntity(): void
+    {
+        $hoodieTerms = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'post_status' => new Operand(['publish', 'private'], Operand::OPERATOR_IN),
+                'sku' => 'super-forces-hoodie',
+            ]),
+            'taxonomy' => new Operand(['product_tag', 'product_type', 'product_visibility'], Operand::OPERATOR_NOT_IN),
+        ]);
+
+        $product = $this->manager->getRepository(Product::class)
+            ->find(37)
+        ;
+
+        $termsProduct = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'id' => $product->id,
+            ]),
+        ]);
+
+        self::assertEquals(['external', 'Decor'], array_column($termsProduct, 'name'));
+
+        $this->repository->addTermsToEntity($product, $hoodieTerms);
+
+        $termsProduct = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'id' => $product->id,
+            ]),
+        ]);
+
+        self::assertEquals(['external', 'Hoodies', 'Decor', 'MegaBrand'], array_column($termsProduct, 'name'));
+        self::assertEquals([1, 6, 1, 2], array_column($termsProduct, 'count'));
+    }
 }
