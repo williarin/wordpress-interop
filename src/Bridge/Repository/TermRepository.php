@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use Doctrine\DBAL\Query\QueryBuilder;
+use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
 use Williarin\WordpressInterop\Bridge\Entity\Term;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
 
@@ -34,10 +35,63 @@ class TermRepository extends AbstractEntityRepository
         ;
 
         if (\count(array_filter($criteria, static fn ($condition) => $condition instanceof SelectColumns)) === 0) {
-            $queryBuilder->select($this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'count']));
+            $extraFields = array_diff(
+                $queryBuilder->getQueryPart('select'),
+                $this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'count']),
+            );
+
+            $queryBuilder->select([
+                ...$this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'count']),
+                ...$extraFields,
+            ]);
+        } else {
+            foreach ($this->getPrefixedFields($queryBuilder->getQueryPart('select')) as $field) {
+                if (!\in_array($field, $queryBuilder->getQueryPart('groupBy'), true)) {
+                    $queryBuilder->addGroupBy($field);
+                }
+            }
         }
 
         return $queryBuilder;
+    }
+
+    public function addTermsToEntity(BaseEntity $entity, array $terms): void
+    {
+        foreach ($terms as $term) {
+            if (!property_exists($term, 'termTaxonomyId')) {
+                continue;
+            }
+
+            $this->entityManager->getConnection()
+                ->createQueryBuilder()
+                ->insert($this->entityManager->getTablesPrefix() . 'term_relationships')
+                ->values([
+                    'object_id' => '?',
+                    'term_taxonomy_id' => '?',
+                    'term_order' => '0',
+                ])
+                ->setParameters([$entity->id, (int) $term->termTaxonomyId])
+                ->executeStatement()
+            ;
+        }
+
+        // Recount terms
+        $subSelect = $this->entityManager->getConnection()
+            ->createQueryBuilder()
+            ->select('COUNT(*)')
+            ->from($this->entityManager->getTablesPrefix() . 'term_relationships', 'tr')
+            ->leftJoin('tr', $this->entityManager->getTablesPrefix() . 'posts', 'p', 'p.id = tr.object_id')
+            ->where('tr.term_taxonomy_id = tt.term_taxonomy_id')
+            ->andWhere("tt.taxonomy NOT IN ('link_category')")
+            ->andWhere("p.post_status IN ('publish', 'future')")
+        ;
+
+        $this->entityManager->getConnection()
+            ->createQueryBuilder()
+            ->update($this->entityManager->getTablesPrefix() . 'term_taxonomy', 'tt')
+            ->set('count', sprintf('(%s)', $subSelect->getSQL()))
+            ->executeStatement()
+        ;
     }
 
     private function getPrefixedFields(array $fields): array
@@ -47,7 +101,8 @@ class TermRepository extends AbstractEntityRepository
         foreach ($fields as $field) {
             $output[] = match ($field) {
                 'term_id', 'name', 'slug' => sprintf('p.%s', $field),
-                'taxonomy', 'count' => sprintf('tt.%s', $field),
+                'taxonomy', 'count', 'term_taxonomy_id' => sprintf('tt.%s', $field),
+                default => $field,
             };
         }
 

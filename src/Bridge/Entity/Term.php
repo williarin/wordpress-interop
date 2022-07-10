@@ -13,6 +13,8 @@ use Williarin\WordpressInterop\Bridge\Repository\TermRepository;
 #[RepositoryClass(TermRepository::class)]
 class Term
 {
+    use DynamicPropertiesTrait;
+
     #[Id]
     #[Groups('base')]
     public ?int $termId = null;

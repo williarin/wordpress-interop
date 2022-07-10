@@ -107,4 +107,53 @@ class PostMetaRepositoryTest extends TestCase
     {
         self::assertFalse($this->repository->update(4444, 'another_nonexistent_key', 'hello'));
     }
+
+    public function testFindBy(): void
+    {
+        $postMetas = $this->repository->findBy(23);
+
+        self::assertEquals([
+            '_sku' => 'woo-hoodie-with-zipper',
+            '_regular_price' => '45',
+            '_sale_price' => '',
+            '_sale_price_dates_from' => '',
+            '_sale_price_dates_to' => '',
+            'total_sales' => '0',
+            '_tax_status' => 'taxable',
+            '_tax_class' => '',
+            '_manage_stock' => 'no',
+            '_backorders' => 'no',
+            '_low_stock_amount' => '',
+            '_sold_individually' => 'no',
+            '_weight' => '2',
+            '_length' => '8',
+            '_width' => '6',
+            '_height' => '2',
+            '_upsell_ids' => [],
+            '_crosssell_ids' => [],
+            '_purchase_note' => '',
+            '_default_attributes' => [],
+            '_virtual' => 'no',
+            '_downloadable' => 'no',
+            '_product_image_gallery' => '',
+            '_download_limit' => '0',
+            '_download_expiry' => '0',
+            '_stock' => '',
+            '_stock_status' => 'instock',
+            '_wc_average_rating' => '0',
+            '_wc_rating_count' => [],
+            '_wc_review_count' => '0',
+            '_downloadable_files' => [],
+            '_product_attributes' => [],
+            '_product_version' => '3.5.3',
+            '_price' => '45',
+            '_thumbnail_id' => '52',
+        ], $postMetas);
+    }
+
+    public function testFindByWithNoResult(): void
+    {
+        $postMetas = $this->repository->findBy(100);
+        self::assertEquals([], $postMetas);
+    }
 }

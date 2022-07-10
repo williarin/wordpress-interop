@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Bridge\Entity;
 
 use Williarin\WordpressInterop\Attributes\RepositoryClass;
+use Williarin\WordpressInterop\Attributes\Slug;
+use Williarin\WordpressInterop\Attributes\Unique;
 use Williarin\WordpressInterop\Bridge\Repository\ProductRepository;
 use Williarin\WordpressInterop\Bridge\Type\GenericData;
 
@@ -22,6 +24,7 @@ use Williarin\WordpressInterop\Bridge\Type\GenericData;
 #[RepositoryClass(ProductRepository::class)]
 class Product extends BaseEntity
 {
+    #[Unique, Slug]
     public ?string $sku = null;
     public ?string $taxStatus = null;
     public ?string $taxClass = null;
