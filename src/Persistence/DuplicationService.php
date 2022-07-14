@@ -51,7 +51,7 @@ final class DuplicationService
         $properties = $this->getClassPropertyAttributes($clone, BaseEntity::class, $suffix);
 
         foreach ($properties as $property => $attributes) {
-            $entity->{$property} .= \in_array(Slug::class, $attributes, true)
+            $clone->{$property} .= \in_array(Slug::class, $attributes, true)
                 ? '-' . $this->slugger->slug($suffix)
                     ->lower()
                     ->toString()

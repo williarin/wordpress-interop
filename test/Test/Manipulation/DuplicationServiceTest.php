@@ -71,4 +71,32 @@ class DuplicationServiceTest extends TestCase
         self::assertSame(array_column($originalTerms, 'name'), array_column($newTerms, 'name'));
         self::assertEquals($originalTerms, $newTerms);
     }
+
+    public function testDuplicateWithCustomSuffix(): void
+    {
+        $newEntity = $this->duplicationService->duplicate(
+            23,
+            Product::class,
+            DuplicationService::POST_STATUS_DRAFT,
+            ' Custom Suffix',
+        );
+
+        self::assertNotSame(23, $newEntity->id);
+        self::assertIsNumeric($newEntity->id);
+        self::assertSame($newEntity->postTitle, 'Hoodie with Zipper Custom Suffix');
+        self::assertSame($newEntity->sku, 'woo-hoodie-with-zipper-custom-suffix');
+    }
+
+    public function testDuplicateWithPublishPostStatus(): void
+    {
+        $newEntity = $this->duplicationService->duplicate(
+            23,
+            Product::class,
+            DuplicationService::POST_STATUS_PUBLISH,
+        );
+
+        self::assertNotSame(23, $newEntity->id);
+        self::assertIsNumeric($newEntity->id);
+        self::assertSame($newEntity->postStatus, 'publish');
+    }
 }
