@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop;
 
 use Doctrine\DBAL\Connection;
 use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
+use Williarin\WordpressInterop\Persistence\DuplicationServiceInterface;
 
 interface EntityManagerInterface
 {
@@ -18,4 +19,6 @@ interface EntityManagerInterface
     public function getRepository(string $entityClassName): RepositoryInterface;
 
     public function getTablesPrefix(): string;
+
+    public function getDuplicationService(): DuplicationServiceInterface;
 }

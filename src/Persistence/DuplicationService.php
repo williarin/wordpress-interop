@@ -12,19 +12,21 @@ use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Entity\Term;
 use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
 use Williarin\WordpressInterop\EntityManagerInterface;
+use Williarin\WordpressInterop\Exception\EntityManagerNotSetException;
 use Williarin\WordpressInterop\Exception\MissingEntityTypeException;
 use function Williarin\WordpressInterop\Util\String\property_to_field;
 
-final class DuplicationService
+final class DuplicationService implements DuplicationServiceInterface
 {
-    public const POST_STATUS_DRAFT = 'draft';
-    public const POST_STATUS_PRIVATE = 'private';
-    public const POST_STATUS_PUBLISH = 'publish';
+    private ?EntityManagerInterface $entityManager = null;
 
-    public function __construct(
-        private EntityManagerInterface $entityManager,
-        private SluggerInterface $slugger,
-    ) {
+    public function __construct(private SluggerInterface $slugger)
+    {
+    }
+
+    public function setEntityManager(EntityManagerInterface $entityManager): void
+    {
+        $this->entityManager = $entityManager;
     }
 
     public function duplicate(
@@ -33,6 +35,10 @@ final class DuplicationService
         string $postStatus = self::POST_STATUS_DRAFT,
         string $suffix = ' (Copy)',
     ): BaseEntity {
+        if (!$this->entityManager) {
+            throw new EntityManagerNotSetException(self::class);
+        }
+
         if (is_int($entityOrId)) {
             if ($entityType === null) {
                 throw new MissingEntityTypeException();

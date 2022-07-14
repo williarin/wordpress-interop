@@ -11,6 +11,7 @@ use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Repository\ProductRepository;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\InvalidArgumentException;
+use Williarin\WordpressInterop\Persistence\DuplicationServiceInterface;
 
 class ManagerRegistryTest extends TestCase
 {
@@ -63,6 +64,17 @@ class ManagerRegistryTest extends TestCase
     public function testGetRepository(): void
     {
         self::assertInstanceOf(ProductRepository::class, $this->managerRegistry->getRepository(Product::class));
+    }
+
+    public function testGetDefaultDuplicationService(): void
+    {
+        self::assertInstanceOf(DuplicationServiceInterface::class, $this->managerRegistry->getDuplicationService());
+    }
+
+    public function testGetNonExistentDuplicationService(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->managerRegistry->getDuplicationService('fr');
     }
 
     private function getManagerFactory(): Closure

@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Williarin\WordpressInterop\Test\Manipulation;
+namespace Williarin\WordpressInterop\Test\Persistence;
 
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Entity\Term;
 use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
+use Williarin\WordpressInterop\Exception\EntityManagerNotSetException;
 use Williarin\WordpressInterop\Exception\MissingEntityTypeException;
 use Williarin\WordpressInterop\Persistence\DuplicationService;
 use Williarin\WordpressInterop\Test\TestCase;
@@ -19,13 +20,20 @@ class DuplicationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->duplicationService = new DuplicationService($this->manager, new AsciiSlugger());
+        $this->duplicationService = $this->manager->getDuplicationService();
     }
 
     public function testDuplicateByIdWithoutEntityClassNameThrowsException(): void
     {
         $this->expectException(MissingEntityTypeException::class);
         $this->duplicationService->duplicate(23);
+    }
+
+    public function testEntityManagerNotSet(): void
+    {
+        $this->expectException(EntityManagerNotSetException::class);
+        $duplicationService = new DuplicationService(new AsciiSlugger());
+        $duplicationService->duplicate(23);
     }
 
     public function testDuplicateById(): void

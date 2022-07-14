@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop;
 
 use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
 use Williarin\WordpressInterop\Exception\InvalidArgumentException;
+use Williarin\WordpressInterop\Persistence\DuplicationServiceInterface;
 
 abstract class AbstractManagerRegistry implements ManagerRegistryInterface
 {
@@ -60,6 +61,14 @@ abstract class AbstractManagerRegistry implements ManagerRegistryInterface
         return $this
             ->getManager($managerName)
             ->getRepository($entityClassName)
+        ;
+    }
+
+    public function getDuplicationService(?string $managerName = null): DuplicationServiceInterface
+    {
+        return $this
+            ->getManager($managerName)
+            ->getDuplicationService()
         ;
     }
 
