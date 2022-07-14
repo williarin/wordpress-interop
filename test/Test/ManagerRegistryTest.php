@@ -7,7 +7,10 @@ namespace Williarin\WordpressInterop\Test;
 use Closure;
 use PHPUnit\Framework\TestCase;
 use Williarin\WordpressInterop\AbstractManagerRegistry;
+use Williarin\WordpressInterop\Bridge\Entity\Product;
+use Williarin\WordpressInterop\Bridge\Repository\ProductRepository;
 use Williarin\WordpressInterop\EntityManagerInterface;
+use Williarin\WordpressInterop\Exception\InvalidArgumentException;
 
 class ManagerRegistryTest extends TestCase
 {
@@ -45,10 +48,32 @@ class ManagerRegistryTest extends TestCase
         self::assertContainsOnlyInstancesOf(EntityManagerInterface::class, $managers);
     }
 
+    public function testGetManager(): void
+    {
+        $manager = $this->managerRegistry->getManager();
+        self::assertInstanceOf(EntityManagerInterface::class, $manager);
+    }
+
+    public function testGetNonExistentManager(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->managerRegistry->getManager('non_existent');
+    }
+
+    public function testGetRepository(): void
+    {
+        self::assertInstanceOf(ProductRepository::class, $this->managerRegistry->getRepository(Product::class));
+    }
+
     private function getManagerFactory(): Closure
     {
         return function () {
-            return $this->createMock(EntityManagerInterface::class);
+            $managerMock = $this->createMock(EntityManagerInterface::class);
+            $managerMock->method('getRepository')
+                ->willReturn(new ProductRepository())
+            ;
+
+            return $managerMock;
         };
     }
 }

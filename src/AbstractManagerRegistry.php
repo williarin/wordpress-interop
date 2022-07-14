@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop;
 
-use InvalidArgumentException;
 use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
+use Williarin\WordpressInterop\Exception\InvalidArgumentException;
 
 abstract class AbstractManagerRegistry implements ManagerRegistryInterface
 {

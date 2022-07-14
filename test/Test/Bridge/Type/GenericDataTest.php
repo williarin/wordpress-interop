@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop\Test\Bridge\Type;
 
 use Williarin\WordpressInterop\Bridge\Type\GenericData;
 use PHPUnit\Framework\TestCase;
+use Williarin\WordpressInterop\Exception\InvalidArgumentException;
 use Williarin\WordpressInterop\Exception\MethodNotFoundException;
 
 class GenericDataTest extends TestCase
@@ -65,5 +66,21 @@ class GenericDataTest extends TestCase
         $genericData = new GenericData();
         $this->expectException(MethodNotFoundException::class);
         $genericData->randomMethod();
+    }
+
+    public function testGetInvalidProperty(): void
+    {
+        $genericData = new GenericData();
+        $genericData->data = ['test' => 'this is a test'];
+        $this->expectException(InvalidArgumentException::class);
+        $genericData->invalidProperty;
+    }
+
+    public function testGetInvalidPropertyGetter(): void
+    {
+        $genericData = new GenericData();
+        $genericData->data = ['test' => 'this is a test'];
+        $this->expectException(InvalidArgumentException::class);
+        $genericData->getInvalidMethod();
     }
 }

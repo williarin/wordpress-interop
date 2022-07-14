@@ -28,17 +28,19 @@ final class EntityNotFoundException extends Exception
     {
         return implode(', ', array_filter(array_map(
             function (mixed $value, int|string $field): string {
-                $field = $value instanceof RelationshipCondition
-                    ? sprintf('relationship ID "%s"', $value->getRelationshipIdOrOperand())
-                    : $field;
+                if ($value instanceof RelationshipCondition) {
+                    if (is_int($value->getRelationshipIdOrOperand())) {
+                        $field = sprintf('relationship ID "%s"', $value->getRelationshipIdOrOperand());
+                    } else {
+                        $field = sprintf(
+                            'relationship ID %s',
+                            $this->getOperandAsString($value->getRelationshipIdOrOperand()),
+                        );
+                    }
+                }
 
                 if ($value instanceof Operand) {
-                    $value = sprintf(
-                        '"%s"',
-                        is_array($value->getOperand())
-                            ? $this->implodeCriteria($value->getOperand())
-                            : $value->getOperand(),
-                    );
+                    $value = $this->getOperandAsString($value);
                 } elseif ($value instanceof RelationshipCondition) {
                     $value = sprintf('having a field "%s"', $value->getRelationshipFieldName());
                 } elseif ($value instanceof TermRelationshipCondition) {
@@ -56,5 +58,15 @@ final class EntityNotFoundException extends Exception
             $criteria,
             array_keys($criteria),
         )));
+    }
+
+    private function getOperandAsString(Operand $operand): string
+    {
+        return sprintf(
+            '%s',
+            is_array($operand->getOperand())
+                ? $this->implodeCriteria($operand->getOperand())
+                : sprintf('"%s"', $operand->getOperand()),
+        );
     }
 }

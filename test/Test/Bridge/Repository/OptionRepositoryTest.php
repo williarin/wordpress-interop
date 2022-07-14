@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Entity\Option;
 use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
+use Williarin\WordpressInterop\Exception\MethodNotFoundException;
 use Williarin\WordpressInterop\Exception\OptionAlreadyExistsException;
 use Williarin\WordpressInterop\Exception\OptionNotFoundException;
 use Williarin\WordpressInterop\Test\TestCase;
@@ -54,6 +55,16 @@ class OptionRepositoryTest extends TestCase
         $this->repository->getSomeNonExistentOption();
     }
 
+    public function testCallMagicGetterForNonExistentMethodThrowsException(): void
+    {
+        $this->expectException(MethodNotFoundException::class);
+        $this->repository->someNonExistentMethod();
+    }
+
+    public function testGetEntityClassName(): void
+    {
+        self::assertSame(Option::class, $this->repository->getEntityClassName());
+    }
 
     public function testCreateNewStringValue(): void
     {

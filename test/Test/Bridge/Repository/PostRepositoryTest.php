@@ -12,6 +12,7 @@ use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Exception\InvalidEntityException;
 use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
 use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
+use Williarin\WordpressInterop\Exception\MethodNotFoundException;
 use Williarin\WordpressInterop\Test\TestCase;
 
 class PostRepositoryTest extends TestCase
@@ -105,6 +106,12 @@ class PostRepositoryTest extends TestCase
     {
         $post = $this->repository->findOneByPostStatus('publish', ['id' => 'DESC']);
         self::assertEquals(10, $post->id);
+    }
+
+    public function testMagicCallNonExistentMethod(): void
+    {
+        $this->expectException(MethodNotFoundException::class);
+        $this->repository->nothingLikeThis();
     }
 
     public function testOrderByFieldValidationWithFindOneByUsingMagicCall(): void
