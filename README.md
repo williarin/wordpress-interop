@@ -1,5 +1,7 @@
 # WordPress Interop
 
+[![Github Workflow](https://github.com/williarin/wordpress-interop/workflows/Test/badge.svg)](https://github.com/williarin/wordpress-interop/actions)
+
 ## Introduction
 
 This library aims to simplify the interaction with WordPress databases through third-party applications.

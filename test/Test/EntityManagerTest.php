@@ -31,4 +31,20 @@ class EntityManagerTest extends TestCase
         self::assertInstanceOf(AbstractEntityRepository::class, $repository);
         self::assertNotInstanceOf(BarRepository::class, $repository);
     }
+
+    public function testAddRepository(): void
+    {
+        $this->manager->addRepository(new BarRepository());
+        self::assertInstanceOf(BarRepository::class, $this->manager->getRepository(Bar::class));
+    }
+
+    public function testGetRepositories(): void
+    {
+        $repositories = $this->manager->getRepositories();
+        self::assertEquals([], $repositories);
+
+        $this->manager->addRepository(new BarRepository());
+        $repositories = $this->manager->getRepositories();
+        self::assertCount(1, $repositories);
+    }
 }

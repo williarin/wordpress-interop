@@ -20,6 +20,11 @@ class PostMetaRepositoryTest extends TestCase
         $this->repository = $this->manager->getRepository(PostMeta::class);
     }
 
+    public function testGetEntityClassName(): void
+    {
+        self::assertSame(PostMeta::class, $this->repository->getEntityClassName());
+    }
+
     public function testFindReturnsCorrectValue(): void
     {
         self::assertEquals('value3', $this->repository->find(11, 'key1'));
