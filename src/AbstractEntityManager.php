@@ -17,13 +17,15 @@ use Williarin\WordpressInterop\Persistence\DuplicationServiceInterface;
 abstract class AbstractEntityManager implements EntityManagerInterface
 {
     private array $repositories = [];
+    private ?DuplicationServiceInterface $duplicationService;
 
     public function __construct(
         private Connection $connection,
         protected SerializerInterface $serializer,
         private string $tablePrefix = 'wp_',
-        protected ?DuplicationServiceInterface $duplicationService = null,
+        DuplicationServiceInterface $duplicationService = null,
     ) {
+        $this->duplicationService = $duplicationService;
     }
 
     public function addRepository(RepositoryInterface $repository): EntityManagerInterface

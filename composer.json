@@ -6,7 +6,10 @@
     "keywords": [
         "wordpress",
         "database",
-        "interop"
+        "interop",
+        "dbal",
+        "doctrine",
+        "orm"
     ],
     "authors": [
         {
@@ -51,6 +54,11 @@
     "extra": {
         "branch-alias": {
             "dev-master": "1.x-dev"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true
         }
     }
 }
