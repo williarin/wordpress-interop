@@ -11,12 +11,13 @@ use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
 use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Entity\Term;
 use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
+use Williarin\WordpressInterop\EntityManagerAwareInterface;
 use Williarin\WordpressInterop\EntityManagerInterface;
 use Williarin\WordpressInterop\Exception\EntityManagerNotSetException;
 use Williarin\WordpressInterop\Exception\MissingEntityTypeException;
 use function Williarin\WordpressInterop\Util\String\property_to_field;
 
-final class DuplicationService implements DuplicationServiceInterface
+final class DuplicationService implements DuplicationServiceInterface, EntityManagerAwareInterface
 {
     private ?EntityManagerInterface $entityManager = null;
 
