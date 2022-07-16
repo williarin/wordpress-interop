@@ -7,8 +7,11 @@ namespace Williarin\WordpressInterop\Bridge\Entity;
 use Williarin\WordpressInterop\Attributes\RepositoryClass;
 use Williarin\WordpressInterop\Bridge\Repository\PageRepository;
 
+/**
+ * @property ?int $thumbnailId
+ */
 #[RepositoryClass(PageRepository::class)]
 class Page extends BaseEntity
 {
-    public ?int $thumbnailId = null;
+    protected ?int $thumbnailId = null;
 }
