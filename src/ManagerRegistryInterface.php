@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop;
 
 use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
+use Williarin\WordpressInterop\Persistence\DuplicationServiceInterface;
 
 interface ManagerRegistryInterface
 {
@@ -23,4 +24,6 @@ interface ManagerRegistryInterface
     public function getManagerNames(): array;
 
     public function getRepository(string $entityClassName, ?string $managerName = null): RepositoryInterface;
+
+    public function getDuplicationService(?string $managerName = null): DuplicationServiceInterface;
 }
