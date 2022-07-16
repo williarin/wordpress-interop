@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
+use Williarin\WordpressInterop\Bridge\Entity\PostMeta;
 use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
@@ -355,5 +356,15 @@ class ProductRepositoryTest extends TestCase
         $expected->category = 'Hoodies';
 
         self::assertEquals($expected, $product);
+    }
+
+    public function testEmptyStringForIntEAVRetrieval(): void
+    {
+        $this->manager->getRepository(PostMeta::class)
+            ->update(14, '_thumbnail_id', '')
+        ;
+
+        $product = $this->repository->find(14);
+        self::assertNull($product->thumbnailId);
     }
 }
