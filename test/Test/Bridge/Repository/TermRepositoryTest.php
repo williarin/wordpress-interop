@@ -45,6 +45,7 @@ class TermRepositoryTest extends TestCase
         self::assertSame('Tshirts', $term->name);
         self::assertSame('tshirts', $term->slug);
         self::assertSame('product_cat', $term->taxonomy);
+        self::assertSame(16, $term->termTaxonomyId);
         self::assertSame(5, $term->count);
     }
 
@@ -136,7 +137,7 @@ class TermRepositoryTest extends TestCase
     {
         $hoodieTerms = array_map(
             static function (Term $term) {
-                unset($term->termTaxonomyId);
+                $term->termTaxonomyId = null;
                 return $term;
             },
             $this->repository->findBy([
@@ -169,5 +170,63 @@ class TermRepositoryTest extends TestCase
         ]);
 
         self::assertEquals(['external', 'Decor'], array_column($termsProduct, 'name'));
+    }
+
+    public function testRemoveTermsFromEntity(): void
+    {
+        $product = $this->manager->getRepository(Product::class)
+            ->findOneBySku('super-forces-hoodie')
+        ;
+
+        $terms = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'id' => $product->id,
+                'taxonomy' => new Operand(['product_cat', 'pa_manufacturer'], Operand::OPERATOR_IN),
+            ]),
+        ]);
+
+        self::assertEquals(['Hoodies', 'MegaBrand'], array_column($terms, 'name'));
+
+        $this->repository->removeTermsFromEntity($product, $terms);
+
+        $terms = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'id' => $product->id,
+            ]),
+        ]);
+
+        self::assertEquals(['simple'], array_column($terms, 'name'));
+    }
+
+    public function testRemoveTermsFromEntityWithoutTermTaxonomyIdAreIgnored(): void
+    {
+        $product = $this->manager->getRepository(Product::class)
+            ->findOneBySku('super-forces-hoodie')
+        ;
+
+        $terms = array_map(
+            static function (Term $term) {
+                $term->termTaxonomyId = null;
+                return $term;
+            },
+            $this->repository->findBy([
+                new PostRelationshipCondition(Product::class, [
+                    'id' => $product->id,
+                    'taxonomy' => new Operand(['product_cat', 'pa_manufacturer'], Operand::OPERATOR_IN),
+                ]),
+            ]),
+        );
+
+        self::assertEquals(['Hoodies', 'MegaBrand'], array_column($terms, 'name'));
+
+        $this->repository->removeTermsFromEntity($product, $terms);
+
+        $terms = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'id' => $product->id,
+            ]),
+        ]);
+
+        self::assertEquals(['simple', 'Hoodies', 'MegaBrand'], array_column($terms, 'name'));
     }
 }

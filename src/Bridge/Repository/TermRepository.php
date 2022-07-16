@@ -37,11 +37,11 @@ class TermRepository extends AbstractEntityRepository
         if (\count(array_filter($criteria, static fn ($condition) => $condition instanceof SelectColumns)) === 0) {
             $extraFields = array_diff(
                 $queryBuilder->getQueryPart('select'),
-                $this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'count']),
+                $this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'term_taxonomy_id', 'count']),
             );
 
             $queryBuilder->select([
-                ...$this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'count']),
+                ...$this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'term_taxonomy_id', 'count']),
                 ...$extraFields,
             ]);
         } else {
@@ -58,7 +58,7 @@ class TermRepository extends AbstractEntityRepository
     public function addTermsToEntity(BaseEntity $entity, array $terms): void
     {
         foreach ($terms as $term) {
-            if (!property_exists($term, 'termTaxonomyId')) {
+            if ($term->termTaxonomyId === null) {
                 continue;
             }
 
@@ -75,7 +75,31 @@ class TermRepository extends AbstractEntityRepository
             ;
         }
 
-        // Recount terms
+        $this->recountTerms();
+    }
+
+    public function removeTermsFromEntity(BaseEntity $entity, array $terms): void
+    {
+        foreach ($terms as $term) {
+            if ($term->termTaxonomyId === null) {
+                continue;
+            }
+
+            $this->entityManager->getConnection()
+                ->createQueryBuilder()
+                ->delete($this->entityManager->getTablesPrefix() . 'term_relationships')
+                ->where('object_id = ?')
+                ->andWhere('term_taxonomy_id = ?')
+                ->setParameters([$entity->id, (int) $term->termTaxonomyId])
+                ->executeStatement()
+            ;
+        }
+
+        $this->recountTerms();
+    }
+
+    private function recountTerms(): void
+    {
         $subSelect = $this->entityManager->getConnection()
             ->createQueryBuilder()
             ->select('COUNT(*)')

@@ -29,5 +29,8 @@ class Term
     public ?string $taxonomy = null;
 
     #[External]
+    public ?int $termTaxonomyId = null;
+
+    #[External]
     public ?int $count = null;
 }
