@@ -272,12 +272,28 @@ For advanced needs, it's also possible to retrieve the query builder and modify 
 _Note: use `select_from_eav()` function to query EAV attributes._
 ```php
 // Fetch all products but override SELECT clause with only tree columns
-$repository = $manager->getRepository(Product::class, $siteId);
+$repository = $manager->getRepository(Product::class);
 $result = $repository->createFindByQueryBuilder([], ['sku' => 'ASC'])
     ->select('id', 'post_title', select_from_eav('sku'))
     ->executeQuery()
     ->fetchAllAssociative();
 $products = $repository->denormalize($result, Product::class . '[]');
+```
+
+### Add terms to an entity
+
+```php
+// Add all existing product tags to a product
+$repository = $manager->getRepository(Term::class);
+$repository->addTermsToEntity($product, $repository->findByTaxonomy('product_tag'));
+```
+
+### Remove terms from an entity
+
+```php
+// Remove all existing product tags from a product
+$repository = $manager->getRepository(Term::class);
+$repository->removeTermsFromEntity($product, $repository->findByTaxonomy('product_tag'));
 ```
 
 ### Field update
