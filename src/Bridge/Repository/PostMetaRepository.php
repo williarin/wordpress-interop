@@ -62,7 +62,7 @@ class PostMetaRepository implements RepositoryInterface
         ;
 
         return array_map(
-            static fn (string $value) => $unserialize ? unserialize_if_needed($value) : $value,
+            static fn (?string $value) => $unserialize ? unserialize_if_needed($value) : $value,
             array_combine(array_column($result, 'meta_key'), array_column($result, 'meta_value')),
         );
     }
