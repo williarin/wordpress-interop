@@ -55,15 +55,16 @@ final class DuplicationService implements DuplicationServiceInterface, EntityMan
         $clone = clone $entity;
         $clone->id = null;
 
-        $properties = $this->getClassPropertyAttributes($clone, BaseEntity::class, $suffix);
+        $properties = $this->getClassPropertyAttributes($clone, BaseEntity::class);
 
         foreach ($properties as $property => $attributes) {
-            $clone->{$property} .= \in_array(Slug::class, $attributes, true)
-                ? '-' . $this->slugger->slug($suffix)
-                    ->lower()
-                    ->toString()
-                : $suffix
-            ;
+            if (trim($suffix)) {
+                $clone->{$property} .= \in_array(Slug::class, $attributes, true)
+                    ? '-' . $this->slugger->slug($suffix)
+                        ->lower()
+                        ->toString()
+                    : $suffix;
+            }
         }
 
         $this->entityManager->persist($clone);
@@ -80,17 +81,18 @@ final class DuplicationService implements DuplicationServiceInterface, EntityMan
 
         $postMetas = $metaRepository->findBy($entity->id, false);
 
-        $properties = $this->getClassPropertyAttributes($clone, Product::class, $suffix);
+        $properties = $this->getClassPropertyAttributes($clone, Product::class);
 
         foreach ($properties as $property => $attributes) {
             $metaKey = $repository->getMappedMetaKey(property_to_field($property));
 
-            $postMetas[$metaKey] .= \in_array(Slug::class, $attributes, true)
-                ? '-' . $this->slugger->slug($suffix)
-                    ->lower()
-                    ->toString()
-                : $suffix
-            ;
+            if (trim($suffix)) {
+                $postMetas[$metaKey] .= \in_array(Slug::class, $attributes, true)
+                    ? '-' . $this->slugger->slug($suffix)
+                        ->lower()
+                        ->toString()
+                    : $suffix;
+            }
         }
 
         foreach ($postMetas as $key => $value) {
@@ -112,7 +114,7 @@ final class DuplicationService implements DuplicationServiceInterface, EntityMan
         $termRepository->addTermsToEntity($clone, $terms);
     }
 
-    private function getClassPropertyAttributes(BaseEntity $entity, string $className, string $suffix): array
+    private function getClassPropertyAttributes(BaseEntity $entity, string $className): array
     {
         $properties = [];
 
