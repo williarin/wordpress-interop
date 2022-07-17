@@ -54,6 +54,7 @@ final class DuplicationService implements DuplicationServiceInterface, EntityMan
 
         $clone = clone $entity;
         $clone->id = null;
+        $clone->postStatus = $postStatus;
 
         $properties = $this->getClassPropertyAttributes($clone, BaseEntity::class);
 
