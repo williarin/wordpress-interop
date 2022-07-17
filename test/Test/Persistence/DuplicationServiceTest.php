@@ -11,6 +11,7 @@ use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
 use Williarin\WordpressInterop\Exception\EntityManagerNotSetException;
 use Williarin\WordpressInterop\Exception\MissingEntityTypeException;
 use Williarin\WordpressInterop\Persistence\DuplicationService;
+use Williarin\WordpressInterop\Persistence\DuplicationServiceInterface;
 use Williarin\WordpressInterop\Test\TestCase;
 
 class DuplicationServiceTest extends TestCase
@@ -51,6 +52,7 @@ class DuplicationServiceTest extends TestCase
 
         self::assertNotSame(23, $newEntity->id);
         self::assertIsNumeric($newEntity->id);
+        self::assertSame('draft', $newEntity->postStatus);
         self::assertSame($newEntity->sku, 'woo-hoodie-with-zipper-copy');
         self::assertSame(array_column($originalTerms, 'name'), array_column($newTerms, 'name'));
         self::assertEquals($originalTerms, $newTerms);
@@ -100,11 +102,24 @@ class DuplicationServiceTest extends TestCase
         $newEntity = $this->duplicationService->duplicate(
             23,
             Product::class,
-            DuplicationService::POST_STATUS_PUBLISH,
+            DuplicationServiceInterface::POST_STATUS_PUBLISH,
         );
 
         self::assertNotSame(23, $newEntity->id);
         self::assertIsNumeric($newEntity->id);
-        self::assertSame($newEntity->postStatus, 'publish');
+        self::assertSame('publish', $newEntity->postStatus);
+    }
+
+    public function testDuplicateWithPrivatePostStatus(): void
+    {
+        $newEntity = $this->duplicationService->duplicate(
+            23,
+            Product::class,
+            DuplicationServiceInterface::POST_STATUS_PRIVATE,
+        );
+
+        self::assertNotSame(23, $newEntity->id);
+        self::assertIsNumeric($newEntity->id);
+        self::assertSame('private', $newEntity->postStatus);
     }
 }
