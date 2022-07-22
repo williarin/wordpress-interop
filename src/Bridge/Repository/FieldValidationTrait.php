@@ -20,7 +20,7 @@ trait FieldValidationTrait
         string $fieldName,
         string $fallbackEntity,
         string $tableName,
-    ): \ReflectionNamedType|\ReflectionUnionType {
+    ): \ReflectionNamedType|\ReflectionUnionType|null {
         $propertyName = field_to_property($fieldName);
 
         try {
@@ -28,11 +28,23 @@ trait FieldValidationTrait
         } catch (\ReflectionException $e) {
             try {
                 if ($fallbackEntity === $this->getEntityClassName()) {
+                    if ($this->options['allow_extra_properties']) {
+                        $this->addEntityExtraField($fieldName, $this->getEntityClassName());
+
+                        return null;
+                    }
+
                     throw $e;
                 }
 
                 $expectedType = (new \ReflectionProperty($this->getEntityClassName(), $propertyName))->getType();
             } catch (\ReflectionException) {
+                if ($this->options['allow_extra_properties']) {
+                    $this->addEntityExtraField($fieldName, $this->getEntityClassName());
+
+                    return null;
+                }
+
                 throw new InvalidFieldNameException(
                     $this->entityManager->getTablesPrefix() . $tableName,
                     strtolower($fieldName)
@@ -70,9 +82,16 @@ trait FieldValidationTrait
         );
 
         if (
-            (is_object($resolvedValue) && !is_subclass_of($resolvedValue, $expectedType->getName()))
-            || (!is_object($resolvedValue) && $expectedType->getName() !== $newValueType && $newValueType !== 'NULL')
-            || (!is_object($resolvedValue) && $newValueType === 'NULL' && !$expectedType->allowsNull())
+            $expectedType
+            && (
+                (is_object($resolvedValue) && !is_subclass_of($resolvedValue, $expectedType->getName()))
+                || (
+                    !is_object($resolvedValue)
+                    && $expectedType->getName() !== $newValueType
+                    && $newValueType !== 'NULL'
+                )
+                || (!is_object($resolvedValue) && $newValueType === 'NULL' && !$expectedType->allowsNull())
+            )
         ) {
             throw new InvalidTypeException(strtolower($field), $expectedType->getName(), $newValueType);
         }

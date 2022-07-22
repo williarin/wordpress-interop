@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use Doctrine\DBAL\Query\QueryBuilder;
+use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
@@ -44,6 +45,10 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     protected EntityManagerInterface $entityManager;
     protected SerializerInterface $serializer;
     protected PropertyNormalizer $propertyNormalizer;
+    #[ArrayShape([
+        'allow_extra_properties' => 'bool',
+    ])]
+    protected array $options;
 
     private array $tableAliases = [];
     private array $additionalFieldsToSelect = [];
@@ -52,6 +57,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         private string $entityClassName,
     ) {
         $this->propertyNormalizer = new PropertyNormalizer(null, new CamelCaseToSnakeCaseNameConverter());
+        $this->setOptions([]);
     }
 
     public function __call(string $name, array $arguments): mixed
@@ -89,6 +95,20 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     public function setSerializer(SerializerInterface $serializer): void
     {
         $this->serializer = $serializer;
+    }
+
+    public function setOptions(array $options): EntityRepositoryInterface
+    {
+        $resolver = (new OptionsResolver())
+            ->setDefaults([
+                'allow_extra_properties' => false,
+            ])
+            ->setAllowedTypes('allow_extra_properties', 'bool')
+        ;
+
+        $this->options = $resolver->resolve($options);
+
+        return $this;
     }
 
     public function updateSingleField(int $id, string $field, mixed $newValue): bool

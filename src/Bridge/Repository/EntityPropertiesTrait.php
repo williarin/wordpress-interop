@@ -71,6 +71,17 @@ trait EntityPropertiesTrait
         return $this->entityExtraFields[$entityClassName];
     }
 
+    protected function addEntityExtraField(string $fieldName, string $entityClassName = null): self
+    {
+        if (!array_key_exists($entityClassName, $this->entityExtraFields)) {
+            $this->getEntityExtraFields($entityClassName);
+        }
+
+        $this->entityExtraFields[$entityClassName][] = $fieldName;
+
+        return $this;
+    }
+
     /**
      * @return string[]
      */

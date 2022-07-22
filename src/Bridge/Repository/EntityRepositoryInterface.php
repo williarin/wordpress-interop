@@ -8,6 +8,8 @@ use Doctrine\DBAL\Query\QueryBuilder;
 
 interface EntityRepositoryInterface extends RepositoryInterface
 {
+    public function setOptions(array $options): self;
+
     public function find(int $id): mixed;
 
     public function findOneBy(array $criteria, array $orderBy = null): mixed;

@@ -6,8 +6,12 @@ namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Entity\Page;
 use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
+use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
+use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
 use Williarin\WordpressInterop\Test\TestCase;
+
+use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
 class PageRepositoryTest extends TestCase
 {
@@ -45,5 +49,34 @@ class PageRepositoryTest extends TestCase
         $pages = $this->repository->findAll();
         self::assertContainsOnlyInstancesOf(Page::class, $pages);
         self::assertCount(7, $pages);
+    }
+
+    public function testFindOneByUndefinedEavDefault(): void
+    {
+        $this->expectException(InvalidFieldNameException::class);
+        $this->repository->findBy([
+            new SelectColumns(['id', select_from_eav('wp_page_template')]),
+            'post_status' => 'publish',
+            'wp_page_template' => 'default',
+        ]);
+    }
+
+    public function testFindOneByUndefinedEavAllowExtraProperties(): void
+    {
+        $pages = $this->repository
+            ->setOptions([
+                'allow_extra_properties' => true,
+            ])
+            ->findBy([
+                new SelectColumns(['id', select_from_eav('wp_page_template')]),
+                'post_status' => 'publish',
+                'wp_page_template' => 'default',
+            ])
+        ;
+
+        self::assertContainsOnlyInstancesOf(Page::class, $pages);
+        self::assertCount(1, $pages);
+        self::assertEquals(2, $pages[0]->id);
+        self::assertEquals('default', $pages[0]->wpPageTemplate);
     }
 }
