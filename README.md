@@ -114,8 +114,9 @@ $products = $manager->getRepository(Product::class)
 
 ### EAV querying
 
+_The term EAV refers to the [entity-attribute-value model](https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model) used by WordPress through the term "meta" as in `wp_postmeta`, `wp_termmeta`, `wp_usermeta` etc. Here we're talking about `wp_postmeta`._
+
 The query system supports directly querying EAV attributes.
-However, it only works with properties that have been declared in the corresponding entity.
 
 In the example below, `sku` and `stock_status` are attributes from `wp_postmeta` table.
 
@@ -142,6 +143,25 @@ $products = $manager->getRepository(Product::class)
 // Fetch all products whose sku match regexp
 $products = $manager->getRepository(Product::class)
     ->findBySku(new Operand('hoodie.*logo|zipper', Operand::OPERATOR_REGEXP));
+
+```
+
+If you query an EAV attribute that doesn't exist in the entity, an `InvalidFieldNameException` exception will be thrown.
+
+To allow extra dynamic properties to be queried, set `allow_extra_properties` option to `true` before the query. Careful though, options are set for the repository and not the query, which means they will apply to all further queries. 
+
+```php
+$page = $manager->getRepository(Page::class)
+    ->setOptions([
+        'allow_extra_properties' => true,
+    ])
+    ->findOneBy([
+        new SelectColumns(['id', select_from_eav('wp_page_template')]),
+        'post_status' => 'publish',
+        'wp_page_template' => 'default',
+    ])
+;
+// $page->wpPageTemplate === 'default'
 ```
 
 ### Nested conditions
