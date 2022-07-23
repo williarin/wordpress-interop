@@ -54,7 +54,9 @@ jobs:
                 run: composer install
 
             -   name: Install WordPress
-                run: make install
+                run: |
+                    make pause
+                    make install
 
             -   name: Launch test suite
                 run: make test

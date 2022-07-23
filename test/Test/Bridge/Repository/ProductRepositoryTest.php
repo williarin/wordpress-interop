@@ -358,6 +358,32 @@ class ProductRepositoryTest extends TestCase
         self::assertEquals($expected, $product);
     }
 
+    public function testRetrieveCategoryOfRelatedProduct(): void
+    {
+        $products = $this->repository->findBy([
+            new SelectColumns([
+                'id',
+                'post_title',
+                'main.name AS category',
+                'related.name AS related_category',
+                select_from_eav(fieldName: 'related_product', metaKey: 'related_product'),
+            ]),
+            new TermRelationshipCondition(
+                ['taxonomy' => 'product_cat'],
+                termTableAlias: 'main',
+            ),
+            new TermRelationshipCondition(
+                ['taxonomy' => 'product_cat'],
+                joinConditionField: 'related_product',
+                termTableAlias: 'related',
+            ),
+            'id' => new Operand([22, 24, 26], Operand::OPERATOR_IN),
+        ]);
+
+        self::assertEquals(['Hoodies', 'Tshirts', 'Music'], array_column($products, 'category'));
+        self::assertEquals(['Accessories', 'Music', 'Decor'], array_column($products, 'relatedCategory'));
+    }
+
     public function testEmptyStringForIntEAVRetrieval(): void
     {
         $this->manager->getRepository(PostMeta::class)
