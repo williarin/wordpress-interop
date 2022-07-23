@@ -8,7 +8,11 @@ use Williarin\WordpressInterop\Bridge\Entity\Attachment;
 use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Criteria\RelationshipCondition;
+use Williarin\WordpressInterop\Criteria\SelectColumns;
+use Williarin\WordpressInterop\Criteria\TermRelationshipCondition;
 use Williarin\WordpressInterop\Test\TestCase;
+
+use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
 class AttachmentRepositoryTest extends TestCase
 {
@@ -64,5 +68,32 @@ class AttachmentRepositoryTest extends TestCase
         ], array_column($attachments, 'attachedFile'));
 
         self::assertEquals([4, 18, 23], array_column($attachments, 'originalPostId'));
+    }
+
+    public function testGetFeaturedImagesAndAssociatedProductCategory(): void
+    {
+        $attachments = $this->repository
+            ->setOptions([
+                'allow_extra_properties' => true,
+            ])
+            ->findBy([
+                new SelectColumns(['id', 'name AS category']),
+                new RelationshipCondition(
+                    new Operand([18, 23, 26, 27], Operand::OPERATOR_IN),
+                    '_thumbnail_id',
+                    'original_post_id',
+                ),
+                new TermRelationshipCondition(
+                    [
+                        'taxonomy' => 'product_cat',
+                    ],
+                    '_thumbnail_id',
+                ),
+            ])
+        ;
+
+        self::assertEquals([47, 52, 55, 56], array_column($attachments, 'id'));
+        self::assertEquals([18, 23, 26, 27], array_column($attachments, 'originalPostId'));
+        self::assertEquals(['Accessories', 'Hoodies', 'Music', 'Music'], array_column($attachments, 'category'));
     }
 }

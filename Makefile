@@ -1,9 +1,13 @@
 CLI=docker compose run --rm wp-cli wp
 
-.PHONY: install reset reset-containers reset-install reset-posts reset-woocommerce
+.PHONY: install pause reset reset-containers reset-install reset-posts reset-woocommerce
 install: reset-install reset-posts reset-woocommerce
 
-reset: reset-containers reset-install reset-posts reset-woocommerce
+pause:
+	@echo "Waiting 20 seconds for environment to be ready..."
+	@sleep 20
+
+reset: reset-containers pause reset-install reset-posts reset-woocommerce
 
 reset-containers:
 	@echo "Preparing containers..."
@@ -11,8 +15,6 @@ reset-containers:
 	@docker compose up -d
 
 reset-install:
-	@echo "Waiting 10 seconds for environment to be ready..."
-	@sleep 10
 	@echo "Installing WordPress..."
 	@$(CLI) core install \
 		--url="http://localhost" \
@@ -52,6 +54,9 @@ reset-woocommerce:
 		--type=simple --regular_price=500 --user=1 --categories='[{"id": 17}]' --sku="super-forces-hoodie" \
 		--attributes='[{"name": "pa_manufacturer", "visible": true, "options": ["MegaBrand"]}]'
 	@$(CLI) post term add 64 pa_manufacturer megabrand
+	@$(CLI) post meta set 22 related_product 18
+	@$(CLI) post meta set 24 related_product 26
+	@$(CLI) post meta set 26 related_product 37
 
 .PHONY: test
 test:

@@ -238,6 +238,19 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return $key;
     }
 
+    public function getTableAliasForField(string $fieldName): ?string
+    {
+        $mappedField = $this->getMappedMetaKey($fieldName);
+
+        foreach ($this->tableAliases as $alias => $fields) {
+            if (in_array($mappedField, $fields, true)) {
+                return $alias;
+            }
+        }
+
+        return null;
+    }
+
     protected function normalize(string $field, mixed $value): string
     {
         $value = $this->validateFieldValue($field, $value);
@@ -459,12 +472,15 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         ;
 
         if (!empty($condition->getAlias())) {
+            $trimmedAlias = trim($condition->getAlias(), '_');
+
+            $this->addEntityExtraField($trimmedAlias);
             $this->additionalFieldsToSelect[] = sprintf(
                 "MAX(CASE WHEN %s.meta_key = '%s' THEN %s.post_id END) AS `%s`",
                 $alias,
                 $condition->getRelationshipFieldName(),
                 $alias,
-                trim($condition->getAlias(), '_'),
+                $trimmedAlias,
             );
         }
     }
@@ -474,13 +490,34 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         TermRelationshipCondition $condition,
     ): void {
         static $aliasNumber = 0;
+        static $parameterNumber = 0;
+
+        if (($conditionField = $condition->getJoinConditionField()) === TermRelationshipCondition::IDENTIFIER) {
+            $joinCondition = sprintf('p.%s = tr_%s.object_id', static::TABLE_IDENTIFIER, $aliasNumber);
+        } else {
+            $tableAlias = $this->getTableAliasForField($conditionField) ?? 'pm_self';
+            $parameterName = sprintf('param_%s_%s', $aliasNumber, $parameterNumber);
+            $mappedKey = $this->getMappedMetaKey($conditionField);
+            $joinCondition = sprintf(
+                '%s.meta_key = :%s AND %s.%s = tr_%s.object_id',
+                $tableAlias,
+                $parameterName,
+                $tableAlias,
+                str_contains($tableAlias, 'relation') ? 'post_id' : 'meta_value',
+                $aliasNumber,
+            );
+            $queryBuilder->setParameter($parameterName, $mappedKey);
+            ++$parameterNumber;
+        }
+
+        $termTableAlias = $condition->getTermTableAlias() ?? sprintf('t_%d', $aliasNumber);
 
         $queryBuilder
             ->join(
                 'p',
                 $this->entityManager->getTablesPrefix() . 'term_relationships',
                 sprintf('tr_%d', $aliasNumber),
-                sprintf('p.%s = tr_%s.object_id', static::TABLE_IDENTIFIER, $aliasNumber),
+                $joinCondition,
             )
             ->join(
                 sprintf('tr_%d', $aliasNumber),
@@ -491,13 +528,14 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             ->join(
                 sprintf('tt_%d', $aliasNumber),
                 $this->entityManager->getTablesPrefix() . 'terms',
-                sprintf('t_%d', $aliasNumber),
-                sprintf('tt_%d.term_id = t_%d.term_id', $aliasNumber, $aliasNumber),
+                $termTableAlias,
+                sprintf('tt_%d.term_id = %s.term_id', $aliasNumber, $termTableAlias),
             )
         ;
 
         $prefixedCriteria = $this->getPrefixedCriteriaForTermRelationshipCondition(
             $condition->getCriteria(),
+            $termTableAlias,
             $aliasNumber,
         );
 
@@ -574,13 +612,16 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
     }
 
-    private function getPrefixedCriteriaForTermRelationshipCondition(array $criteria, int $aliasNumber): array
-    {
+    private function getPrefixedCriteriaForTermRelationshipCondition(
+        array $criteria,
+        string $termTableAlias,
+        int $aliasNumber,
+    ): array {
         $output = [];
 
         foreach ($criteria as $field => $value) {
             $prefixedField = match ($field) {
-                'term_id', 'name', 'slug', 'term_group' => sprintf('t_%d.%s', $aliasNumber, $field),
+                'term_id', 'name', 'slug', 'term_group' => sprintf('%s.%s', $termTableAlias, $field),
                 'taxonomy', 'description', 'count' => sprintf('tt_%d.%s', $aliasNumber, $field),
             };
 
