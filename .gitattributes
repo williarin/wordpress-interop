@@ -1,0 +1,13 @@
+/.github              export-ignore
+/assets               export-ignore
+/test                 export-ignore
+/.env                 export-ignore
+/.env.test            export-ignore
+/.gitattributes       export-ignore
+/.gitignore           export-ignore
+/.composer.lock       export-ignore
+/docker-compose.yml   export-ignore
+/ecs.php              export-ignore
+/Makefile             export-ignore
+/phpunit.xml.dist     export-ignore
+/rector.php           export-ignore
