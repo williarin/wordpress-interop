@@ -21,6 +21,10 @@ jobs:
         strategy:
             matrix:
                 php: ['8.0', '8.1']
+                experimental: [false]
+                include:
+                    -   php: '8.2'
+                        experimental: true
 
         steps:
             -   uses: actions/checkout@v2
@@ -51,7 +55,12 @@ jobs:
                     restore-keys: ${{ runner.os }}-composer-
 
             -   name: Install composer dependencies
+                if: matrix.experimental == false
                 run: composer install
+
+            -   name: Install composer dependencies for experimental PHP versions
+                if: matrix.experimental == true
+                run: composer install --ignore-platform-req=php+
 
             -   name: Install WordPress
                 run: |

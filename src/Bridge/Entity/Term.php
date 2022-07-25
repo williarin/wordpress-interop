@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Bridge\Entity;
 
+use AllowDynamicProperties;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Williarin\WordpressInterop\Attributes\External;
 use Williarin\WordpressInterop\Attributes\Id;
 use Williarin\WordpressInterop\Attributes\RepositoryClass;
 use Williarin\WordpressInterop\Bridge\Repository\TermRepository;
 
+#[AllowDynamicProperties]
 #[RepositoryClass(TermRepository::class)]
 class Term
 {

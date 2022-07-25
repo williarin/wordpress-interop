@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Bridge\Entity;
 
+use AllowDynamicProperties;
 use DateTimeInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Williarin\WordpressInterop\Attributes\Slug;
 use Williarin\WordpressInterop\Attributes\Unique;
 
+#[AllowDynamicProperties]
 abstract class BaseEntity
 {
     use DynamicPropertiesTrait;
