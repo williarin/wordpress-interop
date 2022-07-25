@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Serializer;
 
-use Symfony\Component\Serializer\Normalizer\ContextAwareDenormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Williarin\WordpressInterop\Bridge\Type\AttachmentMetadata;
 use Williarin\WordpressInterop\Bridge\Type\GenericData;
 use function Williarin\WordpressInterop\Util\String\unserialize_if_needed;
 
-final class SerializedArrayDenormalizer implements ContextAwareDenormalizerInterface
+final class SerializedArrayDenormalizer implements DenormalizerInterface
 {
     public function __construct(
         private DenormalizerInterface $denormalizer
