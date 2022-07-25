@@ -237,32 +237,47 @@ Additionally, you can query terms from a joint entity, and specify the name of t
 In this example, we assume that the products have a `related_product` postmeta.
 ```php
 // Fetch a product's category and the category of its related product
-$product = $repository->findOneBy([
-    new SelectColumns([
-        'id',
-        'main.name AS category',
-        'related.name AS related_category',
-        select_from_eav(
-            fieldName: 'related_product',
-            metaKey: 'related_product', // needed as it's not starting with an underscore
+$product = $manager->getRepository(Product::class)
+    ->findOneBy([
+        new SelectColumns([
+            'id',
+            'main.name AS category',
+            'related.name AS related_category',
+            select_from_eav(
+                fieldName: 'related_product',
+                metaKey: 'related_product', // needed as it's not starting with an underscore
+            ),
+        ]),
+        new TermRelationshipCondition(
+            ['taxonomy' => 'product_cat'],
+            termTableAlias: 'main',
         ),
-    ]),
-    new TermRelationshipCondition(
-        ['taxonomy' => 'product_cat'],
-        termTableAlias: 'main',
-    ),
-    new TermRelationshipCondition(
-        ['taxonomy' => 'product_cat'],
-        joinConditionField: 'related_product',
-        termTableAlias: 'related',
-    ),
-    'id' => 22,
-]);
+        new TermRelationshipCondition(
+            ['taxonomy' => 'product_cat'],
+            joinConditionField: 'related_product',
+            termTableAlias: 'related',
+        ),
+        'id' => 22,
+    ]);
 // $product->category === 'Hoodies'
 // $product->relatedCategory === 'Accessories'
 ```
 
 If not specified, the term table alias defaults to `t_0`, `t_1`, etc.
+
+A special operator `Operand::OPERATOR_IN_ALL` is also provided to match exactly all values in an array.
+
+```php
+// Fetch products that have both 'featured' and 'accessories' terms
+$products = $manager->getRepository(Product::class)
+    ->findBy([
+        new TermRelationshipCondition([
+            'slug' => new Operand(['featured', 'accessories'], Operand::OPERATOR_IN_ALL),
+        ]),
+    ]);
+```
+
+This operator is not limited to terms querying, but it's the most obvious use case.
 
 ### Post relationship conditions
 

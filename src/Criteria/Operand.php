@@ -17,6 +17,7 @@ final class Operand
     public const OPERATOR_REGEXP = 'REGEXP';
     public const OPERATOR_IN = 'IN';
     public const OPERATOR_NOT_IN = 'NOT IN';
+    public const OPERATOR_IN_ALL = 'IN_ALL';
 
     public function __construct(
         private mixed $operand,
@@ -41,6 +42,7 @@ final class Operand
             self::OPERATOR_RLIKE,
             self::OPERATOR_REGEXP,
             self::OPERATOR_IN,
+            self::OPERATOR_IN_ALL,
             self::OPERATOR_NOT_IN,
         ], true);
     }

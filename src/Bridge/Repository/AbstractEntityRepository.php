@@ -359,7 +359,13 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         if ($criteria[$field] instanceof Operand) {
             $operator = $criteria[$field]->getOperator();
 
-            if (in_array($operator, [Operand::OPERATOR_IN, Operand::OPERATOR_NOT_IN], true)) {
+            if (
+                in_array(
+                    $operator,
+                    [Operand::OPERATOR_IN, Operand::OPERATOR_NOT_IN, Operand::OPERATOR_IN_ALL],
+                    true
+                )
+            ) {
                 $parameters = array_map(
                     static fn (int $number) => "{$snakeField}_{$number}",
                     range(0, count($value) - 1),
@@ -404,6 +410,12 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             $expr = sprintf('%s %s %s', $field, $operator, $parameter);
             $queryBuilder->andHaving($expr);
         } else {
+            if ($operator === Operand::OPERATOR_IN_ALL) {
+                $operator = 'IN';
+                $queryBuilder->andHaving(sprintf('COUNT(DISTINCT %s) = :%s_count', $prefixedField, $snakeField))
+                    ->setParameter(sprintf('%s_count', $snakeField), count($value))
+                ;
+            }
             $expr = sprintf('%s %s %s', $prefixedField, $operator, $parameter);
             $queryBuilder->andWhere($expr);
         }
@@ -539,7 +551,20 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             $aliasNumber,
         );
 
-        foreach ($prefixedCriteria as $field => $value) {
+        $normalizedCriteria = $this->normalizeCriteria($prefixedCriteria, ignoreValidation: true);
+
+        foreach ($normalizedCriteria as $field => $value) {
+            if (
+                $this->handleSpecialCriteria(
+                    $queryBuilder,
+                    $prefixedCriteria,
+                    $field,
+                    $value,
+                ) === self::IS_SPECIAL_CRITERIA
+            ) {
+                continue;
+            }
+
             $this->handleRegularCriteria($queryBuilder, $prefixedCriteria, $field, $value);
         }
 
