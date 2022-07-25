@@ -294,6 +294,44 @@ class ProductRepositoryTest extends TestCase
         ], array_column($products, 'postTitle'));
     }
 
+    public function testTermRelationshipConditionWithInOperator(): void
+    {
+        $products = $this->repository->findBy([
+            new TermRelationshipCondition([
+                'name' => new Operand(['featured', 'Accessories'], Operand::OPERATOR_IN),
+            ]),
+        ]);
+
+        self::assertCount(8, $products);
+        self::assertEquals([14, 18, 19, 20, 21, 22, 23, 35], call_user_func(function (array $ids) {
+            sort($ids);
+            return $ids;
+        }, array_column($products, 'id')));
+    }
+
+    public function testTermRelationshipConditionWithInAllOperator(): void
+    {
+        $products = $this->repository->findBy([
+            new TermRelationshipCondition([
+                'slug' => new Operand(['featured', 'accessories'], Operand::OPERATOR_IN_ALL),
+            ]),
+        ]);
+
+        self::assertCount(2, $products);
+        self::assertEquals([20, 21], array_column($products, 'id'));
+    }
+
+    public function testTermRelationshipConditionWithInAllOperatorNotReturningResults(): void
+    {
+        $products = $this->repository->findBy([
+            new TermRelationshipCondition([
+                'slug' => new Operand(['featured', 'accessories', 'rated-5'], Operand::OPERATOR_IN_ALL),
+            ]),
+        ]);
+
+        self::assertCount(0, $products);
+    }
+
     public function testTermRelationshipConditionWithTermAndWrongTaxonomy(): void
     {
         $products = $this->repository->findBy([

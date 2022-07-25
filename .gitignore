@@ -3,3 +3,4 @@ test/CoverageReport/
 *.local
 .phpunit.result.cache
 docker-compose.override.yml
+composer.lock

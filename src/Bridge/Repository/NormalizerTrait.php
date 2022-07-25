@@ -27,13 +27,19 @@ trait NormalizerTrait
         ]);
     }
 
-    protected function normalizeCriteria(array $criteria, string $entityClassName = null): array
-    {
+    protected function normalizeCriteria(
+        array $criteria,
+        string $entityClassName = null,
+        bool $ignoreValidation = false,
+    ): array {
         $output = [];
 
         foreach ($criteria as $field => $value) {
             if ($value instanceof NestedCondition) {
-                $output[] = new NestedCondition($value->getOperator(), $this->normalizeCriteria($value->getCriteria()));
+                $output[] = new NestedCondition(
+                    $value->getOperator(),
+                    $this->normalizeCriteria($value->getCriteria(), ignoreValidation: $ignoreValidation),
+                );
             } elseif (
                 $value instanceof RelationshipCondition
                 || $value instanceof TermRelationshipCondition
@@ -44,7 +50,9 @@ trait NormalizerTrait
             } elseif ($value instanceof Operand && $value->isLooseOperator()) {
                 $output[$field] = $value->getOperand();
             } else {
-                $resolvedValue = $this->validateFieldValue($field, $value, $entityClassName);
+                $resolvedValue = $ignoreValidation
+                    ? $value
+                    : $this->validateFieldValue($field, $value, $entityClassName);
                 $output[$field] = (string) $this->serializer->normalize($resolvedValue);
             }
         }
