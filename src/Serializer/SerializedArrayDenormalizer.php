@@ -29,10 +29,10 @@ final class SerializedArrayDenormalizer implements DenormalizerInterface
     ): array|string|int|float|bool|\ArrayObject|AttachmentMetadata|GenericData|null {
         $unserialized = unserialize_if_needed($data);
 
-        if ($data !== $unserialized) {
+        if ($data !== $unserialized || empty($unserialized)) {
             if ($type === GenericData::class) {
                 $unserialized = [
-                    'data' => $unserialized,
+                    'data' => $unserialized ?: [],
                 ];
             }
 

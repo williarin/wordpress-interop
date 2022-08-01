@@ -7,6 +7,7 @@ namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 use Williarin\WordpressInterop\Bridge\Entity\PostMeta;
 use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
+use Williarin\WordpressInterop\Bridge\Type\GenericData;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
@@ -441,5 +442,18 @@ class ProductRepositoryTest extends TestCase
 
         $product = $this->repository->find(14);
         self::assertNull($product->thumbnailId);
+    }
+
+    public function testWrongTypeForGenericData(): void
+    {
+        $this->manager->getRepository(PostMeta::class)
+            ->update(14, '_default_attributes', null)
+        ;
+
+        $product = $this->repository->find(14);
+        $expected = new GenericData();
+        $expected->data = [];
+
+        self::assertEquals($expected, $product->defaultAttributes);
     }
 }
