@@ -371,9 +371,10 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                     range(0, count($value) - 1),
                 );
                 $parameter = sprintf('(:%s)', implode(', :', $parameters));
+                $listValue = array_values($value);
 
                 foreach ($parameters as $index => $name) {
-                    $queryBuilder->setParameter($name, $value[$index]);
+                    $queryBuilder->setParameter($name, $listValue[$index]);
                 }
             } else {
                 $queryBuilder->setParameter($snakeField, $criteria[$field]->getOperand());

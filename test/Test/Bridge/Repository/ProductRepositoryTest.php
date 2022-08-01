@@ -246,6 +246,17 @@ class ProductRepositoryTest extends TestCase
         self::assertEquals([17, 27], array_column($products, 'id'));
     }
 
+    public function testOperatorInWithAssociativeArray(): void
+    {
+        $products = $this->repository->findBySku(
+            new Operand([1 => 'woo-tshirt', 'key' => 'woo-single'], Operand::OPERATOR_IN),
+        );
+        self::assertIsArray($products);
+        self::assertCount(2, $products);
+        self::assertContainsOnlyInstancesOf(Product::class, $products);
+        self::assertEquals([17, 27], array_column($products, 'id'));
+    }
+
     public function testTermRelationshipConditionWithTaxonomyOnly(): void
     {
         $products = $this->repository->findBy([
