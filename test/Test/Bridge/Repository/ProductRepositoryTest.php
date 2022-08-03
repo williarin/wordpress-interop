@@ -148,6 +148,16 @@ class ProductRepositoryTest extends TestCase
         self::assertEquals([16, 23], array_column($products, 'id'));
     }
 
+    public function testFindByMultipleEAVConditions(): void
+    {
+        $products = $this->repository->findBy([
+            'sku' => new Operand('hoodie.*logo|zipper', Operand::OPERATOR_REGEXP),
+            'thumbnail_id' => 52,
+        ]);
+
+        self::assertEquals([23], array_column($products, 'id'));
+    }
+
     public function testFindByCriteriaOr(): void
     {
         $products = $this->repository->findBy([
