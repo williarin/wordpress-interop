@@ -214,7 +214,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
     }
 
-    public function getMappedMetaKey(mixed $fieldName, string $entityClassName = null): string
+    public function getMappedMetaKey(string $fieldName, string $entityClassName = null): string
     {
         $mappedFields = $entityClassName ? (new \ReflectionClassConstant(
             $this->entityManager->getRepository($entityClassName),
@@ -236,6 +236,24 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         return $key;
+    }
+
+    public function isFieldMapped(string $fieldName, string $entityClassName = null): bool
+    {
+        $mappedFields = $entityClassName ? (new \ReflectionClassConstant(
+            $this->entityManager->getRepository($entityClassName),
+            'MAPPED_FIELDS',
+        ))->getValue() : static::MAPPED_FIELDS;
+
+        if (
+            !is_array($mappedFields)
+            || empty($mappedFields)
+            || !in_array($fieldName, $mappedFields, true)
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
     public function getTableAliasForField(string $fieldName): ?string
@@ -282,14 +300,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         $extraFields = $this->getEntityExtraFields();
 
         if (!empty($extraFields)) {
-            $this->tableAliases['pm_self'] = [];
-
-            $queryBuilder->leftJoin(
-                'p',
-                $this->entityManager->getTablesPrefix() . static::TABLE_META_NAME,
-                'pm_self',
-                sprintf('p.%s = pm_self.%s', static::TABLE_IDENTIFIER, static::TABLE_META_IDENTIFIER),
-            );
+            $this->joinSelfMetaTable($queryBuilder);
 
             foreach ($extraFields as $extraField) {
                 $fieldName = property_to_field($extraField);
@@ -392,24 +403,37 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         if (
-            $entityClassName !== null
-            && $aliasNumber !== null
-            && in_array(
+            in_array(
                 substr($field, (strpos($field, '.') ?: -1) + 1),
                 $this->getEntityExtraFields($entityClassName),
                 true,
             )
         ) {
-            $exprKey = sprintf('pm_%d.meta_key = :%s_key', $aliasNumber, $snakeField);
-            $queryBuilder->andWhere($exprKey)
-                ->setParameter(sprintf('%s_key', $snakeField), $this->getMappedMetaKey($field, $entityClassName))
-            ;
+            if ($aliasNumber === null) {
+                $this->joinSelfMetaTable($queryBuilder);
+            }
 
-            $exprValue = sprintf('pm_%d.meta_value %s %s', $aliasNumber, $operator, $parameter);
+            if ($this->isFieldMapped($field, $entityClassName)) {
+                $exprKey = sprintf('pm_%s.meta_key = :%s_key', $aliasNumber ?? 'self', $snakeField);
+                $queryBuilder->andWhere($exprKey)
+                    ->setParameter(
+                        sprintf('%s_key', $snakeField),
+                        $this->getMappedMetaKey($field, $entityClassName),
+                    )
+                ;
+            } else {
+                $exprKey = sprintf(
+                    'TRIM(LEADING \'_\' FROM pm_%s.meta_key) = :%s_key',
+                    $aliasNumber ?? 'self',
+                    $snakeField,
+                );
+                $queryBuilder->andWhere($exprKey)
+                    ->setParameter(sprintf('%s_key', $snakeField), $field)
+                ;
+            }
+
+            $exprValue = sprintf('pm_%s.meta_value %s %s', $aliasNumber ?? 'self', $operator, $parameter);
             $queryBuilder->andWhere($exprValue);
-        } elseif (in_array(substr($field, (strpos($field, '.') ?: -1) + 1), $this->getEntityExtraFields(), true)) {
-            $expr = sprintf('%s %s %s', $field, $operator, $parameter);
-            $queryBuilder->andHaving($expr);
         } else {
             if ($operator === Operand::OPERATOR_IN_ALL) {
                 $operator = 'IN';
@@ -435,6 +459,33 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 $queryBuilder->addOrderBy($field, $orientation);
             }
         }
+    }
+
+    private function joinSelfMetaTable(QueryBuilder $queryBuilder): void
+    {
+        if (!array_key_exists('pm_self', $this->tableAliases)) {
+            $this->tableAliases['pm_self'] = [];
+        }
+
+        $joinQueryPart = $queryBuilder->getQueryPart('join');
+
+        if (
+            array_key_exists('p', $joinQueryPart)
+            && is_array($joinQueryPart['p'])
+            && count(array_filter(
+                $joinQueryPart['p'],
+                static fn (array $part) => !empty($part['joinAlias']) && $part['joinAlias'] === 'pm_self',
+            )) > 0
+        ) {
+            return;
+        }
+
+        $queryBuilder->leftJoin(
+            'p',
+            $this->entityManager->getTablesPrefix() . static::TABLE_META_NAME,
+            'pm_self',
+            sprintf('p.%s = pm_self.%s', static::TABLE_IDENTIFIER, static::TABLE_META_IDENTIFIER),
+        );
     }
 
     private function createRelationshipCriteria(
