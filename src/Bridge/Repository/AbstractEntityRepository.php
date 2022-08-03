@@ -409,12 +409,15 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 true,
             )
         ) {
+            $metaAlias = sprintf('pm_%s', $aliasNumber ?? 'self');
+
             if ($aliasNumber === null) {
-                $this->joinSelfMetaTable($queryBuilder);
+                $metaAlias = $this->joinSelfMetaTable($queryBuilder, true);
+                $this->tableAliases[$metaAlias][] = $field;
             }
 
             if ($this->isFieldMapped($field, $entityClassName)) {
-                $exprKey = sprintf('pm_%s.meta_key = :%s_key', $aliasNumber ?? 'self', $snakeField);
+                $exprKey = sprintf('%s.meta_key = :%s_key', $metaAlias, $snakeField);
                 $queryBuilder->andWhere($exprKey)
                     ->setParameter(
                         sprintf('%s_key', $snakeField),
@@ -422,17 +425,13 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                     )
                 ;
             } else {
-                $exprKey = sprintf(
-                    'TRIM(LEADING \'_\' FROM pm_%s.meta_key) = :%s_key',
-                    $aliasNumber ?? 'self',
-                    $snakeField,
-                );
+                $exprKey = sprintf("TRIM(LEADING '_' FROM %s.meta_key) = :%s_key", $metaAlias, $snakeField);
                 $queryBuilder->andWhere($exprKey)
                     ->setParameter(sprintf('%s_key', $snakeField), $field)
                 ;
             }
 
-            $exprValue = sprintf('pm_%s.meta_value %s %s', $aliasNumber ?? 'self', $operator, $parameter);
+            $exprValue = sprintf('%s.meta_value %s %s', $metaAlias, $operator, $parameter);
             $queryBuilder->andWhere($exprValue);
         } else {
             if ($operator === Operand::OPERATOR_IN_ALL) {
@@ -461,31 +460,52 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
     }
 
-    private function joinSelfMetaTable(QueryBuilder $queryBuilder): void
+    private function joinSelfMetaTable(QueryBuilder $queryBuilder, bool $incrementIfNecessary = false): string
     {
-        if (!array_key_exists('pm_self', $this->tableAliases)) {
-            $this->tableAliases['pm_self'] = [];
+        $applyJoin = function (QueryBuilder $queryBuilder, string $alias): void {
+            if (!array_key_exists($alias, $this->tableAliases)) {
+                $this->tableAliases[$alias] = [];
+            }
+
+            $queryBuilder->leftJoin(
+                'p',
+                $this->entityManager->getTablesPrefix() . static::TABLE_META_NAME,
+                $alias,
+                sprintf('p.%s = %s.%s', static::TABLE_IDENTIFIER, $alias, static::TABLE_META_IDENTIFIER),
+            );
+        };
+
+        static $aliasNumber = 1;
+        $alias = 'pm_self';
+
+        if (!$incrementIfNecessary && $this->hasJoin($queryBuilder, $alias)) {
+            return $alias;
         }
 
+        if (!$this->hasJoin($queryBuilder, $alias)) {
+            $applyJoin($queryBuilder, $alias);
+
+            return $alias;
+        }
+
+        $alias .= '_' . $aliasNumber++;
+        $applyJoin($queryBuilder, $alias);
+
+        return $alias;
+    }
+
+    private function hasJoin(QueryBuilder $queryBuilder, string $joinAlias): bool
+    {
         $joinQueryPart = $queryBuilder->getQueryPart('join');
 
-        if (
-            array_key_exists('p', $joinQueryPart)
+        return array_key_exists('p', $joinQueryPart)
             && is_array($joinQueryPart['p'])
-            && count(array_filter(
-                $joinQueryPart['p'],
-                static fn (array $part) => !empty($part['joinAlias']) && $part['joinAlias'] === 'pm_self',
-            )) > 0
-        ) {
-            return;
-        }
-
-        $queryBuilder->leftJoin(
-            'p',
-            $this->entityManager->getTablesPrefix() . static::TABLE_META_NAME,
-            'pm_self',
-            sprintf('p.%s = pm_self.%s', static::TABLE_IDENTIFIER, static::TABLE_META_IDENTIFIER),
-        );
+            && count(
+                array_filter(
+                    $joinQueryPart['p'],
+                    static fn (array $part) => !empty($part['joinAlias']) && $part['joinAlias'] === $joinAlias,
+                )
+            ) > 0;
     }
 
     private function createRelationshipCriteria(
@@ -540,10 +560,11 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
             $this->addEntityExtraField($trimmedAlias);
             $this->additionalFieldsToSelect[] = sprintf(
-                "MAX(CASE WHEN %s.meta_key = '%s' THEN %s.post_id END) AS `%s`",
+                "MAX(CASE WHEN %s.meta_key = '%s' THEN %s.%s END) AS `%s`",
                 $alias,
                 $condition->getRelationshipFieldName(),
                 $alias,
+                self::TABLE_META_IDENTIFIER,
                 $trimmedAlias,
             );
         }
@@ -567,7 +588,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 $tableAlias,
                 $parameterName,
                 $tableAlias,
-                str_contains($tableAlias, 'relation') ? 'post_id' : 'meta_value',
+                str_contains($tableAlias, 'relation') ? self::TABLE_META_IDENTIFIER : 'meta_value',
                 $aliasNumber,
             );
             $queryBuilder->setParameter($parameterName, $mappedKey);
@@ -676,9 +697,9 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
             $queryBuilder->leftJoin(
                 sprintf('p_%d', $aliasNumber),
-                $this->entityManager->getTablesPrefix() . 'postmeta',
+                $this->entityManager->getTablesPrefix() . self::TABLE_META_NAME,
                 $alias,
-                sprintf('p_%d.id = pm_%d.post_id', $aliasNumber, $aliasNumber),
+                sprintf('p_%d.id = pm_%d.%s', $aliasNumber, $aliasNumber, self::TABLE_META_IDENTIFIER),
             );
 
             foreach ($extraFields as $extraField) {
