@@ -6,6 +6,9 @@ namespace Williarin\WordpressInterop\Criteria;
 
 final class SelectColumns
 {
+    /**
+     * @param string[] $columns
+     */
     public function __construct(
         private array $columns
     ) {
