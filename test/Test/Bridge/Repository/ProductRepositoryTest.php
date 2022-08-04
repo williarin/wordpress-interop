@@ -268,6 +268,15 @@ class ProductRepositoryTest extends TestCase
         self::assertEquals([17, 27], array_column($products, 'id'));
     }
 
+    public function testOperatorInWithEmptyArray(): void
+    {
+        $products = $this->repository->findBySku(
+            new Operand([], Operand::OPERATOR_IN),
+        );
+        self::assertIsArray($products);
+        self::assertCount(0, $products);
+    }
+
     public function testTermRelationshipConditionWithTaxonomyOnly(): void
     {
         $products = $this->repository->findBy([
@@ -341,6 +350,17 @@ class ProductRepositoryTest extends TestCase
 
         self::assertCount(2, $products);
         self::assertEquals([20, 21], array_column($products, 'id'));
+    }
+
+    public function testTermRelationshipConditionWithInAllOperatorEmptyArray(): void
+    {
+        $products = $this->repository->findBy([
+            new TermRelationshipCondition([
+                'slug' => new Operand([], Operand::OPERATOR_IN_ALL),
+            ]),
+        ]);
+
+        self::assertCount(0, $products);
     }
 
     public function testTermRelationshipConditionWithInAllOperatorNotReturningResults(): void

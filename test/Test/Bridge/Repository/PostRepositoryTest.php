@@ -189,6 +189,15 @@ class PostRepositoryTest extends TestCase
         self::assertEquals([11], array_column($posts, 'id'));
     }
 
+    public function testOperatorNotInEmptyArray(): void
+    {
+        $posts = $this->repository->findBy(['post_status' => new Operand([], Operand::OPERATOR_NOT_IN)]);
+        self::assertIsArray($posts);
+        self::assertCount(4, $posts);
+        self::assertContainsOnlyInstancesOf(Post::class, $posts);
+        self::assertEquals([12, 11, 1, 10], array_column($posts, 'id'));
+    }
+
     public function testOperatorNotInWithMagicMethod(): void
     {
         $posts = $this->repository->findByPostStatus(new Operand(['draft', 'private'], Operand::OPERATOR_NOT_IN));

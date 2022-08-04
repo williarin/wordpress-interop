@@ -377,6 +377,10 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                     true
                 )
             ) {
+                if (count($value) === 0) {
+                    $value[] = md5((string) time());
+                }
+
                 $parameters = array_map(
                     static fn (int $number) => "{$snakeField}_{$number}",
                     range(0, count($value) - 1),
