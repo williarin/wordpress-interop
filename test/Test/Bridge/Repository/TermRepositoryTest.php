@@ -133,6 +133,39 @@ class TermRepositoryTest extends TestCase
         self::assertEquals([1, 6, 1, 2], array_column($termsProduct, 'count'));
     }
 
+    public function testAddDuplicateTermsToEntityDoesNotDuplicateThem(): void
+    {
+        $hoodieTerms = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'post_status' => new Operand(['publish', 'private'], Operand::OPERATOR_IN),
+                'sku' => 'super-forces-hoodie',
+            ]),
+        ]);
+
+        $product = $this->manager->getRepository(Product::class)
+            ->find(16)
+        ;
+
+        $termsProduct = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'id' => $product->id,
+            ]),
+        ]);
+
+        self::assertEquals(['simple', 'Hoodies'], array_column($termsProduct, 'name'));
+
+        $this->repository->addTermsToEntity($product, $hoodieTerms);
+
+        $termsProduct = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'id' => $product->id,
+            ]),
+        ]);
+
+        self::assertEquals(['simple', 'Hoodies', 'MegaBrand'], array_column($termsProduct, 'name'));
+        self::assertEquals([15, 5, 2], array_column($termsProduct, 'count'));
+    }
+
     public function testAddTermsToEntityWithoutTermTaxonomyIdAreIgnored(): void
     {
         $hoodieTerms = array_map(
