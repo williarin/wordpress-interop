@@ -231,6 +231,39 @@ class TermRepositoryTest extends TestCase
         self::assertEquals(['simple'], array_column($terms, 'name'));
     }
 
+    public function testRemoveTermsFromEntityWhichDoesNotHaveThemDoesNothing(): void
+    {
+        $product = $this->manager->getRepository(Product::class)
+            ->findOneBySku('super-forces-hoodie')
+        ;
+
+        $terms = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'id' => $product->id,
+            ]),
+        ]);
+
+        self::assertEquals(['simple', 'Hoodies', 'MegaBrand'], array_column($terms, 'name'));
+
+        $unrelatedTerms = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'id' => 37,
+            ]),
+        ]);
+
+        self::assertEquals(['external', 'Decor'], array_column($unrelatedTerms, 'name'));
+
+        $this->repository->removeTermsFromEntity($product, $unrelatedTerms);
+
+        $terms = $this->repository->findBy([
+            new PostRelationshipCondition(Product::class, [
+                'id' => $product->id,
+            ]),
+        ]);
+
+        self::assertEquals(['simple', 'Hoodies', 'MegaBrand'], array_column($terms, 'name'));
+    }
+
     public function testRemoveTermsFromEntityWithoutTermTaxonomyIdAreIgnored(): void
     {
         $product = $this->manager->getRepository(Product::class)
