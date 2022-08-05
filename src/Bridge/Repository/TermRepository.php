@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
 use Williarin\WordpressInterop\Bridge\Entity\Term;
@@ -62,17 +63,20 @@ class TermRepository extends AbstractEntityRepository
                 continue;
             }
 
-            $this->entityManager->getConnection()
-                ->createQueryBuilder()
-                ->insert($this->entityManager->getTablesPrefix() . 'term_relationships')
-                ->values([
-                    'object_id' => '?',
-                    'term_taxonomy_id' => '?',
-                    'term_order' => '0',
-                ])
-                ->setParameters([$entity->id, (int) $term->termTaxonomyId])
-                ->executeStatement()
-            ;
+            try {
+                $this->entityManager->getConnection()
+                    ->createQueryBuilder()
+                    ->insert($this->entityManager->getTablesPrefix() . 'term_relationships')
+                    ->values([
+                        'object_id' => '?',
+                        'term_taxonomy_id' => '?',
+                        'term_order' => '0',
+                    ])
+                    ->setParameters([$entity->id, (int) $term->termTaxonomyId])
+                    ->executeStatement()
+                ;
+            } catch (UniqueConstraintViolationException) {
+            }
         }
 
         $this->recountTerms();
