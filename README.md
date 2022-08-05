@@ -180,6 +180,16 @@ $products = $manager->getRepository(Product::class)
         ]),
         'stock_status' => 'instock',
     ]);
+
+// Fetch two products by their SKU and two by their ID
+$products = $manager->getRepository(Product::class)
+    ->findBy([
+        new NestedCondition(NestedCondition::OPERATOR_OR, [
+            'sku' => new Operand(['woo-tshirt', 'woo-single'], Operand::OPERATOR_IN),
+            'id' => new Operand([19, 20], Operand::OPERATOR_IN),
+        ]),
+    ]);
+// count($products) === 4
 ```
 
 ### EAV relationship conditions

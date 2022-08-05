@@ -277,6 +277,32 @@ class ProductRepositoryTest extends TestCase
         self::assertCount(0, $products);
     }
 
+    public function testOperandInNestedCondition(): void
+    {
+        $products = $this->repository->findBy([
+            new NestedCondition(NestedCondition::OPERATOR_OR, [
+                'sku' => new Operand(['woo-tshirt', 'woo-single'], Operand::OPERATOR_IN),
+                'id' => new Operand([19, 20], Operand::OPERATOR_IN),
+            ]),
+        ]);
+        self::assertIsArray($products);
+        self::assertCount(4, $products);
+        self::assertEquals([17, 19, 20, 27], array_column($products, 'id'));
+    }
+
+    public function testNestedConditionAndOperator(): void
+    {
+        $products = $this->repository->findBy([
+            new NestedCondition(NestedCondition::OPERATOR_AND, [
+                'sku' => new Operand(['woo-tshirt', 'woo-single'], Operand::OPERATOR_IN),
+                'id' => 17,
+            ]),
+        ]);
+        self::assertIsArray($products);
+        self::assertCount(1, $products);
+        self::assertEquals([17], array_column($products, 'id'));
+    }
+
     public function testTermRelationshipConditionWithTaxonomyOnly(): void
     {
         $products = $this->repository->findBy([

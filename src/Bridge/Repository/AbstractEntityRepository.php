@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Bridge\Repository;
 
+use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Query\QueryBuilder;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -29,7 +30,6 @@ use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
 abstract class AbstractEntityRepository implements EntityRepositoryInterface
 {
-    use NestedCriteriaTrait;
     use FindByTrait;
     use EntityPropertiesTrait;
 
@@ -326,7 +326,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
 
         if ($value instanceof NestedCondition) {
-            $this->createNestedCriteria($queryBuilder, $criteria[$field]->getCriteria(), $value);
+            $this->createNestedCriteria($queryBuilder, $criteria[$field]);
 
             return self::IS_SPECIAL_CRITERIA;
         }
@@ -360,45 +360,54 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         string $entityClassName = null,
         int $aliasNumber = null,
     ): void {
+        $queryBuilder->andWhere($this->getWhereExpressionFromCriteriaField(
+            $queryBuilder,
+            $criteria,
+            $field,
+            $value,
+            $entityClassName,
+            $aliasNumber,
+        ));
+    }
+
+    protected function addOrderByClause(QueryBuilder $queryBuilder, ?array $orderBy): void
+    {
+        if (!empty($orderBy)) {
+            foreach ($orderBy as $field => $orientation) {
+                $this->validateFieldName($field, static::FALLBACK_ENTITY, static::TABLE_NAME);
+
+                if (!in_array(strtolower($orientation), ['asc', 'desc'], true)) {
+                    throw new InvalidOrderByOrientationException($orientation);
+                }
+
+                $queryBuilder->addOrderBy($field, $orientation);
+            }
+        }
+    }
+
+    private function getWhereExpressionFromCriteriaField(
+        QueryBuilder $queryBuilder,
+        array $criteria,
+        string $field,
+        mixed $value,
+        string $entityClassName = null,
+        int $aliasNumber = null,
+    ): CompositeExpression {
         $snakeField = u($field)
             ->snake()
             ->toString()
         ;
         $parameter = ":{$snakeField}";
         $operator = '=';
+        $prefixedField = $field;
+        $expression = $queryBuilder->expr();
 
         if ($criteria[$field] instanceof Operand) {
-            $operator = $criteria[$field]->getOperator();
-
-            if (
-                in_array(
-                    $operator,
-                    [Operand::OPERATOR_IN, Operand::OPERATOR_NOT_IN, Operand::OPERATOR_IN_ALL],
-                    true
-                )
-            ) {
-                if (count($value) === 0) {
-                    $value[] = md5((string) time());
-                }
-
-                $parameters = array_map(
-                    static fn (int $number) => "{$snakeField}_{$number}",
-                    range(0, count($value) - 1),
-                );
-                $parameter = sprintf('(:%s)', implode(', :', $parameters));
-                $listValue = array_values($value);
-
-                foreach ($parameters as $index => $name) {
-                    $queryBuilder->setParameter($name, $listValue[$index]);
-                }
-            } else {
-                $queryBuilder->setParameter($snakeField, $criteria[$field]->getOperand());
-            }
+            ['operator' => $operator, 'parameter' => $parameter] =
+                $this->flattenOperand($queryBuilder, $criteria[$field], $field, $value);
         } else {
             $queryBuilder->setParameter($snakeField, $value);
         }
-
-        $prefixedField = $field;
 
         foreach ($this->tableAliases as $alias => $fields) {
             if (in_array($field, $fields, true)) {
@@ -422,46 +431,82 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
             if ($this->isFieldMapped($field, $entityClassName)) {
                 $exprKey = sprintf('%s.meta_key = :%s_key', $metaAlias, $snakeField);
-                $queryBuilder->andWhere($exprKey)
-                    ->setParameter(
-                        sprintf('%s_key', $snakeField),
-                        $this->getMappedMetaKey($field, $entityClassName),
-                    )
-                ;
+                $queryBuilder->setParameter(
+                    sprintf('%s_key', $snakeField),
+                    $this->getMappedMetaKey($field, $entityClassName),
+                );
             } else {
                 $exprKey = sprintf("TRIM(LEADING '_' FROM %s.meta_key) = :%s_key", $metaAlias, $snakeField);
-                $queryBuilder->andWhere($exprKey)
-                    ->setParameter(sprintf('%s_key', $snakeField), $field)
-                ;
+                $queryBuilder->setParameter(sprintf('%s_key', $snakeField), $field);
             }
 
             $exprValue = sprintf('%s.meta_value %s %s', $metaAlias, $operator, $parameter);
-            $queryBuilder->andWhere($exprValue);
-        } else {
-            if ($operator === Operand::OPERATOR_IN_ALL) {
-                $operator = 'IN';
-                $queryBuilder->andHaving(sprintf('COUNT(DISTINCT %s) = :%s_count', $prefixedField, $snakeField))
-                    ->setParameter(sprintf('%s_count', $snakeField), count($value))
-                ;
-            }
-            $expr = sprintf('%s %s %s', $prefixedField, $operator, $parameter);
-            $queryBuilder->andWhere($expr);
+
+            return $expression->and($exprKey, $exprValue);
         }
+
+        if ($operator === Operand::OPERATOR_IN_ALL) {
+            $operator = 'IN';
+            $queryBuilder->andHaving(sprintf('COUNT(DISTINCT %s) = :%s_count', $prefixedField, $snakeField))
+                ->setParameter(sprintf('%s_count', $snakeField), count($value))
+            ;
+        }
+
+        return $expression->and(sprintf('%s %s %s', $prefixedField, $operator, $parameter));
     }
 
-    protected function addOrderByClause(QueryBuilder $queryBuilder, ?array $orderBy): void
+    #[ArrayShape([
+        'operator' => 'string',
+        'parameter' => 'string',
+    ])]
+    private function flattenOperand(QueryBuilder $queryBuilder, Operand $operand, string $field, mixed $value): array
     {
-        if (!empty($orderBy)) {
-            foreach ($orderBy as $field => $orientation) {
-                $this->validateFieldName($field, static::FALLBACK_ENTITY, static::TABLE_NAME);
+        $snakeField = u($field)
+            ->snake()
+            ->toString()
+        ;
+        $parameter = ":{$snakeField}";
+        $operator = $operand->getOperator();
 
-                if (!in_array(strtolower($orientation), ['asc', 'desc'], true)) {
-                    throw new InvalidOrderByOrientationException($orientation);
-                }
-
-                $queryBuilder->addOrderBy($field, $orientation);
+        if (
+            in_array($operator, [Operand::OPERATOR_IN, Operand::OPERATOR_NOT_IN, Operand::OPERATOR_IN_ALL], true)
+        ) {
+            if (count($value) === 0) {
+                $value[] = md5((string) time());
             }
+
+            $parameters = array_map(
+                static fn (int $number) => "{$snakeField}_{$number}",
+                range(0, count($value) - 1),
+            );
+
+            $parameter = sprintf('(:%s)', implode(', :', $parameters));
+            $listValue = array_values($value);
+
+            foreach ($parameters as $index => $name) {
+                $queryBuilder->setParameter($name, $listValue[$index]);
+            }
+        } else {
+            $queryBuilder->setParameter($snakeField, $operand->getOperand());
         }
+
+        return [
+            'operator' => $operator,
+            'parameter' => $parameter,
+        ];
+    }
+
+    private function createNestedCriteria(QueryBuilder $queryBuilder, NestedCondition $condition): void
+    {
+        $criteria = $condition->getCriteria();
+        $normalizedCriteria = $this->normalizeCriteria($condition->getCriteria());
+        $expressions = [];
+
+        foreach ($normalizedCriteria as $field => $value) {
+            $expressions[] = $this->getWhereExpressionFromCriteriaField($queryBuilder, $criteria, $field, $value);
+        }
+
+        $queryBuilder->andWhere($queryBuilder->expr()->{$condition->getOperator()}(...$expressions));
     }
 
     private function joinSelfMetaTable(QueryBuilder $queryBuilder, bool $incrementIfNecessary = false): string
