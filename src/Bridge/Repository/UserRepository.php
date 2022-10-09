@@ -40,6 +40,7 @@ class UserRepository extends AbstractEntityRepository
     protected const TABLE_META_IDENTIFIER = 'user_id';
     protected const FALLBACK_ENTITY = User::class;
 
+    /** @deprecated Left for BC reasons only, use getMappedFields instead */
     protected const MAPPED_FIELDS = [
         'billing_address_1' => 'billing_address_1',
         'billing_address_2' => 'billing_address_2',
@@ -52,5 +53,19 @@ class UserRepository extends AbstractEntityRepository
     public function __construct()
     {
         parent::__construct(User::class);
+    }
+
+    protected function getMappedFields(): array
+    {
+        $capabilitiesKey = sprintf('%scapabilities', $this->entityManager->getTablesPrefix());
+
+        return [
+            'billing_address_1' => 'billing_address_1',
+            'billing_address_2' => 'billing_address_2',
+            'shipping_address_1' => 'shipping_address_1',
+            'shipping_address_2' => 'shipping_address_2',
+            $capabilitiesKey => 'capabilities',
+            'wp_last_active' => 'last_active',
+        ];
     }
 }

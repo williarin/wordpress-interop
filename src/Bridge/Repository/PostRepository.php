@@ -56,10 +56,16 @@ use Williarin\WordpressInterop\Criteria\Operand;
  */
 class PostRepository extends AbstractEntityRepository
 {
+    /** @deprecated Left for BC reasons only, use getMappedFields instead */
     protected const MAPPED_FIELDS = ['thumbnail_id'];
 
     public function __construct()
     {
         parent::__construct(Post::class);
+    }
+
+    protected function getMappedFields(): array
+    {
+        return self::MAPPED_FIELDS;
     }
 }

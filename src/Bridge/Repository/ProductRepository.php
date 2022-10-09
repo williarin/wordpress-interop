@@ -109,6 +109,7 @@ use Williarin\WordpressInterop\Criteria\Operand;
  */
 class ProductRepository extends AbstractEntityRepository
 {
+    /** @deprecated Left for BC reasons only, use getMappedFields instead */
     protected const MAPPED_FIELDS = [
         'sku',
         'sale_price_dates_from',
@@ -154,5 +155,10 @@ class ProductRepository extends AbstractEntityRepository
     protected function getPostType(): string
     {
         return 'product';
+    }
+
+    protected function getMappedFields(): array
+    {
+        return self::MAPPED_FIELDS;
     }
 }

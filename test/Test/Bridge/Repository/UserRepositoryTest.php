@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 
 use Williarin\WordpressInterop\Bridge\Entity\User;
 use Williarin\WordpressInterop\Bridge\Repository\UserRepository;
+use Williarin\WordpressInterop\EntityManager;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 use Williarin\WordpressInterop\Test\TestCase;
 
@@ -99,5 +100,21 @@ class UserRepositoryTest extends TestCase
     {
         $user = $this->repository->findOneByShippingState('North Dakota');
         self::assertSame(4, $user->id);
+    }
+
+    public function testFieldMapping(): void
+    {
+        $repository = new UserRepository();
+        $repository->setEntityManager(new class extends EntityManager {
+            public function __construct() {}
+            public function getTablesPrefix(): string { return 'foo_'; }
+        });
+
+        $this->assertEquals('billing_address_1', $repository->getMappedMetaKey('billing_address_1'));
+        $this->assertEquals('billing_address_2', $repository->getMappedMetaKey('billing_address_2'));
+        $this->assertEquals('shipping_address_1', $repository->getMappedMetaKey('shipping_address_1'));
+        $this->assertEquals('shipping_address_2', $repository->getMappedMetaKey('shipping_address_2'));
+        $this->assertEquals('foo_capabilities', $repository->getMappedMetaKey('capabilities'));
+        $this->assertEquals('wp_last_active', $repository->getMappedMetaKey('last_active'));
     }
 }
