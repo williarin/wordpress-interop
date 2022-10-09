@@ -59,6 +59,7 @@ use Williarin\WordpressInterop\Criteria\RelationshipCondition;
  */
 class AttachmentRepository extends AbstractEntityRepository
 {
+    /** @deprecated Left for BC reasons only, use getMappedFields instead */
     protected const MAPPED_FIELDS = [
         '_wp_attached_file' => 'attached_file',
         '_wp_attachment_metadata' => 'attachment_metadata',
@@ -77,5 +78,10 @@ class AttachmentRepository extends AbstractEntityRepository
     protected function getPostType(): string
     {
         return 'attachment';
+    }
+
+    protected function getMappedFields(): array
+    {
+        return self::MAPPED_FIELDS;
     }
 }

@@ -28,11 +28,15 @@ use function Williarin\WordpressInterop\Util\String\field_to_property;
 use function Williarin\WordpressInterop\Util\String\property_to_field;
 use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
+/**
+ * @method getMappedFields(): array
+ */
 abstract class AbstractEntityRepository implements EntityRepositoryInterface
 {
     use FindByTrait;
     use EntityPropertiesTrait;
 
+    /** @deprecated Implement getMappedFields() method instead */
     protected const MAPPED_FIELDS = [];
     protected const TABLE_NAME = 'posts';
     protected const TABLE_META_NAME = 'postmeta';
@@ -216,10 +220,14 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
     public function getMappedMetaKey(string $fieldName, string $entityClassName = null): string
     {
-        $mappedFields = $entityClassName ? (new \ReflectionClassConstant(
-            $this->entityManager->getRepository($entityClassName),
-            'MAPPED_FIELDS',
-        ))->getValue() : static::MAPPED_FIELDS;
+        $targetClass = $entityClassName ? $this->entityManager->getRepository($entityClassName) : $this;
+
+        if (method_exists($targetClass, 'getMappedFields')) {
+            $mappedFields = $targetClass->getMappedFields();
+        } else {
+            // BC layer, to be removed when MAPPED_FIELDS constant is removed
+            $mappedFields = (new \ReflectionClassConstant($targetClass, 'MAPPED_FIELDS',))->getValue();
+        }
 
         if (
             !is_array($mappedFields)
@@ -240,10 +248,14 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
     public function isFieldMapped(string $fieldName, string $entityClassName = null): bool
     {
-        $mappedFields = $entityClassName ? (new \ReflectionClassConstant(
-            $this->entityManager->getRepository($entityClassName),
-            'MAPPED_FIELDS',
-        ))->getValue() : static::MAPPED_FIELDS;
+        $targetClass = $entityClassName ? $this->entityManager->getRepository($entityClassName) : $this;
+
+        if (method_exists($targetClass, 'getMappedFields')) {
+            $mappedFields = $targetClass->getMappedFields();
+        } else {
+            // BC layer, to be removed when MAPPED_FIELDS constant is removed
+            $mappedFields = (new \ReflectionClassConstant($targetClass, 'MAPPED_FIELDS',))->getValue();
+        }
 
         if (
             !is_array($mappedFields)

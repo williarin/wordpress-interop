@@ -55,6 +55,7 @@ use Williarin\WordpressInterop\Bridge\Entity\ShopOrder;
  */
 class ShopOrderRepository extends AbstractEntityRepository
 {
+    /** @deprecated Left for BC reasons only, use getMappedFields instead */
     protected const MAPPED_FIELDS = [
         'payment_method',
         'billing_email',
@@ -93,5 +94,10 @@ class ShopOrderRepository extends AbstractEntityRepository
     public function getPostType(): string
     {
         return 'shop_order';
+    }
+
+    protected function getMappedFields(): array
+    {
+        return self::MAPPED_FIELDS;
     }
 }

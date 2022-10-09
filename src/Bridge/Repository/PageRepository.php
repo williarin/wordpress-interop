@@ -56,6 +56,7 @@ use Williarin\WordpressInterop\Criteria\Operand;
  */
 class PageRepository extends AbstractEntityRepository
 {
+    /** @deprecated Left for BC reasons only, use getMappedFields instead */
     protected const MAPPED_FIELDS = ['thumbnail_id'];
 
     public function __construct()
@@ -66,5 +67,10 @@ class PageRepository extends AbstractEntityRepository
     protected function getPostType(): string
     {
         return 'page';
+    }
+
+    protected function getMappedFields(): array
+    {
+        return self::MAPPED_FIELDS;
     }
 }
