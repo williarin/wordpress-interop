@@ -29,7 +29,7 @@ use function Williarin\WordpressInterop\Util\String\property_to_field;
 use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
 /**
- * @method getMappedFields(): array
+ * @method array getMappedFields()
  */
 abstract class AbstractEntityRepository implements EntityRepositoryInterface
 {
@@ -187,7 +187,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             $baseFields,
         ));
 
-        unset($value, $baseFields[static::TABLE_IDENTIFIER]);
+        unset($baseFields[static::TABLE_IDENTIFIER]);
 
         if ($entity->{static::TABLE_IDENTIFIER} === null) {
             $this->entityManager->getConnection()
