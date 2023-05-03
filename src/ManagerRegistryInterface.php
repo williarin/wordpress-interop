@@ -25,5 +25,13 @@ interface ManagerRegistryInterface
 
     public function getRepository(string $entityClassName, ?string $managerName = null): RepositoryInterface;
 
+    /**
+     * @deprecated Since 1.12.0, use get(DuplicationServiceInterface::class) instead. Will be removed in 2.0
+     */
     public function getDuplicationService(?string $managerName = null): DuplicationServiceInterface;
+
+    /**
+     * Get a service from the dedicated service container
+     */
+    public function get(string $serviceId, ?string $managerName = null): ?object;
 }

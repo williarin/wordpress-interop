@@ -10,10 +10,13 @@ use Williarin\WordpressInterop\Persistence\DuplicationServiceInterface;
 
 abstract class AbstractManagerRegistry implements ManagerRegistryInterface
 {
+    private ServiceContainer $container;
+
     public function __construct(
         private array $managers,
         private string $defaultManager
     ) {
+        $this->container = new ServiceContainer();
     }
 
     public function getDefaultManagerName(): string
@@ -64,12 +67,26 @@ abstract class AbstractManagerRegistry implements ManagerRegistryInterface
         ;
     }
 
+    /**
+     * @deprecated Since 1.12.0, use get(DuplicationServiceInterface::class) instead. Will be removed in 2.0
+     */
     public function getDuplicationService(?string $managerName = null): DuplicationServiceInterface
     {
         return $this
             ->getManager($managerName)
             ->getDuplicationService()
         ;
+    }
+
+    public function get(string $serviceId, ?string $managerName = null): ?object
+    {
+        $service = $this->container->get($serviceId);
+
+        if ($service && (new \ReflectionClass($service))->hasMethod('setEntityManager')) {
+            $service->setEntityManager($this->getManager($managerName));
+        }
+
+        return $service;
     }
 
     abstract protected function getService(string $name): EntityManagerInterface;

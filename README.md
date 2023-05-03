@@ -73,7 +73,7 @@ $allPosts = $postRepository->findAll();
 ### Basic querying
 
 This works with any entity inherited from `BaseEntity`.
-Built-in entities are `Post`, `Page`, `Attachment` and `Product` but you can [create your own](#create-your-own-repositories).
+Built-in entities are `Post`, `Page`, `Attachment` and `Product` but you can [create your own](#create-your-own-entities-and-repositories).
 
 ```php
 // Fetch a post by ID
@@ -409,7 +409,9 @@ Duplicate an entity with all its EAV attributes and terms with `DuplicationServi
 The resulting entity is already persisted and has a new ID.
 
 ```php
-$duplicationService = $manager->getDuplicationService();
+$duplicationService = $registry->get(DuplicationService::class);
+// or
+$duplicationService = DuplicationService::create($manager);
 
 // Duplicate by ID
 $newProduct =  $duplicationService->duplicate(23, Product::class);
