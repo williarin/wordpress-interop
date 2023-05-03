@@ -20,10 +20,10 @@ jobs:
 
         strategy:
             matrix:
-                php: ['8.0', '8.1']
+                php: ['8.0', '8.1', '8.2']
                 experimental: [false]
                 include:
-                    -   php: '8.2'
+                    -   php: '8.3'
                         experimental: true
 
         steps:
