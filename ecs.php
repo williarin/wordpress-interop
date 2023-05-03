@@ -27,7 +27,6 @@ return static function (ECSConfig $ecsConfig): void {
     $ecsConfig->sets([
         SetList::SYMPLIFY,
         SetList::PSR_12,
-        SetList::PHP_CS_FIXER,
         SetList::DOCTRINE_ANNOTATIONS,
         SetList::CLEAN_CODE,
     ]);

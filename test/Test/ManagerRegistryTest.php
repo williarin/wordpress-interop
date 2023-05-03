@@ -77,6 +77,28 @@ class ManagerRegistryTest extends TestCase
         $this->managerRegistry->getDuplicationService('fr');
     }
 
+    public function testGetDefaultDuplicationServiceFromServiceContainer(): void
+    {
+        self::assertInstanceOf(
+            DuplicationServiceInterface::class,
+            $this->managerRegistry->get(DuplicationServiceInterface::class),
+        );
+    }
+
+    public function testGetNonExistentDuplicationServiceFromServiceContainer(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->managerRegistry->get(DuplicationServiceInterface::class, 'fr');
+    }
+
+    public function testGetNamedDuplicationServiceFromServiceContainer(): void
+    {
+        self::assertInstanceOf(
+            DuplicationServiceInterface::class,
+            $this->managerRegistry->get(DuplicationServiceInterface::class, 'other'),
+        );
+    }
+
     private function getManagerFactory(): Closure
     {
         return function () {

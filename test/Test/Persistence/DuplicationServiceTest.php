@@ -21,7 +21,15 @@ class DuplicationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->duplicationService = $this->manager->getDuplicationService();
+        $this->duplicationService = DuplicationService::create($this->manager);
+    }
+
+    /**
+     * @deprecated Will be removed in 2.0
+     */
+    public function testLegacyGetDuplicationService(): void
+    {
+        self::assertInstanceOf(DuplicationServiceInterface::class, $this->manager->getDuplicationService());
     }
 
     public function testDuplicateByIdWithoutEntityClassNameThrowsException(): void

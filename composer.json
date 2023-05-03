@@ -24,7 +24,9 @@
         "symfony/property-access": "^6.0",
         "symfony/serializer": "^6.0",
         "symfony/serializer-pack": "^1.1",
-        "symfony/translation-contracts": "^3.0"
+        "symfony/translation-contracts": "^3.0",
+        "symfony/dependency-injection": "^6.0",
+        "symfony/config": "^6.0"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.23",
@@ -34,8 +36,8 @@
         "roave/security-advisories": "dev-latest",
         "symfony/dotenv": "^6.0",
         "symfony/var-dumper": "^6.0",
-        "symplify/coding-standard": "^10.0",
-        "symplify/easy-coding-standard": "^10.0"
+        "symplify/coding-standard": "^11.0",
+        "symplify/easy-coding-standard": "^11.0"
     },
     "autoload": {
         "psr-4": {

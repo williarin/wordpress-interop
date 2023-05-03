@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Persistence;
 
+use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Williarin\WordpressInterop\Attributes\Slug;
 use Williarin\WordpressInterop\Attributes\Unique;
@@ -21,8 +22,20 @@ final class DuplicationService implements DuplicationServiceInterface, EntityMan
 {
     private ?EntityManagerInterface $entityManager = null;
 
-    public function __construct(private SluggerInterface $slugger)
+    public function __construct(
+        private SluggerInterface $slugger
+    ) {
+    }
+
+    public static function create(EntityManagerInterface $entityManager = null): self
     {
+        $duplicationService = new self(new AsciiSlugger());
+
+        if ($entityManager) {
+            $duplicationService->setEntityManager($entityManager);
+        }
+
+        return $duplicationService;
     }
 
     public function setEntityManager(EntityManagerInterface $entityManager): void

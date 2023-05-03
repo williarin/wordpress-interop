@@ -21,6 +21,9 @@ interface EntityManagerInterface
 
     public function getTablesPrefix(): string;
 
+    /**
+     * @deprecated Since 1.12.0, use DuplicationService::create($this) instead. Will be removed in 2.0
+     */
     public function getDuplicationService(): DuplicationServiceInterface;
 
     public function persist(BaseEntity $entity): void;
