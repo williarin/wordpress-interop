@@ -12,6 +12,10 @@ on:
         paths-ignore:
             - '**/README.md'
 
+concurrency:
+    group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+    cancel-in-progress: true
+
 jobs:
     test:
         name: Test
@@ -27,7 +31,7 @@ jobs:
                         experimental: true
 
         steps:
-            -   uses: actions/checkout@v2
+            -   uses: actions/checkout@v3
 
             -   name: Spin up Docker containers
                 run: make reset-containers
@@ -45,10 +49,10 @@ jobs:
 
             -   name: Get composer cache directory
                 id: composer-cache
-                run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+                run: echo "dir="$(composer config cache-files-dir)"" >> $GITHUB_OUTPUT
 
             -   name: Cache dependencies
-                uses: actions/cache@v2
+                uses: actions/cache@v3
                 with:
                     path: ${{ steps.composer-cache.outputs.dir }}
                     key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
