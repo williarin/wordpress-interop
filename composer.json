@@ -20,13 +20,13 @@
     "require": {
         "php": ">=8.0",
         "doctrine/dbal": "^3.3",
+        "symfony/config": "^6.0",
+        "symfony/dependency-injection": "^6.0",
         "symfony/options-resolver": "^6.0",
         "symfony/property-access": "^6.0",
         "symfony/serializer": "^6.0",
         "symfony/serializer-pack": "^1.1",
-        "symfony/translation-contracts": "^3.0",
-        "symfony/dependency-injection": "^6.0",
-        "symfony/config": "^6.0"
+        "symfony/translation-contracts": "^3.0"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.23",
@@ -53,14 +53,14 @@
             "Williarin\\WordpressInterop\\Test\\Fixture\\": "test/Fixture/"
         }
     },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.x-dev"
-        }
-    },
     "config": {
         "allow-plugins": {
             "ergebnis/composer-normalize": true
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.x-dev"
         }
     }
 }
