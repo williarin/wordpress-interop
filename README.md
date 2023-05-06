@@ -533,6 +533,17 @@ You might have some custom attributes for existing entities such as `Post`.
 3. Add mapped fields to your `PostRepository`
 4. Add `#[RepositoryClass(MyPostRepository::class)]` to your `MyPost` entity
 
+## Contributing
+
+All contributions are welcome.
+
+How to contribute:
+1. Fork this repository
+2. Create a new branch on your fork
+3. Make some changes then run `make test` to ensure everything works, and `make fix` to fix ECS and `composer.json` errors
+4. Commit using [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) syntax
+5. Create a pull request on `master` branch of this repository
+
 ## License
 
 [MIT](LICENSE)
