@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Williarin\WordpressInterop\Bridge\Entity;
 
+use ReflectionNamedType;
+
 trait DynamicPropertiesTrait
 {
     public function __set(string $property, mixed $value): void
@@ -13,7 +15,12 @@ trait DynamicPropertiesTrait
         }
 
         try {
-            $expectedType = (new \ReflectionProperty(static::class, $property))->getType()->getName();
+            $reflectionType = (new \ReflectionProperty(static::class, $property))->getType();
+
+            $expectedType = $reflectionType instanceof ReflectionNamedType
+                ? $reflectionType?->getName()
+                : (string) $reflectionType;
+
             settype($value, $expectedType);
         } catch (\ReflectionException) {
         }

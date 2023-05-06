@@ -60,8 +60,7 @@ reset-woocommerce:
 
 .PHONY: test
 test:
-	@./vendor/bin/phpunit
-	@./vendor/bin/ecs check
+	@./vendor/bin/grumphp run --no-interaction
 
 .PHONY: coverage
 coverage:
@@ -69,4 +68,5 @@ coverage:
 
 .PHONY: fix
 fix:
+	@composer normalize --indent-style=space --indent-size=4 --no-update-lock
 	@./vendor/bin/ecs check --fix
