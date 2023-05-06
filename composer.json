@@ -26,11 +26,16 @@
         "symfony/property-access": "^6.0",
         "symfony/serializer": "^6.0",
         "symfony/serializer-pack": "^1.1",
+        "symfony/string": "^6.0",
         "symfony/translation-contracts": "^3.0"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.23",
+        "jetbrains/phpstorm-stubs": "^2022.3",
         "kubawerlos/php-cs-fixer-custom-fixers": "^3.7",
+        "maglnet/composer-require-checker": "^4.4",
+        "phpro/grumphp": "^1.16",
+        "phpstan/phpstan": "^1.10",
         "phpunit/phpunit": "^9.5",
         "rector/rector": "^0.12.13",
         "roave/security-advisories": "dev-latest",
@@ -55,7 +60,8 @@
     },
     "config": {
         "allow-plugins": {
-            "ergebnis/composer-normalize": true
+            "ergebnis/composer-normalize": true,
+            "phpro/grumphp": true
         }
     },
     "extra": {

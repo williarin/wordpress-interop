@@ -1,0 +1,12 @@
+parameters:
+    level: 1
+    paths:
+        - src
+        - test
+    scanFiles:
+        - vendor/jetbrains/phpstorm-stubs/meta/attributes/ArrayShape.php
+        - vendor/jetbrains/phpstorm-stubs/meta/attributes/Deprecated.php
+    ignoreErrors:
+        -
+            message: '#Constructor of class Williarin\\WordpressInterop\\AbstractEntityManager has an unused parameter \$duplicationService.#'
+            path: src/AbstractEntityManager.php

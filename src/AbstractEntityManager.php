@@ -80,7 +80,11 @@ abstract class AbstractEntityManager implements EntityManagerInterface
 
     public function persist(BaseEntity $entity): void
     {
-        $this->getRepository($entity::class)->persist($entity);
+        $repository = $this->getRepository($entity::class);
+
+        if (method_exists($repository, 'persist')) {
+            $repository->persist($entity);
+        }
     }
 
     abstract protected function getRepositoryServiceForClass(?string $entityClassName): RepositoryInterface;

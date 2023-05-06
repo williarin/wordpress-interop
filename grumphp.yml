@@ -1,0 +1,61 @@
+grumphp:
+    ascii:
+        failed: ~
+        succeeded: ~
+    tasks:
+        composer:
+            no_check_lock: false
+            no_local_repository: true
+        composer_normalize:
+            indent_size: 4
+            indent_style: space
+        composer_require_checker:
+            config_file: composer-require-checker-config.json
+        ecs:
+            files_on_pre_commit: true
+            no-progress-bar: true
+        git_blacklist:
+            keywords:
+                - 'die('
+                - 'dd('
+                - 'dump('
+                - 'var_dump('
+                - 'print_r('
+            whitelist_patterns:
+                - '->dump('
+                - 'function dump'
+                - 'add('
+            triggered_by: [ 'php' ]
+            regexp_type: G
+        git_commit_message:
+            allow_empty_message: false
+            enforce_capitalized_subject: false
+            max_subject_width: 120
+            max_body_width: 500
+            type_scope_conventions:
+                types:
+                    - build
+                    - ci
+                    - chore
+                    - docs
+                    - feat
+                    - fix
+                    - perf
+                    - refactor
+                    - style
+                    - test
+        phpstan:
+            memory_limit: 512M
+        phpparser:
+            visitors:
+                forbidden_function_calls:
+                    blacklist:
+                        - die
+                        - dd
+                        - dump
+                        - var_dump
+                        - print_r
+        phpunit: ~
+    parallel:
+        enabled: true
+        max_workers: 32
