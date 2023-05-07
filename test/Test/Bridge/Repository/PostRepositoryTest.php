@@ -9,6 +9,7 @@ use Williarin\WordpressInterop\Bridge\Entity\Post;
 use Williarin\WordpressInterop\Bridge\Repository\EntityRepositoryInterface;
 use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Exception\EntityNotFoundException;
+use Williarin\WordpressInterop\Exception\InvalidArgumentException;
 use Williarin\WordpressInterop\Exception\InvalidEntityException;
 use Williarin\WordpressInterop\Exception\InvalidFieldNameException;
 use Williarin\WordpressInterop\Exception\InvalidOrderByOrientationException;
@@ -266,5 +267,37 @@ class PostRepositoryTest extends TestCase
 
         self::assertSame('Another post with a new title', $post->postTitle);
         self::assertSame('publish', $post->postStatus);
+    }
+
+    public function testDynamicSetter(): void
+    {
+        $post = new Post();
+
+        $post = $post->setDynamicProperty('Hello');
+        self::assertSame('Hello', $post->dynamicProperty);
+    }
+
+    public function testDynamicSetterNoArgument(): void
+    {
+        $post = new Post();
+
+        $this->expectException(InvalidArgumentException::class);
+        $post->setDynamicProperty();
+    }
+
+    public function testWrongMethodCall(): void
+    {
+        $post = new Post();
+
+        $this->expectException(MethodNotFoundException::class);
+        $post->nonExistentMethod();
+    }
+
+    public function testDynamicGetter(): void
+    {
+        $post = new Post();
+        $post->postContent = 'Hello';
+
+        self::assertSame('Hello', $post->getPostContent());
     }
 }

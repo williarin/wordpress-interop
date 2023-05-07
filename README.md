@@ -357,6 +357,16 @@ $result = $repository->createFindByQueryBuilder([], ['sku' => 'ASC'])
 $products = $repository->denormalize($result, Product::class . '[]');
 ```
 
+### Create a new term
+
+Terms are not duplicated if already existing.
+
+```php
+// Create a new product category
+$repository = $manager->getRepository(Term::class);
+$term = $repository->createTermForTaxonomy('Jewelry', 'product_cat');
+```
+
 ### Add terms to an entity
 
 ```php
@@ -429,6 +439,7 @@ $newProduct =  $duplicationService->duplicate($product);
 * `Option` and `OptionRepository`
 * `PostMeta` and `PostMetaRepository`
 * `Term` and `TermRepository`
+* `TermTaxonomy` and `TermTaxonomyRepository`
 * `User` and `UserRepository`
 * `Product` and `ProductRepository` (WooCommerce)
 * `ShopOrder` and `ShopOrderRepository` (WooCommerce)
