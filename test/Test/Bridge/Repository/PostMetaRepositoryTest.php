@@ -12,6 +12,7 @@ use Williarin\WordpressInterop\Test\TestCase;
 
 class PostMetaRepositoryTest extends TestCase
 {
+    /** @phpstan-var \Williarin\WordpressInterop\Bridge\Repository\PostMetaRepository */
     private RepositoryInterface $repository;
 
     protected function setUp(): void

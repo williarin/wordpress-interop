@@ -16,6 +16,7 @@ use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
 class AttachmentRepositoryTest extends TestCase
 {
+    /** @phpstan-var \Williarin\WordpressInterop\Bridge\Repository\AttachmentRepository */
     private EntityRepositoryInterface $repository;
 
     protected function setUp(): void

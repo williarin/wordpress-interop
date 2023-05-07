@@ -20,6 +20,7 @@ use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
 class ProductRepositoryTest extends TestCase
 {
+    /** @phpstan-var \Williarin\WordpressInterop\Bridge\Repository\ProductRepository */
     private EntityRepositoryInterface $repository;
 
     protected function setUp(): void

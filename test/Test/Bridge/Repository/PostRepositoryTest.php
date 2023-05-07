@@ -18,6 +18,7 @@ use Williarin\WordpressInterop\Test\TestCase;
 
 class PostRepositoryTest extends TestCase
 {
+    /** @phpstan-var \Williarin\WordpressInterop\Bridge\Repository\PostRepository */
     private EntityRepositoryInterface $repository;
 
     protected function setUp(): void
