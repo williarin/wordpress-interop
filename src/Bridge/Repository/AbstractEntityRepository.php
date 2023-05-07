@@ -189,7 +189,9 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         unset($baseFields[static::TABLE_IDENTIFIER]);
 
-        if ($entity->{static::TABLE_IDENTIFIER} === null) {
+        $identifierProperty = field_to_property(static::TABLE_IDENTIFIER);
+
+        if ($entity->{$identifierProperty} === null) {
             $this->entityManager->getConnection()
                 ->createQueryBuilder()
                 ->insert($this->entityManager->getTablesPrefix() . static::TABLE_NAME)
@@ -198,7 +200,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 ->executeStatement()
             ;
 
-            $entity->{static::TABLE_IDENTIFIER} = (int) $this->entityManager->getConnection()->lastInsertId();
+            $entity->{$identifierProperty} = (int) $this->entityManager->getConnection()
+                ->lastInsertId();
         } else {
             $queryBuilder = $this->entityManager->getConnection()
                 ->createQueryBuilder()

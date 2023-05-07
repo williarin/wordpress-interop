@@ -6,9 +6,12 @@ namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 use Williarin\WordpressInterop\Bridge\Entity\BaseEntity;
 use Williarin\WordpressInterop\Bridge\Entity\Term;
+use Williarin\WordpressInterop\Bridge\Entity\TermTaxonomy;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
+use Williarin\WordpressInterop\Exception\EntityNotFoundException;
 
 class TermRepository extends AbstractEntityRepository
 {
@@ -56,6 +59,42 @@ class TermRepository extends AbstractEntityRepository
         return $queryBuilder;
     }
 
+    public function createTermForTaxonomy(string $termName, string $taxonomy): Term
+    {
+        try {
+            $term = $this->findOneBy([
+                'name' => $termName,
+                'taxonomy' => $taxonomy
+            ]);
+        } catch (EntityNotFoundException) {
+            $term = (new Term())
+                ->setName($termName)
+                ->setSlug((new AsciiSlugger())->slug($termName)->lower()->toString())
+            ;
+
+            $this->persist($term);
+
+            $termTaxonomy = (new TermTaxonomy())
+                ->setTermId($term->termId)
+                ->setTaxonomy($taxonomy)
+            ;
+
+            $this->entityManager->getRepository(TermTaxonomy::class)
+                ->persist($termTaxonomy)
+            ;
+
+            $term = $this->findOneBy([
+                'name' => $termName,
+                'taxonomy' => $taxonomy
+            ]);
+        }
+
+        return $term;
+    }
+
+    /**
+     * @param Term[] $terms
+     */
     public function addTermsToEntity(BaseEntity $entity, array $terms): void
     {
         foreach ($terms as $term) {
@@ -82,6 +121,9 @@ class TermRepository extends AbstractEntityRepository
         $this->recountTerms();
     }
 
+    /**
+     * @param Term[] $terms
+     */
     public function removeTermsFromEntity(BaseEntity $entity, array $terms): void
     {
         foreach ($terms as $term) {

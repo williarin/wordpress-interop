@@ -14,6 +14,8 @@ use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
 use Williarin\WordpressInterop\Criteria\SelectColumns;
 use Williarin\WordpressInterop\Test\TestCase;
 
+use function Williarin\WordpressInterop\Util\String\field_to_property;
+
 class TermRepositoryTest extends TestCase
 {
     /** @var TermRepository */
@@ -97,6 +99,27 @@ class TermRepositoryTest extends TestCase
             'product_cat' => 'Hoodies',
             'pa_manufacturer' => 'MegaBrand',
         ], array_combine(array_column($terms, 'taxonomy'), array_column($terms, 'name')));
+    }
+
+    public function testCreateNewTermForTaxonomy(): void
+    {
+        $term = $this->repository->createTermForTaxonomy('Jewelry', 'product_cat');
+
+        $this->validateTerm($term, [
+            'name' => 'Jewelry',
+            'slug' => 'jewelry',
+            'taxonomy' => 'product_cat',
+            'count' => 0,
+        ]);
+    }
+
+    public function testCreateTermForTaxonomyNoDuplicate(): void
+    {
+        $term1 = $this->repository->createTermForTaxonomy('Jewelry', 'product_cat');
+        $term2 = $this->repository->createTermForTaxonomy('Jewelry', 'product_cat');
+
+        self::assertEquals($term1, $term2);
+        self::assertNotSame($term1, $term2);
     }
 
     public function testAddTermsToEntity(): void
@@ -294,5 +317,15 @@ class TermRepositoryTest extends TestCase
         ]);
 
         self::assertEquals(['simple', 'Hoodies', 'MegaBrand'], array_column($terms, 'name'));
+    }
+
+    private function validateTerm(Term $term, array $values): void
+    {
+        foreach ($values as $key => $value) {
+            self::assertEquals($value, $term->{field_to_property($key)});
+        }
+
+        self::assertIsInt($term->termId);
+        self::assertIsInt($term->termTaxonomyId);
     }
 }
