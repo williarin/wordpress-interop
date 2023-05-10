@@ -55,7 +55,8 @@
     "autoload-dev": {
         "psr-4": {
             "Williarin\\WordpressInterop\\Test\\": "test/Test/",
-            "Williarin\\WordpressInterop\\Test\\Fixture\\": "test/Fixture/"
+            "Williarin\\WordpressInterop\\Test\\Fixture\\": "test/Fixture/",
+            "Williarin\\WordpressInterop\\PHPStan\\": "test/phpstan/"
         }
     },
     "config": {
