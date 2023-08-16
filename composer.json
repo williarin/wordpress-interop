@@ -62,6 +62,9 @@
         "allow-plugins": {
             "ergebnis/composer-normalize": true,
             "phpro/grumphp": true
+        },
+        "platform": {
+            "php": "8.0.2"
         }
     },
     "extra": {
