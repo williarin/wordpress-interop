@@ -31,10 +31,6 @@ return static function (ECSConfig $ecsConfig): void {
         SetList::CLEAN_CODE,
     ]);
 
-    $ecsConfig->ruleWithConfiguration(DocBlockLineLengthFixer::class, [
-        DocBlockLineLengthFixer::LINE_LENGTH => 120,
-    ]);
-
     $ecsConfig->ruleWithConfiguration(YodaStyleFixer::class, [
         'equal' => false,
         'identical' => false,
