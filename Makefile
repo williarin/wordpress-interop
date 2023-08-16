@@ -23,7 +23,7 @@ reset-install:
 		--admin_password=admin \
 		--admin_email=contact@example.com \
 		--skip-email
-	@$(CLI) plugin install woocommerce --activate
+	@$(CLI) plugin install woocommerce --activate --version=7.9.0
 	@$(CLI) plugin install wordpress-importer --activate
 
 reset-posts:

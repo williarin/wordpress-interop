@@ -18,6 +18,8 @@ final class Operand
     public const OPERATOR_IN = 'IN';
     public const OPERATOR_NOT_IN = 'NOT IN';
     public const OPERATOR_IN_ALL = 'IN_ALL';
+    public const OPERATOR_IS_NULL = 'IS NULL';
+    public const OPERATOR_IS_NOT_NULL = 'IS NOT NULL';
 
     public function __construct(
         private mixed $operand,
@@ -45,5 +47,10 @@ final class Operand
             self::OPERATOR_IN_ALL,
             self::OPERATOR_NOT_IN,
         ], true);
+    }
+
+    public function isStandaloneOperator(): bool
+    {
+        return in_array($this->operator, [self::OPERATOR_IS_NULL, self::OPERATOR_IS_NOT_NULL]);
     }
 }
