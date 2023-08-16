@@ -512,4 +512,44 @@ class ProductRepositoryTest extends TestCase
 
         self::assertEquals($expected, $product->defaultAttributes);
     }
+
+    public function testOperatorIsNull(): void
+    {
+        $product = $this->repository
+            ->findOneBy([
+                new SelectColumns(['id', 'stock']),
+                'stock' => new Operand(null, Operand::OPERATOR_IS_NULL),
+            ]);
+
+        self::assertInstanceOf(Product::class, $product);
+        self::assertSame(64, $product->id);
+    }
+
+    public function testOperatorIsNotNull(): void
+    {
+        $products = $this->repository
+            ->findBy([
+                new SelectColumns(['id', 'stock']),
+                'stock' => new Operand(null, Operand::OPERATOR_IS_NOT_NULL),
+            ]);
+
+        self::assertContainsOnlyInstancesOf(Product::class, $products);
+        self::assertNotContains(64, array_column($products, 'id'));
+        self::assertCount(18, $products);
+    }
+
+    public function testOperatorIsNotNullNested(): void
+    {
+        $products = $this->repository
+            ->findBy([
+                new SelectColumns(['id', 'stock', 'length']),
+                new NestedCondition(NestedCondition::OPERATOR_AND, [
+                    'stock' => new Operand(null, Operand::OPERATOR_IS_NOT_NULL),
+                    'length' => 8.0,
+                ]),
+            ]);
+
+        self::assertContainsOnlyInstancesOf(Product::class, $products);
+        self::assertEquals([17, 20, 23], array_column($products, 'id'));
+    }
 }

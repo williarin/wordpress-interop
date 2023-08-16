@@ -455,7 +455,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 $queryBuilder->setParameter(sprintf('%s_key', $snakeField), $field);
             }
 
-            $exprValue = sprintf('%s.meta_value %s %s', $metaAlias, $operator, $parameter);
+            $exprValue = trim(sprintf('%s.meta_value %s %s', $metaAlias, $operator, $parameter));
 
             return $expression->and($exprKey, $exprValue);
         }
@@ -467,7 +467,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             ;
         }
 
-        return $expression->and(sprintf('%s %s %s', $prefixedField, $operator, $parameter));
+        return $expression->and(trim(sprintf('%s %s %s', $prefixedField, $operator, $parameter)));
     }
 
     #[ArrayShape([
@@ -507,7 +507,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         return [
             'operator' => $operator,
-            'parameter' => $parameter,
+            'parameter' => $operand->isStandaloneOperator() ? null : $parameter,
         ];
     }
 
