@@ -41,4 +41,12 @@ final class SerializedArrayDenormalizer implements DenormalizerInterface
 
         return $data;
     }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [
+            AttachmentMetadata::class => true,
+            GenericData::class => true,
+        ];
+    }
 }
