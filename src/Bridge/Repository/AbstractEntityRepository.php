@@ -144,7 +144,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         $queryBuilder = $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->select($prefixedEntityBaseFields)
+            ->select(...$prefixedEntityBaseFields)
             ->from($this->entityManager->getTablesPrefix() . static::TABLE_NAME, 'p')
             ->addGroupBy(...$prefixedEntityBaseFields)
         ;
