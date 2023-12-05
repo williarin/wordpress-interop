@@ -267,6 +267,10 @@ class PostRepositoryTest extends TestCase
 
         self::assertSame('Another post with a new title', $post->postTitle);
         self::assertSame('publish', $post->postStatus);
+
+        // Assert no collateral damages
+        $anotherPost = $this->repository->find(10);
+        self::assertSame('A post', $anotherPost->postTitle);
     }
 
     public function testDynamicSetter(): void
