@@ -206,7 +206,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             $queryBuilder = $this->entityManager->getConnection()
                 ->createQueryBuilder()
                 ->update($this->entityManager->getTablesPrefix() . static::TABLE_NAME)
-                ->where(static::TABLE_IDENTIFIER, ':' . static::TABLE_IDENTIFIER)
+                ->where(static::TABLE_IDENTIFIER . ' = :' . static::TABLE_IDENTIFIER)
                 ->setParameter(static::TABLE_IDENTIFIER, $entity->{static::TABLE_IDENTIFIER})
             ;
 
