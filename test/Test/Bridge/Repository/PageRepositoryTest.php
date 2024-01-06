@@ -15,6 +15,7 @@ use function Williarin\WordpressInterop\Util\String\select_from_eav;
 
 class PageRepositoryTest extends TestCase
 {
+    /** @phpstan-var \Williarin\WordpressInterop\Bridge\Repository\PageRepository */
     private EntityRepositoryInterface $repository;
 
     protected function setUp(): void

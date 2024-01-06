@@ -13,6 +13,7 @@ use Williarin\WordpressInterop\Test\TestCase;
 
 class OptionRepositoryTest extends TestCase
 {
+    /** @phpstan-var \Williarin\WordpressInterop\Bridge\Repository\OptionRepository */
     private RepositoryInterface $repository;
 
     protected function setUp(): void

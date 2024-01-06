@@ -12,6 +12,7 @@ use Williarin\WordpressInterop\Test\TestCase;
 
 class UserRepositoryTest extends TestCase
 {
+    /** @phpstan-var \Williarin\WordpressInterop\Bridge\Repository\UserRepository */
     private UserRepository $repository;
 
     protected function setUp(): void

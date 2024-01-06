@@ -13,6 +13,7 @@ use Williarin\WordpressInterop\Test\TestCase;
 
 class AbstractEntityRepositoryTest extends TestCase
 {
+    /** @phpstan-var \Williarin\WordpressInterop\Bridge\Repository\PostRepository */
     private EntityRepositoryInterface $repository;
 
     protected function setUp(): void
@@ -65,6 +66,7 @@ class AbstractEntityRepositoryTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Some arguments are missing.');
+        // @phpstan-ignore-next-line This is an intentional error
         $this->repository->updatePostContent();
     }
 
@@ -72,6 +74,7 @@ class AbstractEntityRepositoryTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Some arguments are missing.');
+        // @phpstan-ignore-next-line This is an intentional error
         $this->repository->updatePostContent(120);
     }
 

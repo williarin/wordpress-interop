@@ -7,7 +7,6 @@ namespace Williarin\WordpressInterop\Test\Bridge\Repository;
 use Williarin\WordpressInterop\Bridge\Entity\Product;
 use Williarin\WordpressInterop\Bridge\Entity\Term;
 use Williarin\WordpressInterop\Bridge\Repository\RepositoryInterface;
-use Williarin\WordpressInterop\Bridge\Repository\TermRepository;
 use Williarin\WordpressInterop\Criteria\NestedCondition;
 use Williarin\WordpressInterop\Criteria\Operand;
 use Williarin\WordpressInterop\Criteria\PostRelationshipCondition;
@@ -18,7 +17,7 @@ use function Williarin\WordpressInterop\Util\String\field_to_property;
 
 class TermRepositoryTest extends TestCase
 {
-    /** @var TermRepository */
+    /** @phpstan-var \Williarin\WordpressInterop\Bridge\Repository\TermRepository */
     private RepositoryInterface $repository;
 
     protected function setUp(): void

@@ -47,6 +47,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     protected const IS_SPECIAL_CRITERIA = 1;
 
     protected EntityManagerInterface $entityManager;
+    /** @phpstan-var \Symfony\Component\Serializer\Serializer */
     protected SerializerInterface $serializer;
     protected PropertyNormalizer $propertyNormalizer;
     #[ArrayShape([

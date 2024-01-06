@@ -1,5 +1,10 @@
+services:
+    -
+        class: Williarin\WordpressInterop\PHPStan\GetRepositoryTypeSpecifyingExtension
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
 parameters:
-    level: 1
+    level: 2
     paths:
         - src
         - test
