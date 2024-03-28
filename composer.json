@@ -19,14 +19,17 @@
     ],
     "require": {
         "php": ">=8.0",
+        "doctrine/annotations": "^2.0",
         "doctrine/dbal": "^3.3",
-        "symfony/config": "^6.0",
-        "symfony/dependency-injection": "^6.0",
-        "symfony/options-resolver": "^6.0",
-        "symfony/property-access": "^6.0",
-        "symfony/serializer": "^6.0",
-        "symfony/serializer-pack": "^1.1",
-        "symfony/string": "^6.0",
+        "phpdocumentor/reflection-docblock": "^5.3",
+        "phpstan/phpdoc-parser": "^1.27",
+        "symfony/config": "^6.0 || ^7.0",
+        "symfony/dependency-injection": "^6.0 || ^7.0",
+        "symfony/options-resolver": "^6.0 || ^7.0",
+        "symfony/property-access": "^6.0 || ^7.0",
+        "symfony/property-info": "^6.0 || ^7.0",
+        "symfony/serializer": "^6.0 || ^7.0",
+        "symfony/string": "^6.0 || ^7.0",
         "symfony/translation-contracts": "^3.0"
     },
     "require-dev": {
@@ -34,13 +37,14 @@
         "jetbrains/phpstorm-stubs": "^2022.3",
         "kubawerlos/php-cs-fixer-custom-fixers": "^3.7",
         "maglnet/composer-require-checker": "^4.4",
-        "phpro/grumphp": "^1.16",
+        "nikic/php-parser": "^4.19",
+        "phpro/grumphp": "^1.16 || ^2.0 <2.5",
         "phpstan/phpstan": "^1.10",
         "phpunit/phpunit": "^9.5",
         "rector/rector": "^0.12.13",
         "roave/security-advisories": "dev-latest",
-        "symfony/dotenv": "^6.0",
-        "symfony/var-dumper": "^6.0",
+        "symfony/dotenv": "^6.0 || ^7.0",
+        "symfony/var-dumper": "^6.0 || ^7.0",
         "symplify/coding-standard": "^11.0",
         "symplify/easy-coding-standard": "^11.0"
     },
@@ -62,9 +66,6 @@
         "allow-plugins": {
             "ergebnis/composer-normalize": true,
             "phpro/grumphp": true
-        },
-        "platform": {
-            "php": "8.0.2"
         }
     },
     "extra": {

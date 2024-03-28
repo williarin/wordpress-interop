@@ -11,6 +11,7 @@ use PHPUnit\Framework\TestCase as BaseTestCase;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
+use Symfony\Component\Serializer\Mapping\Loader\AttributeLoader;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer;
@@ -39,8 +40,13 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         $this->connection = DriverManager::getConnection(['url' => getenv('WORDPRESS_DATABASE_URL')]);
+
+        $loader = class_exists('\\Symfony\\Component\\Serializer\\Mapping\\Loader\\AnnotationLoader')
+            ? new AnnotationLoader(new AnnotationReader())
+            : new AttributeLoader();
+
         $objectNormalizer = new ObjectNormalizer(
-            new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader())),
+            new ClassMetadataFactory($loader),
             new CamelCaseToSnakeCaseNameConverter(),
             null,
             new ReflectionExtractor()

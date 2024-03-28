@@ -1,3 +1,8 @@
 {
-    "symbol-whitelist" : ["property_to_field"]
+    "symbol-whitelist" : ["property_to_field"],
+    "scan-files" : [
+        "vendor/jetbrains/phpstorm-stubs/meta/attributes/ArrayShape.php",
+        "vendor/jetbrains/phpstorm-stubs/meta/attributes/Deprecated.php",
+        "vendor/jetbrains/phpstorm-stubs/meta/attributes/ExpectedValues.php"
+    ]
 }
