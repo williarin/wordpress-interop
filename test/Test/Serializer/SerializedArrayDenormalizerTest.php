@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
 use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
+use Symfony\Component\Serializer\Mapping\Loader\AttributeLoader;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Williarin\WordpressInterop\Bridge\Type\GenericData;
@@ -20,8 +21,12 @@ final class SerializedArrayDenormalizerTest extends TestCase
 
     protected function setUp(): void
     {
+        $loader = class_exists('\\Symfony\\Component\\Serializer\\Mapping\\Loader\\AnnotationLoader')
+            ? new AnnotationLoader(new AnnotationReader())
+            : new AttributeLoader();
+
         $objectNormalizer = new ObjectNormalizer(
-            new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader())),
+            new ClassMetadataFactory($loader),
             new CamelCaseToSnakeCaseNameConverter(),
             null,
             new ReflectionExtractor()
