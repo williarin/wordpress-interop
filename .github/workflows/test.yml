@@ -28,7 +28,7 @@ jobs:
             fail-fast: true
             matrix:
                 php: ['8.0', '8.1', '8.2', '8.3']
-                symfony: ['6.0.*', '6.1.*', '6.2.*' , '6.3.*', '6.4.*', '7.0.*']
+                symfony: ['6.0.*', '6.1.*', '6.2.*' , '6.3.*', '6.4.*', '7.0.*', '7.1.*']
                 experimental: [false]
                 exclude:
                     - php: '8.0'
@@ -41,8 +41,12 @@ jobs:
                       symfony: '6.4.*' # Requires PHP >= 8.1 for compatibility
                     - php: '8.0'
                       symfony: '7.0.*' # Requires PHP >= 8.2 for compatibility
+                    - php: '8.0'
+                      symfony: '7.1.*' # Requires PHP >= 8.2 for compatibility
                     - php: '8.1'
                       symfony: '7.0.*' # Requires PHP >= 8.2 for compatibility
+                    - php: '8.1'
+                      symfony: '7.1.*' # Requires PHP >= 8.2 for compatibility
                 include:
                     -   php: '8.4'
                         symfony: '6.0.*'
@@ -61,6 +65,9 @@ jobs:
                         experimental: true
                     -   php: '8.4'
                         symfony: '7.0.*'
+                        experimental: true
+                    -   php: '8.4'
+                        symfony: '7.1.*'
                         experimental: true
 
         steps:

@@ -23,7 +23,7 @@ reset-install:
 		--admin_password=admin \
 		--admin_email=contact@example.com \
 		--skip-email
-	@$(CLI) plugin install woocommerce --activate --version=7.9.0
+	@$(CLI) plugin install woocommerce --activate --version=8.9.3
 	@$(CLI) plugin install wordpress-importer --activate
 
 reset-posts:
@@ -57,6 +57,10 @@ reset-woocommerce:
 	@$(CLI) post meta set 22 related_product 18
 	@$(CLI) post meta set 24 related_product 26
 	@$(CLI) post meta set 26 related_product 37
+	@$(CLI) comment create --comment_post_ID=15 --comment_content="I love this hoodie" --comment_author="John" --comment_type="review"
+	@$(CLI) comment create --comment_post_ID=19 --comment_content="Awesome belt!" --comment_author="Jane" --comment_type="review"
+	@$(CLI) comment meta set 2 rating "5"
+	@$(CLI) comment meta set 3 rating "4"
 
 .PHONY: test
 test:
