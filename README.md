@@ -438,6 +438,7 @@ $newProduct =  $duplicationService->duplicate($product);
 * `Attachment` and `AttachmentRepository`
 * `Option` and `OptionRepository`
 * `PostMeta` and `PostMetaRepository`
+* `Comment` and `CommentRepository`
 * `Term` and `TermRepository`
 * `TermTaxonomy` and `TermTaxonomyRepository`
 * `User` and `UserRepository`
