@@ -827,6 +827,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             } elseif (str_starts_with($column, 'MAX(')) {
                 $selects[] = $column;
                 $hasExtraFields = true;
+                $this->joinSelfMetaTable($queryBuilder);
             } else {
                 foreach ($this->tableAliases as $alias => $fields) {
                     if (in_array($column, $fields, true)) {

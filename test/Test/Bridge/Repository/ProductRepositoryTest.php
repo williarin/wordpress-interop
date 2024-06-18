@@ -168,7 +168,7 @@ class ProductRepositoryTest extends TestCase
             'stock_status' => 'instock',
         ]);
 
-        self::assertEquals([15, 16, 21, 22, 23, 26], array_column($products, 'id'));
+        self::assertEquals([16, 21, 22, 23, 26], array_column($products, 'id'));
     }
 
     public function testFindOneByWithLooseOperatorDoesNotThrowException(): void
