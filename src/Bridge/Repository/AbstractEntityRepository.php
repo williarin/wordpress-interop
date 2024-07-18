@@ -229,7 +229,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             $mappedFields = $targetClass->getMappedFields();
         } else {
             // BC layer, to be removed when MAPPED_FIELDS constant is removed
-            $mappedFields = (new \ReflectionClassConstant($targetClass, 'MAPPED_FIELDS',))->getValue();
+            $mappedFields = (new \ReflectionClassConstant($targetClass, 'MAPPED_FIELDS'))->getValue();
         }
 
         if (
@@ -257,7 +257,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             $mappedFields = $targetClass->getMappedFields();
         } else {
             // BC layer, to be removed when MAPPED_FIELDS constant is removed
-            $mappedFields = (new \ReflectionClassConstant($targetClass, 'MAPPED_FIELDS',))->getValue();
+            $mappedFields = (new \ReflectionClassConstant($targetClass, 'MAPPED_FIELDS'))->getValue();
         }
 
         if (
@@ -408,10 +408,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         string $entityClassName = null,
         int $aliasNumber = null,
     ): CompositeExpression {
-        $snakeField = u($field)
-            ->snake()
-            ->toString()
-        ;
+        $snakeField = str_replace('.', '_', u($field) ->snake() ->toString());
         $parameter = ":{$snakeField}";
         $operator = '=';
         $prefixedField = $field;
@@ -476,10 +473,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     ])]
     private function flattenOperand(QueryBuilder $queryBuilder, Operand $operand, string $field, mixed $value): array
     {
-        $snakeField = u($field)
-            ->snake()
-            ->toString()
-        ;
+        $snakeField = str_replace('.', '_', u($field) ->snake() ->toString());
         $parameter = ":{$snakeField}";
         $operator = $operand->getOperator();
 

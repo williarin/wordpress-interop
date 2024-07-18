@@ -53,7 +53,7 @@ trait NormalizerTrait
                 $resolvedValue = $ignoreValidation
                     ? $value
                     : $this->validateFieldValue($field, $value, $entityClassName);
-                $output[$field] = (string) $this->serializer->normalize($resolvedValue);
+                $output[$field] = $this->serializer->normalize($resolvedValue);
             }
         }
 
