@@ -38,9 +38,15 @@ class TermRepository extends AbstractEntityRepository
             ->addGroupBy('tt.taxonomy')
         ;
 
+        preg_match('/SELECT (.*) FROM/im', $queryBuilder->getSQL(), $match);
+        $selectedFields = explode(', ', $match[1] ?? '');
+
+        preg_match('/GROUP BY (.*)\s?(?:HAVING|ORDER|LIMIT|OFFSET|FETCH|$)/im', $queryBuilder->getSQL(), $match);
+        $groupByFields = explode(', ', $match[1] ?? '');
+
         if (\count(array_filter($criteria, static fn ($condition) => $condition instanceof SelectColumns)) === 0) {
             $extraFields = array_diff(
-                $queryBuilder->getQueryPart('select'),
+                $selectedFields,
                 $this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'term_taxonomy_id', 'count']),
             );
 
@@ -49,8 +55,8 @@ class TermRepository extends AbstractEntityRepository
                 ...$extraFields,
             ]);
         } else {
-            foreach ($this->getPrefixedFields($queryBuilder->getQueryPart('select')) as $field) {
-                if (!\in_array($field, $queryBuilder->getQueryPart('groupBy'), true)) {
+            foreach ($this->getPrefixedFields($selectedFields) as $field) {
+                if (!\in_array($field, $groupByFields, true)) {
                     $queryBuilder->addGroupBy($field);
                 }
             }
