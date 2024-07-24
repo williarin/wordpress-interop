@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Query\QueryException;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
@@ -142,9 +143,13 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         $prefixedEntityBaseFields = $this->getPrefixedEntityBaseFields('p');
 
+        $hasSelectColumns = array_filter(
+            $normalizedCriteria,
+            static fn (mixed $value) => $value instanceof SelectColumns,
+        );
+
         $queryBuilder = $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->select(...$prefixedEntityBaseFields)
             ->from($this->entityManager->getTablesPrefix() . static::TABLE_NAME, 'p')
             ->addGroupBy(...$prefixedEntityBaseFields)
         ;
@@ -155,7 +160,10 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             ;
         }
 
-        $this->addSelectForExtraFields($queryBuilder);
+        if (!$hasSelectColumns) {
+            $queryBuilder->select(...$prefixedEntityBaseFields);
+            $this->addSelectForExtraFields($queryBuilder);
+        }
 
         foreach ($normalizedCriteria as $field => $value) {
             if ($this->handleSpecialCriteria($queryBuilder, $criteria, $field, $value) === self::IS_SPECIAL_CRITERIA) {
@@ -167,8 +175,10 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         $this->addOrderByClause($queryBuilder, $orderBy);
 
-        $queryBuilder->addSelect(...$this->additionalFieldsToSelect);
-        $this->additionalFieldsToSelect = [];
+        if (!empty($this->additionalFieldsToSelect)) {
+            $queryBuilder->addSelect(...$this->additionalFieldsToSelect);
+            $this->additionalFieldsToSelect = [];
+        }
 
         return $queryBuilder;
     }
@@ -554,16 +564,15 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
     private function hasJoin(QueryBuilder $queryBuilder, string $joinAlias): bool
     {
-        $joinQueryPart = $queryBuilder->getQueryPart('join');
+        try {
+            if (preg_match_all('/JOIN (\w+) (\w+) ON p\./im', $queryBuilder->getSQL(), $matches, PREG_SET_ORDER)) {
+                return count(array_filter($matches, static fn (array $match) => $match[2] === $joinAlias)) > 0;
+            }
+        } catch (QueryException) {
+            return false;
+        }
 
-        return array_key_exists('p', $joinQueryPart)
-            && is_array($joinQueryPart['p'])
-            && count(
-                array_filter(
-                    $joinQueryPart['p'],
-                    static fn (array $part) => !empty($part['joinAlias']) && $part['joinAlias'] === $joinAlias,
-                )
-            ) > 0;
+        return false;
     }
 
     private function createRelationshipCriteria(
@@ -809,18 +818,15 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     private function selectColumns(QueryBuilder $queryBuilder, array $extraFields, SelectColumns $value): void
     {
         $selects = [];
-        $hasExtraFields = false;
 
-        $queryBuilder->resetQueryPart('groupBy');
+        $queryBuilder->resetGroupBy();
 
         foreach ($value->getColumns() as $column) {
             if (in_array($column, $extraFields, true)) {
                 $mappedMetaKey = $this->getMappedMetaKey($column);
                 $selects[] = select_from_eav($column, $mappedMetaKey);
-                $hasExtraFields = true;
             } elseif (str_starts_with($column, 'MAX(')) {
                 $selects[] = $column;
-                $hasExtraFields = true;
                 $this->joinSelfMetaTable($queryBuilder);
             } else {
                 foreach ($this->tableAliases as $alias => $fields) {
@@ -836,33 +842,5 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         $queryBuilder->select(...$selects, ...$this->additionalFieldsToSelect);
         $this->additionalFieldsToSelect = [];
-
-        if (!$hasExtraFields) {
-            $joinQueryPart = $queryBuilder->getQueryPart('join');
-
-            if (empty($joinQueryPart)) {
-                return;
-            }
-
-            $queryBuilder->resetQueryPart('join');
-
-            foreach ($joinQueryPart['p'] as $index => $part) {
-                if ($part['joinAlias'] === 'pm_self') {
-                    unset($joinQueryPart['p'][$index]);
-                }
-            }
-
-            foreach ($joinQueryPart as $alias => $parts) {
-                foreach ($parts as $part) {
-                    $method = match ($part['joinType']) {
-                        'left' => 'leftJoin',
-                        'right' => 'rightJoin',
-                        default => 'join',
-                    };
-
-                    $queryBuilder->{$method}($alias, $part['joinTable'], $part['joinAlias'], $part['joinCondition']);
-                }
-            }
-        }
     }
 }

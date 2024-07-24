@@ -38,19 +38,25 @@ class TermRepository extends AbstractEntityRepository
             ->addGroupBy('tt.taxonomy')
         ;
 
+        preg_match('/SELECT (.*) FROM/im', $queryBuilder->getSQL(), $match);
+        $selectedFields = explode(', ', $match[1] ?? '');
+
+        preg_match('/GROUP BY (.*)\s?(?:HAVING|ORDER|LIMIT|OFFSET|FETCH|$)/im', $queryBuilder->getSQL(), $match);
+        $groupByFields = explode(', ', $match[1] ?? '');
+
         if (\count(array_filter($criteria, static fn ($condition) => $condition instanceof SelectColumns)) === 0) {
             $extraFields = array_diff(
-                $queryBuilder->getQueryPart('select'),
+                $selectedFields,
                 $this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'term_taxonomy_id', 'count']),
             );
 
-            $queryBuilder->select([
+            $queryBuilder->select(
                 ...$this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'term_taxonomy_id', 'count']),
-                ...$extraFields,
-            ]);
+                ...$extraFields
+            );
         } else {
-            foreach ($this->getPrefixedFields($queryBuilder->getQueryPart('select')) as $field) {
-                if (!\in_array($field, $queryBuilder->getQueryPart('groupBy'), true)) {
+            foreach ($this->getPrefixedFields($selectedFields) as $field) {
+                if (!\in_array($field, $groupByFields, true)) {
                     $queryBuilder->addGroupBy($field);
                 }
             }
@@ -146,19 +152,21 @@ class TermRepository extends AbstractEntityRepository
 
     private function recountTerms(): void
     {
+        $tableName = $this->entityManager->getTablesPrefix() . 'term_taxonomy';
+
         $subSelect = $this->entityManager->getConnection()
             ->createQueryBuilder()
             ->select('COUNT(*)')
             ->from($this->entityManager->getTablesPrefix() . 'term_relationships', 'tr')
             ->leftJoin('tr', $this->entityManager->getTablesPrefix() . 'posts', 'p', 'p.id = tr.object_id')
-            ->where('tr.term_taxonomy_id = tt.term_taxonomy_id')
-            ->andWhere("tt.taxonomy NOT IN ('link_category')")
+            ->where("tr.term_taxonomy_id = $tableName.term_taxonomy_id")
+            ->andWhere("$tableName.taxonomy NOT IN ('link_category')")
             ->andWhere("p.post_status IN ('publish', 'future')")
         ;
 
         $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->update($this->entityManager->getTablesPrefix() . 'term_taxonomy', 'tt')
+            ->update($tableName)
             ->set('count', sprintf('(%s)', $subSelect->getSQL()))
             ->executeStatement()
         ;
