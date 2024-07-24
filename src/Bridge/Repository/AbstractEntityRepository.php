@@ -6,6 +6,7 @@ namespace Williarin\WordpressInterop\Bridge\Repository;
 
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Doctrine\DBAL\Query\QueryException;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
@@ -174,8 +175,10 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         $this->addOrderByClause($queryBuilder, $orderBy);
 
-        $queryBuilder->addSelect(...$this->additionalFieldsToSelect);
-        $this->additionalFieldsToSelect = [];
+        if (!empty($this->additionalFieldsToSelect)) {
+            $queryBuilder->addSelect(...$this->additionalFieldsToSelect);
+            $this->additionalFieldsToSelect = [];
+        }
 
         return $queryBuilder;
     }
@@ -561,8 +564,12 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
     private function hasJoin(QueryBuilder $queryBuilder, string $joinAlias): bool
     {
-        if (preg_match_all('/JOIN (\w+) (\w+) ON p\./im', $queryBuilder->getSQL(), $matches, PREG_SET_ORDER)) {
-            return count(array_filter($matches, static fn (array $match) => $match[2] === $joinAlias)) > 0;
+        try {
+            if (preg_match_all('/JOIN (\w+) (\w+) ON p\./im', $queryBuilder->getSQL(), $matches, PREG_SET_ORDER)) {
+                return count(array_filter($matches, static fn (array $match) => $match[2] === $joinAlias)) > 0;
+            }
+        } catch (QueryException) {
+            return false;
         }
 
         return false;

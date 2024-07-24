@@ -50,10 +50,10 @@ class TermRepository extends AbstractEntityRepository
                 $this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'term_taxonomy_id', 'count']),
             );
 
-            $queryBuilder->select([
+            $queryBuilder->select(
                 ...$this->getPrefixedFields(['term_id', 'name', 'slug', 'taxonomy', 'term_taxonomy_id', 'count']),
-                ...$extraFields,
-            ]);
+                ...$extraFields
+            );
         } else {
             foreach ($this->getPrefixedFields($selectedFields) as $field) {
                 if (!\in_array($field, $groupByFields, true)) {
@@ -152,19 +152,21 @@ class TermRepository extends AbstractEntityRepository
 
     private function recountTerms(): void
     {
+        $tableName = $this->entityManager->getTablesPrefix() . 'term_taxonomy';
+
         $subSelect = $this->entityManager->getConnection()
             ->createQueryBuilder()
             ->select('COUNT(*)')
             ->from($this->entityManager->getTablesPrefix() . 'term_relationships', 'tr')
             ->leftJoin('tr', $this->entityManager->getTablesPrefix() . 'posts', 'p', 'p.id = tr.object_id')
-            ->where('tr.term_taxonomy_id = tt.term_taxonomy_id')
-            ->andWhere("tt.taxonomy NOT IN ('link_category')")
+            ->where("tr.term_taxonomy_id = $tableName.term_taxonomy_id")
+            ->andWhere("$tableName.taxonomy NOT IN ('link_category')")
             ->andWhere("p.post_status IN ('publish', 'future')")
         ;
 
         $this->entityManager->getConnection()
             ->createQueryBuilder()
-            ->update($this->entityManager->getTablesPrefix() . 'term_taxonomy', 'tt')
+            ->update($tableName)
             ->set('count', sprintf('(%s)', $subSelect->getSQL()))
             ->executeStatement()
         ;

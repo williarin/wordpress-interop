@@ -7,6 +7,7 @@ namespace Williarin\WordpressInterop\Test;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Tools\DsnParser;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
@@ -39,7 +40,10 @@ abstract class TestCase extends BaseTestCase
 
     protected function setUp(): void
     {
-        $this->connection = DriverManager::getConnection(['url' => getenv('WORDPRESS_DATABASE_URL')]);
+        $dsnParser  = new DsnParser(['mysql' => 'pdo_mysql']);
+        $this->connection = DriverManager::getConnection(
+            $dsnParser->parse(getenv('WORDPRESS_DATABASE_URL'))
+        );
 
         $loader = class_exists('\\Symfony\\Component\\Serializer\\Mapping\\Loader\\AnnotationLoader')
             ? new AnnotationLoader(new AnnotationReader())
