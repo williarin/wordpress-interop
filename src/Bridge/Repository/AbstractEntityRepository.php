@@ -57,6 +57,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
     private array $tableAliases = [];
     private array $additionalFieldsToSelect = [];
+    private array $joins = [];
 
     public function __construct(
         private string $entityClassName,
@@ -138,6 +139,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
     public function createFindByQueryBuilder(array $criteria, ?array $orderBy): QueryBuilder
     {
+        $this->resetProperties();
+
         $normalizedCriteria = $this->normalizeCriteria($criteria);
         $this->tableAliases['p'] = $this->getEntityBaseFields();
 
@@ -531,6 +534,10 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
     private function joinSelfMetaTable(QueryBuilder $queryBuilder, bool $incrementIfNecessary = false): string
     {
         $applyJoin = function (QueryBuilder $queryBuilder, string $alias): void {
+            if (in_array($alias, $this->joins, true)) {
+                return;
+            }
+
             if (!array_key_exists($alias, $this->tableAliases)) {
                 $this->tableAliases[$alias] = [];
             }
@@ -541,6 +548,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 $alias,
                 sprintf('p.%s = %s.%s', static::TABLE_IDENTIFIER, $alias, static::TABLE_META_IDENTIFIER),
             );
+
+            $this->registerJoin($alias);
         };
 
         static $aliasNumber = 1;
@@ -569,7 +578,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 return count(array_filter($matches, static fn (array $match) => $match[2] === $joinAlias)) > 0;
             }
         } catch (QueryException) {
-            return false;
+            return array_key_exists($joinAlias, $this->joins);
         }
 
         return false;
@@ -621,6 +630,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             ->andWhere(sprintf('%s.meta_key = :%s_field', $alias, $alias))
             ->setParameter(sprintf('%s_field', $alias), $condition->getRelationshipFieldName())
         ;
+
+        $this->registerJoin($alias);
 
         if (!empty($condition->getAlias())) {
             $trimmedAlias = trim($condition->getAlias(), '_');
@@ -685,6 +696,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             )
         ;
 
+        $this->registerJoin(["tr_{$aliasNumber}", "tt_{$aliasNumber}", $termTableAlias]);
+
         $prefixedCriteria = $this->getPrefixedCriteriaForTermRelationshipCondition(
             $condition->getCriteria(),
             $termTableAlias,
@@ -732,6 +745,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             )
         ;
 
+        $this->registerJoin(["tr_{$aliasNumber}", "p_{$aliasNumber}"]);
+
         $this->additionalFieldsToSelect[] = 'tt.term_taxonomy_id';
         $this->addPostMetaJoinForPostRelationshipCondition($queryBuilder, $condition, $aliasNumber);
         $prefixedCriteria = $this->getPrefixedCriteriaForPostRelationshipCondition($condition, $aliasNumber);
@@ -768,6 +783,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
                 $alias,
                 sprintf('p_%d.id = pm_%d.%s', $aliasNumber, $aliasNumber, self::TABLE_META_IDENTIFIER),
             );
+
+            $this->registerJoin($alias);
 
             foreach ($extraFields as $extraField) {
                 $this->tableAliases[$alias][] = property_to_field($extraField);
@@ -825,6 +842,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
             if (in_array($column, $extraFields, true)) {
                 $mappedMetaKey = $this->getMappedMetaKey($column);
                 $selects[] = select_from_eav($column, $mappedMetaKey);
+                $this->joinSelfMetaTable($queryBuilder);
             } elseif (str_starts_with($column, 'MAX(')) {
                 $selects[] = $column;
                 $this->joinSelfMetaTable($queryBuilder);
@@ -842,5 +860,23 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
 
         $queryBuilder->select(...$selects, ...$this->additionalFieldsToSelect);
         $this->additionalFieldsToSelect = [];
+    }
+
+    private function registerJoin(string|array $alias): void
+    {
+        if (is_array($alias)) {
+            $this->joins = array_merge($this->joins, $alias);
+        } else {
+            $this->joins[] = $alias;
+        }
+
+        $this->joins = array_unique($this->joins);
+    }
+
+    private function resetProperties(): void
+    {
+        $this->tableAliases = [];
+        $this->additionalFieldsToSelect = [];
+        $this->joins = [];
     }
 }
