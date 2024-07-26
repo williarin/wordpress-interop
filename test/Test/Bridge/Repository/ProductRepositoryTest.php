@@ -552,4 +552,14 @@ class ProductRepositoryTest extends TestCase
         self::assertContainsOnlyInstancesOf(Product::class, $products);
         self::assertEquals([17, 20, 23], array_column($products, 'id'));
     }
+
+    public function testSelectEntityFieldWithoutQueryingIt(): void
+    {
+        $product = $this->repository->findOneBy([
+            new SelectColumns(['id', 'sku']),
+            'post_title' => 'Hoodie',
+        ]);
+
+        $this->assertSame('woo-hoodie', $product->sku);
+    }
 }
