@@ -55,7 +55,7 @@ trait FieldValidationTrait
         return $expectedType;
     }
 
-    private function validateFieldValue(string $field, mixed $value, string $entityClassName = null): mixed
+    private function validateFieldValue(string $field, mixed $value, ?string $entityClassName = null): mixed
     {
         if (!$entityClassName) {
             $fallbackEntity = get_parent_class(static::class) ?: static::class;

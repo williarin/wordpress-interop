@@ -234,7 +234,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         }
     }
 
-    public function getMappedMetaKey(string $fieldName, string $entityClassName = null): string
+    public function getMappedMetaKey(string $fieldName, ?string $entityClassName = null): string
     {
         $targetClass = $entityClassName ? $this->entityManager->getRepository($entityClassName) : $this;
 
@@ -262,7 +262,7 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         return $key;
     }
 
-    public function isFieldMapped(string $fieldName, string $entityClassName = null): bool
+    public function isFieldMapped(string $fieldName, ?string $entityClassName = null): bool
     {
         $targetClass = $entityClassName ? $this->entityManager->getRepository($entityClassName) : $this;
 
@@ -385,8 +385,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         array $criteria,
         string $field,
         mixed $value,
-        string $entityClassName = null,
-        int $aliasNumber = null,
+        ?string $entityClassName = null,
+        ?int $aliasNumber = null,
     ): void {
         $queryBuilder->andWhere($this->getWhereExpressionFromCriteriaField(
             $queryBuilder,
@@ -418,8 +418,8 @@ abstract class AbstractEntityRepository implements EntityRepositoryInterface
         array $criteria,
         string $field,
         mixed $value,
-        string $entityClassName = null,
-        int $aliasNumber = null,
+        ?string $entityClassName = null,
+        ?int $aliasNumber = null,
     ): CompositeExpression {
         $snakeField = str_replace('.', '_', u($field) ->snake() ->toString());
         $parameter = ":{$snakeField}";

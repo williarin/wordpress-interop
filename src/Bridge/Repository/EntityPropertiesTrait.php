@@ -22,7 +22,7 @@ trait EntityPropertiesTrait
     /**
      * @return string[]
      */
-    protected function getEntityBaseFields(string $entityClassName = null): array
+    protected function getEntityBaseFields(?string $entityClassName = null): array
     {
         $entityClassName = $entityClassName ?? $this->getEntityClassName();
 
@@ -37,7 +37,7 @@ trait EntityPropertiesTrait
         return $this->entityBaseFields[$entityClassName];
     }
 
-    protected function getExternalFields(string $entityClassName = null): array
+    protected function getExternalFields(?string $entityClassName = null): array
     {
         $entityClassName = $entityClassName ?? $this->getEntityClassName();
 
@@ -57,7 +57,7 @@ trait EntityPropertiesTrait
     /**
      * @return string[]
      */
-    protected function getEntityExtraFields(string $entityClassName = null): array
+    protected function getEntityExtraFields(?string $entityClassName = null): array
     {
         $entityClassName = $entityClassName ?? $this->getEntityClassName();
 
@@ -71,7 +71,7 @@ trait EntityPropertiesTrait
         return $this->entityExtraFields[$entityClassName];
     }
 
-    protected function addEntityExtraField(string $fieldName, string $entityClassName = null): self
+    protected function addEntityExtraField(string $fieldName, ?string $entityClassName = null): self
     {
         if (!array_key_exists($entityClassName, $this->entityExtraFields)) {
             $this->getEntityExtraFields($entityClassName);

@@ -26,7 +26,7 @@ abstract class AbstractEntityManager implements EntityManagerInterface
         protected SerializerInterface $serializer,
         private string $tablePrefix = 'wp_',
         #[Deprecated]
-        DuplicationServiceInterface $duplicationService = null,
+        ?DuplicationServiceInterface $duplicationService = null,
     ) {
     }
 

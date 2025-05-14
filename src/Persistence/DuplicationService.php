@@ -27,7 +27,7 @@ final class DuplicationService implements DuplicationServiceInterface, EntityMan
     ) {
     }
 
-    public static function create(EntityManagerInterface $entityManager = null): self
+    public static function create(?EntityManagerInterface $entityManager = null): self
     {
         $duplicationService = new self(new AsciiSlugger());
 

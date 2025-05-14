@@ -11,7 +11,7 @@ interface ManagerRegistryInterface
 {
     public function getDefaultManagerName(): string;
 
-    public function getManager(string $name = null): EntityManagerInterface;
+    public function getManager(?string $name = null): EntityManagerInterface;
 
     /**
      * @return EntityManagerInterface[]

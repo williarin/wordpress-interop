@@ -16,7 +16,7 @@ final class SerializedArrayDenormalizer implements DenormalizerInterface
     ) {
     }
 
-    public function supportsDenormalization(mixed $data, string $type, string $format = null, array $context = []): bool
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
     {
         return in_array($type, [AttachmentMetadata::class, GenericData::class]);
     }
@@ -24,7 +24,7 @@ final class SerializedArrayDenormalizer implements DenormalizerInterface
     public function denormalize(
         mixed $data,
         string $type,
-        string $format = null,
+        ?string $format = null,
         array $context = []
     ): array|string|int|float|bool|\ArrayObject|AttachmentMetadata|GenericData|null {
         $unserialized = unserialize_if_needed($data);

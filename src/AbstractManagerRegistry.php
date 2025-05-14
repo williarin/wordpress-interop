@@ -24,7 +24,7 @@ abstract class AbstractManagerRegistry implements ManagerRegistryInterface
         return $this->defaultManager;
     }
 
-    public function getManager(string $name = null): EntityManagerInterface
+    public function getManager(?string $name = null): EntityManagerInterface
     {
         if ($name === null) {
             $name = $this->defaultManager;

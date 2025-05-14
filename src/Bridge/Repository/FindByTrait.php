@@ -34,7 +34,7 @@ trait FindByTrait
         ]);
     }
 
-    public function findOneBy(array $criteria, array $orderBy = null): mixed
+    public function findOneBy(array $criteria, ?array $orderBy = null): mixed
     {
         $result = $this->createFindByQueryBuilder($criteria, $orderBy)
             ->setMaxResults(1)
@@ -50,12 +50,12 @@ trait FindByTrait
         return $this->denormalize($result, $this->getEntityClassName());
     }
 
-    public function findAll(array $orderBy = null): array
+    public function findAll(?array $orderBy = null): array
     {
         return $this->findBy([], $orderBy);
     }
 
-    public function findBy(array $criteria, array $orderBy = null, ?int $limit = null, int $offset = null): array
+    public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
     {
         $result = $this->createFindByQueryBuilder($criteria, $orderBy)
             ->setMaxResults($limit)

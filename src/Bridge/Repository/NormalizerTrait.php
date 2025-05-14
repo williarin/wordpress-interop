@@ -29,7 +29,7 @@ trait NormalizerTrait
 
     protected function normalizeCriteria(
         array $criteria,
-        string $entityClassName = null,
+        ?string $entityClassName = null,
         bool $ignoreValidation = false,
     ): array {
         $output = [];
